@@ -5,7 +5,7 @@ model_name=sps
 modeldm_name=spsdm
 MODEL_NAME="$(echo ${model_name} | tr 'a-z' 'A-Z')"
 DESC="SetUp and Launch script for the Surface Process Model [${MODEL_NAME}]"
-USAGE="USAGE: ${myself##*/} [-h] [-v LEVEL] [--ptopo {NPEX}x{NPEY}x{NOMP}] [--btopo {NPEX}x{NPEY}] [--intopo {NPEX}x{NPEY}] [--cfg 0:N] [--dircfg configurations/${MODEL_NAME}_cfgs] [--postclean] [--restart] [--nompi] [--dryrun] [--inorder] [--gdb] [--timeout TIMEOUT]"
+USAGE="USAGE: ${myself##*/} [-h] [-v LEVEL] [--ptopo {NPEX}x{NPEY}x{NOMP}] [--btopo {NPEX}x{NPEY}] [--intopo {NPEX}x{NPEY}] [--cfg 0:N] [--dircfg configurations/${MODEL_NAME}_cfgs] [--postclean] [--restart] [--nompi] [--dryrun] [--inorder] [--debug] [--timeout TIMEOUT]"
 
 usage_long() {
          toto=$(echo -e $USAGE)
@@ -44,7 +44,7 @@ Options:
         Run the No-MPI version
     --inorder
         List stdout/stderr of members in process order
-    --gdb
+    --debug
         Run in debugger
     --preexec 
         Prefix program execution with this (time/gdb/...)
@@ -96,7 +96,7 @@ while [[ $# -gt 0 ]] ; do
       (--cfg=*) cfg="${1##*=}";;
       (--nompi) binMPIext="Abs" ; nompi='-nompi';;
       (--inorder) inorder="-inorder -tag" ;;
-      (--gdb) debug="-gdb";;
+      (--debug) debug="-debug ddt";;
       (--preexec=*) preexec="-preexec '${1##*=}'";;
       (--preexec) ;;
       (-n|--dryrun) dryrun=1 ;;
@@ -156,11 +156,12 @@ mkdir -p ${run_basedir_name}
 export model_cfg_filename=${model_name}.cfg
 export model_tsk_file=${TMPDIR}/${model_name}.tsk
 export model_sharedir=${sps_DIR}/share/misc
-export model_exp_storage=$(realpath ${PWD}/${run_basedir_name})
+export model_exp_storage=$(true_path ${PWD}/${run_basedir_name})
 if [[ x$model_exp_storage == x ]] ; then 
    cat <<EOF
 ERROR: RUNDIR does not exists:
        ${PWD}/${run_basedir_name}
+       Try running 'sps-linkit' then launching SPS (sps.sh) again
 EOF
    exit 1
 fi
@@ -456,10 +457,14 @@ runmodel() {
    if [[ x$binMPIext == xAbs ]] ; then
       rmpirun="$(which r.run_in_parallel || true)"
       [[ x$rmpirun == x ]] && rmpirun="r.mpirun"
-      mycmd="$rmpirun -pgm ${TASK_BIN}/${model_name}.Abs -npex $((MPI_NGRIDS*MPI_NPEX*MPI_NPEY)) -npey $MPI_NDOMS ${inorder} ${nompi} ${debug} ${preexec} -minstdout 3"
+      mycmd="ddt mpirun -n $((MPI_NGRIDS*MPI_NPEX*MPI_NPEY)) ${TASK_BIN}/${model_name}.Abs "
    fi
    echo $mycmd
    if [[ x$dryrun == x0 ]] ; then
+   . ssmuse-sh -x /fs/ssm/main/opt/forge/21.1.3
+   export UCX_NET_DEVICES=mlx5_0:1
+   export I_MPI_HYDRA_BOOTSTRAP=ssh
+   export KMP_AFFINITY=compact
       $mycmd
       echo
       check_status $MPI_DOMS
