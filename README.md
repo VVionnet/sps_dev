@@ -24,19 +24,24 @@ cd sps
 git clone git@gitlab.science.gc.ca:MIG/sps.git
 cd sps
 ```
-Update rpn-si libraries and cmake_rpn submodules
+Update only cmake_rpn submodules, for example if you want to modify the default compilation flags
+```
+git submodule update --init cmake_rpn
+```
+Update everything: rpn-si libraries, utilities and cmake_rpn submodules
 ```
 git submodule update --init --recursive
 ```
 
 ## Choosing a version
+
 ```
 git branch # what is the current branch
 git branch -a # list all branches (look at the list of remote branches to choose from)
 git tag # list tags (if you want to select a tagged version)
-git checkout <hash|branch|tag> # checkout a branch, a tag, or a specific hash. Example: git checkout 5.3
+git checkout <hash|branch|tag> # checkout a branch, a tag, or a specific hash.  Example: git checkout 6.2.0-rc3
 ```
-Or, if you want, create your own branch from the current branch
+Before making changes, create your own branch from the current branch
 ```
 git checkout -b mybranch
 ```
@@ -47,7 +52,7 @@ git checkout -b mybranch
 . ./.eccc_setup_intel
 ```
 
-### or for gnu
+### Or for gnu
 
 Please note you cannot compile with Intel and then with GNU in the same shell
 ```
@@ -59,6 +64,22 @@ other submodules, or adding or removing source files):
 ```
 . ./.initial_setup
 ```
+
+### Scripts
+
+Scripts in scripts/support and scripts/rpy directories are a copy of scripts
+already loaded from SSM domains when a .eccc_setup file is called. By
+default, they are not used, but if you want to test or modify them, you can
+override SSM scripts by setting GOAS_SCRIPT_MODE variable before sourcing
+.eccc_setup_intel or .eccc_setup_gnu:
+
+```
+export GOAS_SCRIPT_MODE=true
+```
+
+Please also note that if you load maestro, maestro scripts will be used,
+either in a maestro suite or when running SPS interactively. Otherwise, goas
+task setup files situated in the scripts directory will be used instead.
 
 ## Building and installing SPS
 
@@ -104,6 +125,65 @@ sps.sh --dircfg ./configurations/SPS_cfgs --ptopo 2x2x1 --inorder
 cd $SPS_WORK
 sps_ddt.sh --dircfg ./configurations/SPS_cfgs --ptopo 2x2x1 --btopo=1x1
 
+If you come back later, and you want to run the executables you compiled
+before, you just need to use the following command before going into the
+$SPS_WORK directory:
+```
+. ./.eccc_setup_intel
+or, if you compiled with gnu:
+. ./.eccc_setup_gnu
+cd $SPS_WORK
+```
+
+## Some tips for compilation
+
+When the cado cmake command is called, information is printed, for example
+the list of compilation flags used, such as (example with Intel on science
+side):
+```
+-- (EC) CMAKE_C_FLAGS=-fp-model precise -traceback -Wtrigraphs -xICELAKE-SERVER -diag-disable=10441 -qmkl 
+-- (EC) CMAKE_Fortran_FLAGS=-convert big_endian -align array32byte -assume byterecl -fp-model source -fpe0 -traceback -stand f08 -xICELAKE-SERVER -diag-disable=5268,7025,7373 -qmkl -static-intel
+```
+
+If you choose the debug version (cado cmake-debug), some flags are added to the previous ones, and, again, printed when cado cmake-debug is called:
+```
+-- (EC) CMAKE_C_FLAGS_DEBUG=-O0 -g -ftrapuv
+-- (EC) CMAKE_Fortran_FLAGS_DEBUG=-O0 -g -ftrapuv
+```
+With cado cmake-debug-extra:
+```
+-- (EC) CMAKE_C_FLAGS=-fp-model precise -traceback -Wtrigraphs -xICELAKE-SERVER -diag-disable=10441 -Wall -qmkl 
+-- (EC) CMAKE_Fortran_FLAGS=-convert big_endian -align array32byte -assume byterecl -fp-model source -fpe0 -traceback -stand f08 -xICELAKE-SERVER -diag-disable=5268,7025,7373 -warn all -check all -qmkl -static-intel
+```
+
+These flags come from default compiler rules set up by RPN-SI and are applied to all the compilation processes.
+
+If you want to change those flags, you can either:
+- update the cmake_rpn submodule so that you can edit the files and modify those flags directly:
+  - git submodule update --init cmake_rpn
+  - make the changes in the file corresponding to the platform and compiler used, such as:
+    cmake_rpn/modules/ec_compiler_presets/ECCC/rhel-8-icelake-64/inteloneapi-2022.1.2.cmake
+- or edit the CMakeLists.txt file and add the flags at the end of the following lines (for Intel):
+```
+set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -qmkl -static-intel -diag-disable 5268 ${STATIC_LINK_INTEL_FLAGS}")
+```
+
+If you want to change or add flags for a specific part of GEM, for example sps, you can either:
+- change the flags for all sources, by editing the src/sps/CMakeLists.txt
+  file and add the flags at the end of the following lines (for Intel):
+```
+set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -qmkl -static-intel -diag-disable 5268")
+```
+- or, if you want to change or add flags for a specific source file only,
+  edit the CMakeLists.txt file situated in the directory where this source
+  file is added.
+  For example, for the source file rpnphy/src/utils/sfclayer.F90, edit the
+  rpnphy/src/CMakeLists.txt, and modify the following line according to your
+  needs (here we are adding the -C flag to the default flags:
+```
+set_source_files_properties(utils/sfclayer.F90 PROPERTIES COMPILE_OPTIONS "-C")
+```
+
 ## Structure of the working environment
 The structure of the build and work directories is different whether the
 $storage_model environment variable exists:
@@ -117,15 +197,15 @@ The following environment variables are created (examples):
 
 - SPS_STORAGE_DIR = where build and work directories are situated
   - Example if $storage_model variable exists:
-    - SPS_STORAGE_DIR=/local/storage/sps/ubuntu-18.04-amd64-64-intel-2022.1.2
+    - SPS_STORAGE_DIR=/local/storage/sps/ubuntu-22.04-amd64-64-intel-2022.1.2
     - in sps_DIR:
-      - build-ubuntu-18.04-amd64-64-intel-2022.1.2 is a link, such as:
-        /local/storage/sps/ubuntu-18.04-amd64-64-intel-2022.1.2/build
-      - work-ubuntu-18.04-amd64-64-intel-2022.1.2 is a link, such as:
-        /local/storage/sps/ubuntu-18.04-amd64-64-intel-2022.1.2/work
+      - build-ubuntu-22.04-amd64-64-intel-2022.1.2 is a link, such as:
+        /local/storage/sps/ubuntu-22.04-amd64-64-intel-2022.1.2/build
+      - work-ubuntu-22.04-amd64-64-intel-2022.1.2 is a link, such as:
+        /local/storage/sps/ubuntu-22.04-amd64-64-intel-2022.1.2/work
 
   - Example if $storage_model variable doesn't exist:
     - SPS_STORAGE_DIR=$HOME/sps/
     - directories situated in sps_DIR:
-      - build-ubuntu-18.04-amd64-64-intel-2022.1.2
-      - work-ubuntu-18.04-amd64-64-intel-2022.1.2
+      - build-ubuntu-22.04-amd64-64-intel-2022.1.2
+      - work-ubuntu-22.04-amd64-64-intel-2022.1.2
