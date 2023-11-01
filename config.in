@@ -19,9 +19,10 @@ arch=@EC_ARCH@
 has_rmn=@rmn_VERSION@
 has_tdpack=@tdpack_VERSION@
 has_vgrid=@vgrid_VERSION@
-has_modelutils=@modelutils_VERSION@
 has_rpncomm=@rpncomm_VERSION@
+has_modelutils=@modelutils_VERSION@
 has_rpnphy=@rpnphy_VERSION@
+has_spsdyn=@spsdyn_VERSION@
 
 usage()
 {
@@ -45,6 +46,7 @@ Available values for OPTION include:
   --has-rpncomm  which version of rpncomm is it compiled with [${has_rpncomm}]
   --has-modelutils which version of modelutils is it compiled with [${has_modelutils}]
   --has-rpnphy   which version of rpnphy is it compiled with [${has_rpnphy}]
+  --has-spsdyn   which version of spsdyn is it compiled with [${has_spsdyn}]
 
 EOF
 }
@@ -114,6 +116,10 @@ while test $# -gt 0; do
         
         --has-rpnphy)
        	    echo ${has_rpnphy:-no}
+       	    ;;
+        
+        --has-spsdyn)
+       	    echo ${has_spsdyn:-no}
        	    ;;
         
         --version)
