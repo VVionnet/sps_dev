@@ -436,7 +436,11 @@ runmodel() {
    . ${config_basedir}/cfg_$(int4digits ${MPI_DOMS%%:*})/configexp.cfg
 
    task_setup_verbose=" --verbose"
-   . task_setup.dot --file="$model_tsk_file" --base="$model_exp_storage""$myclean""$task_setup_verbose"
+   if [ -z "${MAESTRO_VERSION}" ]; then
+       echo "Maestro is not loaded: using GOAS task setup scripts: $sps_DIR/scripts/goas_task_setup.dot"
+       export TASK_SETUP=goas_task_setup.dot
+   fi
+   . ${TASK_SETUP} --file="$model_tsk_file" --base="$model_exp_storage""$myclean""$task_setup_verbose"
    
    #-- Export Mandatory EnvVar
    export UM_EXEC_VERBOSITY=$verbosity
