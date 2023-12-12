@@ -65,15 +65,16 @@ install(DIRECTORY ../share/misc/ DESTINATION share/misc USE_SOURCE_PERMISSIONS)
 install(CODE "
    message(STATUS \"Copying nml reference file from rpnphy\")
    execute_process(
-     COMMAND cp ${CMAKE_SOURCE_DIR}/src/rpnphy/share/nml_ref/rpnphy_settings.${SPS_VERSION}.ref ${CMAKE_SOURCE_DIR}/share/nml_ref/sps_settings.${SPS_VERSION}.ref
+     COMMAND cp -p ${CMAKE_SOURCE_DIR}/src/rpnphy/share/nml_ref/rpnphy_settings.${SPS_VERSION}.ref ${CMAKE_SOURCE_DIR}/share/nml_ref/sps_settings.${SPS_VERSION}.ref
      COMMAND_ERROR_IS_FATAL ANY
 )
    message(STATUS \"Copying physics_input_table_GENERIC from rpnphy\")
    execute_process(
-     COMMAND cp ${CMAKE_SOURCE_DIR}/src/rpnphy/include/physics_input_table_GENERIC ${CMAKE_SOURCE_DIR}/share/misc/physics_input_table
+     COMMAND cp -p ${CMAKE_SOURCE_DIR}/src/rpnphy/include/physics_input_table_GENERIC ${CMAKE_SOURCE_DIR}/share/misc/physics_input_table
      COMMAND_ERROR_IS_FATAL ANY
 )
      ")
 
 install(FILES "${CMAKE_SOURCE_DIR}/share/nml_ref/sps_settings.${SPS_VERSION}.ref" DESTINATION share/nml_ref)
 install(FILES "${CMAKE_SOURCE_DIR}/share/misc/physics_input_table" DESTINATION share/misc)
+install(PROGRAMS "${CMAKE_SOURCE_DIR}/src/rpnphy/bin/rpnphy_nml_mkref" DESTINATION scripts)
