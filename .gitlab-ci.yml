@@ -379,6 +379,7 @@ SPS_cfgs_intel:
     - set +e
     - . ${ECCI_ENV}/latest/profile.sh
     - . ./.eccc_setup_intel
+    - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
     - set -e
     - ./scripts/link-dbase.sh
     - cd $SPS_WORK
@@ -397,6 +398,7 @@ SPS_isba_intel:
     - set +e 
     - . ${ECCI_ENV}/latest/profile.sh
     - . ./.eccc_setup_intel
+    - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
     - set -e
     - ./scripts/link-dbase.sh
     - cd $SPS_WORK
@@ -416,6 +418,7 @@ SPS_cfgs_gnu_9.3.0:
     - set +e
     - . ${ECCI_ENV}/latest/profile.sh
     - . ./.eccc_setup_gnu
+    - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
     - ./scripts/link-dbase.sh
     - set -e
     - cd $SPS_WORK
@@ -434,6 +437,7 @@ SPS_isba_gnu_9.3.0:
     - set +e
     - . ${ECCI_ENV}/latest/profile.sh
     - . ./.eccc_setup_gnu
+    - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
     - ./scripts/link-dbase.sh
     - set -e
     - cd $SPS_WORK
