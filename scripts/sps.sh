@@ -440,6 +440,7 @@ runmodel() {
        echo "Maestro is not loaded: using GOAS task setup scripts: $sps_DIR/scripts/goas_task_setup.dot"
        export TASK_SETUP=goas_task_setup.dot
    fi
+   export TASK_SETUP=${TASK_SETUP:-task_setup.dot}
    . ${TASK_SETUP} --file="$model_tsk_file" --base="$model_exp_storage""$myclean""$task_setup_verbose"
    
    #-- Export Mandatory EnvVar
