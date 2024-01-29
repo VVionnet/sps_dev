@@ -5,7 +5,7 @@ model_name=sps
 modeldm_name=spsdm
 MODEL_NAME="$(echo ${model_name} | tr 'a-z' 'A-Z')"
 DESC="SetUp and Launch script for the Surface Process Model [${MODEL_NAME}]"
-USAGE="USAGE: ${myself##*/} [-h] [-v LEVEL] [--ptopo {NPEX}x{NPEY}x{NOMP}] [--btopo {NPEX}x{NPEY}] [--intopo {NPEX}x{NPEY}] [--cfg 0:N] [--dircfg configurations/${MODEL_NAME}_cfgs] [--postclean] [--restart] [--nompi] [--dryrun] [--inorder] [--gdb] [--timeout TIMEOUT]"
+USAGE="USAGE: ${myself##*/} [-h] [-v LEVEL] [--ptopo {NPEX}x{NPEY}x{NOMP}] [--btopo {NPEX}x{NPEY}] [--intopo {NPEX}x{NPEY}] [--cfg 0:N] [--dircfg configurations/${MODEL_NAME}_cfgs] [--postclean] [--restart] [--nompi] [--dryrun] [--inorder] [--debugger [gdb/ddt]] [--timeout TIMEOUT]"
 
 usage_long() {
          toto=$(echo -e $USAGE)
@@ -44,8 +44,9 @@ Options:
         Run the No-MPI version
     --inorder
         List stdout/stderr of members in process order
-    --gdb
-        Run in debugger
+    --debugger
+        Run in debugger (gdb or ddt)
+        default=gdb
     --preexec 
         Prefix program execution with this (time/gdb/...)
     --timeout 
@@ -96,7 +97,8 @@ while [[ $# -gt 0 ]] ; do
       (--cfg=*) cfg="${1##*=}";;
       (--nompi) binMPIext="Abs" ; nompi='-nompi';;
       (--inorder) inorder="-inorder -tag" ;;
-      (--gdb) debug="-gdb";;
+      (--debugger) debugger="gdb" ;;
+      (--debugger=*) debugger="${1##*=}" ;;
       (--preexec=*) preexec="-preexec '${1##*=}'";;
       (--preexec) ;;
       (-n|--dryrun) dryrun=1 ;;
@@ -110,6 +112,7 @@ while [[ $# -gt 0 ]] ; do
          [[ x"$previous" == x"--intopo" ]] && intopo=$1 ;
          [[ x"$previous" == x"--dircfg" ]] && dircfg=$1 ;
          [[ x"$previous" == x"--cfg" ]] && cfg=$1 ;
+         [[ x"$previous" == x"--debugger" ]] && debugger=$1 ;
          [[ x"$previous" == x"--timeout" ]] && timeout=$1 ;
          [[ x"$previous" == x"--preexec" ]] && preexec="-preexec '${1}'" ;;
    esac
@@ -143,6 +146,9 @@ else
    ninbly=${nbly}
 fi
 intopo=${ninblx}x${ninbly}
+if [[ ${debugger} == "gdb" ]] ; then
+   debug="-debug gdb"
+fi
 
 
 
@@ -164,39 +170,6 @@ ERROR: RUNDIR does not exists:
 EOF
    exit 1
 fi
-
-#==== Abs Search script
-find_sps_bin() {
-   _UM_EXEC_ovbin=$1
-   _UM_EXEC_Abs=$2
-   model_abs_basename=main${modeldm_name}
-   
-   if [[ x$_UM_EXEC_Abs == x ]] ; then
-      if [[ x$_UM_EXEC_ovbin != x ]] ; then
-         export _UM_EXEC_Abs=${_UM_EXEC_ovbin}/${model_abs_basename}
-      else
-         _UM_EXEC_ovbin=${PWD}/bin
-         _UM_EXEC_Abs=${_UM_EXEC_ovbin}/mainspsdm
-      fi
-   fi
-
-   if [[ ! -x $_UM_EXEC_Abs ]] ; then
-      export UM_EXEC_Abs=''
-      export UM_EXEC_ovbin=''
-      cat <<EOF
-ERROR: Executable not found: mainspsdm
-==== Abort ====
-EOF
-      exit 1
-   fi
-   export UM_EXEC_Abs=${_UM_EXEC_Abs}
-   export UM_EXEC_ovbin=${_UM_EXEC_Abs%/*}
-#    cat <<EOF
-# echo #Executable found at: \n
-# echo $(ls -l $UM_EXEC_Abs) \n
-# echo $(ls -lL $UM_EXEC_Abs) \n
-# EOF
-}
 
 
 #==== Task config file Setup scripts
@@ -257,7 +230,6 @@ set_tsk_cfg() {
    if [[ -f ${__cfg_dir}/${model_name}.dict ]] ; then
       __dict_dir=${__cfg_dir}
    fi
-   #find_sps_bin "$UM_EXEC_ovbin" "$UM_EXEC_Abs"
    ATMMOD=$(which mainspsdm)
    BINMOD=$(dirname ${ATMMOD})
    BINMOD=${UM_EXEC_ovbin:-${BINMOD}}
@@ -461,7 +433,12 @@ runmodel() {
    if [[ x$binMPIext == xAbs ]] ; then
       rmpirun="$(which r.run_in_parallel || true)"
       [[ x$rmpirun == x ]] && rmpirun="r.mpirun"
-      mycmd="$rmpirun -pgm ${TASK_BIN}/${model_name}.Abs -npex $((MPI_NGRIDS*MPI_NPEX*MPI_NPEY)) -npey $MPI_NDOMS ${inorder} ${nompi} ${debug} ${preexec} -minstdout 3"
+      if [[ ${debugger} == "ddt" ]] ; then
+         . ssmuse-sh -x /fs/ssm/main/opt/forge/21.1.3
+         mycmd="ddt mpirun -n $((MPI_NGRIDS*MPI_NPEX*MPI_NPEY)) ${TASK_BIN}/${model_name}.Abs "
+      else
+         mycmd="$rmpirun -pgm ${TASK_BIN}/${model_name}.Abs -npex $((MPI_NGRIDS*MPI_NPEX*MPI_NPEY)) -npey $MPI_NDOMS ${inorder} ${nompi} ${debug} ${preexec} -minstdout 3"
+      fi
    fi
    echo $mycmd
    if [[ x$dryrun == x0 ]] ; then

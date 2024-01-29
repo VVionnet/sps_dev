@@ -35,7 +35,7 @@ EOF
 #echo storage: $storage_model
 #EOF
 set -x
-ord_soumet $(true_path ${here}/${jobname}) \
+ord_soumet $(realpath ${here}/${jobname}) \
    -mach $BATCH_launch_mach -t $BATCH_launch_time_mod -cm $BATCH_launch_cm  \
    -cpus ${npex}x${npey}x${nomp} -listing $BATCH_launch_listings     \
    -jn ${jobname} -mpi ${batch_class} ${batch_waste} $SMT  \

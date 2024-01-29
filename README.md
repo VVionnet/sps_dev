@@ -123,7 +123,10 @@ sps.sh --dircfg ./configurations/SPS_cfgs --ptopo 2x2x1 --inorder
 
 ## Running SPS using DDT: example
 cd $SPS_WORK
-sps_ddt.sh --dircfg ./configurations/SPS_cfgs --ptopo 2x2x1 --btopo=1x1
+sps.sh --dircfg ./configurations/SPS_cfgs --ptopo 2x2x1 --btopo=1x1 -debugger ddt
+## Running SPS using GDB: example
+sps.sh --dircfg ./configurations/SPS_cfgs --ptopo 2x2x1 --btopo=1x1 -debugger gdb
+sps.sh --dircfg ./configurations/SPS_cfgs --ptopo 2x2x1 --btopo=1x1 -debugger
 
 If you come back later, and you want to run the executables you compiled
 before, you just need to use the following command before going into the
