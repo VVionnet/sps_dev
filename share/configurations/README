@@ -5,14 +5,30 @@ to obtain Intel compiler
 . ./.eccc_setup_intel
 
 Interactive:
-sps.sh --dircfg configurations/tape1_grid --ptopo=1x1 --btopo=1x1 > list_tape1 2>&1
 sps.sh --dircfg configurations/SPS_cfgs --ptopo=2x2 --btopo=1x1 --inorder > list_sps 2>&1
 
 Verify namelists (example):
 checknml share/configurations/SPS_cfgs/cfg_0000/sps.cfg
 checknml share/configurations/SPS_isba_cfgs/cfg_0000/sps.cfg
 
-Batch example for Intel
+Interactive to run all test cases (Do this on Science backend node):
+---------------
+sps_tests.sh
+
+Batch to run all test cases
+----------------
+Put the following lines in a file called myjob.sh
+
+!/bin/bash
+cd [path of your SPS git clone]
+. ./.eccc_setup_intel
+cd $SPS_WORK
+sps_tests.sh
+#For Science: ord_soumet -jobfile myjob.sh -jn job_SPStests -d ppp5 -mpi -norerun -c 80x1 -m 2G -w 30 -v -listing $HOME/listings
+#For GPSCC: ord_soumet -jobfile myjob.sh -jn job_SPStests -d gpscc3 -project eccc_pegasus_mrd -mpi -norerun -c 80x1 -m 2G -w 30 -v -listing $HOME/listings -qos low
+
+
+Batch example to run 1 case for Intel
 -----------------
 in myjob.sh
 
@@ -21,20 +37,6 @@ cd [path of your SPS git clone]
 . ./.eccc_setup_intel
 cd $SPS_WORK
 sps.sh --dircfg configurations/SPS_cfgs --ptopo=1x1 --btopo=1x1 > list_sps_cfgs 2>&1
-
-Batch example for GNU
------------------
-in myjob.sh
-
-!/bin/bash
-cd [path of your SPS git clone]
-. ./.eccc_setup_gnu
-cd $SPS_WORK
-sps.sh --dircfg configurations/SPS_cfgs --ptopo=1x1 --btopo=1x1 > list_sps_cfgs 2>&1
-sps.sh --dircfg configurations/SPS_isba_cfgs --ptopo=1x1 --btopo=1x1 > list_sps_isba_cfgs 2>&1
-
-Submit job(s) using ord_soumet:
-ord_soumet -jobfile [path of your SPS gitclone]/myjob.sh -jn job_SPS_1x1x1 -d ppp5 -mpi -norerun -c 1x1 -m 4G -w 10 -v -listing $HOME/listings
 
 
 CPU and PE topologies for the following configurations:
