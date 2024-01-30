@@ -2,16 +2,13 @@
 
 # link to SPS database at CMC
 
-
 SPS_DBASE=/fs/ssm/eccc/mrd/rpn/models/sps/sps-data/dfiles
 
-if [ -e ${SPS_DBASE} ] ; then
-    if  [ ! -e sps_dbase ] ; then
-        ln -sf ${SPS_DBASE} sps_dbase
-    else
-        echo "There is already a link to a database: please make sure it's the correct link:"
-        ls -al sps_dbase
-    fi
-else
-    echo "Database not found: don't know where database is."
+if [ ! -d ${SPS_DBASE} ] ; then
+    echo "${SPS_DBASE} not found: don't know where database is."
+    exit 1
 fi
+
+# remove possible existing link or file, and create symbolic link, 
+# or display an error message (for example if a directory named sps_dbase already exists)
+\rm -f sps_dbase && ln -s ${SPS_DBASE} sps_dbase || ( echo "sps_dbase cannot be removed" && exit 2)
