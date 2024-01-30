@@ -18,7 +18,7 @@ cat > ${profilePath} << EOF
 export ${packageName%%_*}_DIR="$packageHome"
 export PATH="$packageHome/scripts:\$PATH"
 export ATM_MODEL_VERSION=@SPS_VERSION@
-export SPS_MODEL_DFILES=/home/ssps121/SPS_MODEL_DFILES
+export SPS_MODEL_DFILES=/fs/ssm/eccc/mrd/rpn/models/sps/sps-data/dfiles
 export OMP_STACKSIZE=4G
 EOF
 
@@ -27,7 +27,7 @@ cat > ${loginPath} << EOF
 setenv ${packageName%%_*}_DIR="$packageHome"
 setenv PATH="$packageHome/scripts:\$PATH"
 setenv ATM_MODEL_VERSION=@SPS_VERSION@
-setenv SPS_MODEL_DFILES=/home/ssps121/SPS_MODEL_DFILES
+setenv SPS_MODEL_DFILES=/fs/ssm/eccc/mrd/rpn/models/sps/sps-data/dfiles
 setenv OMP_STACKSIZE=4G
 EOF
 
