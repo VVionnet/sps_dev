@@ -371,9 +371,6 @@ SPS_cfgs_intel:
   dependencies:
   - build:rhel-8-icelake-64-intel-2022.1.2
   when: always
-  only:
-  - /^dev_6\.[0-9]$/
-  - tags
   allow_failure: true
   script:
     - set +e
@@ -390,9 +387,6 @@ SPS_isba_intel:
   dependencies:
   - build:rhel-8-icelake-64-intel-2022.1.2
   when: always
-  only:
-  - /^dev_6\.[0-9]$/
-  - tags
   allow_failure: true
   script:
     - set +e 
@@ -410,9 +404,6 @@ SPS_cfgs_gnu_9.3.0:
   dependencies:
   - build:rhel-8-amd64_gnu-9.3.0
   when: always
-  only:
-  - /^dev_6\.[0-9]$/
-  - tags
   allow_failure: true
   script:
     - set +e
@@ -429,9 +420,6 @@ SPS_isba_gnu_9.3.0:
   dependencies:
   - build:rhel-8-amd64_gnu-9.3.0
   when: always
-  only:
-  - /^dev_6\.[0-9]$/
-  - tags
   allow_failure: true
   script:
     - set +e
