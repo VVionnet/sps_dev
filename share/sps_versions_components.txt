@@ -70,3 +70,4 @@ sps=6.2.0-rc3;spsdyn=6.2.0-rc3;rpnphy=6.2.0-rc3;modelutils=1.7.0-rc1
 sps=6.3.0-a0;spsdyn=6.2.0-rc3;rpnphy=6.2.0-rc2;modelutils=1.7.0-rc1
 sps=6.3.0-a3;spsdyn=6.3.0-a3;rpnphy=6.3.0-a3;modelutils=1.8.0-a3
 sps=6.3.0-a4;spsdyn=6.3.0-a3;rpnphy=6.3.0-a4;modelutils=1.8.0-a3
+sps=6.3.0-a6;spsdyn=6.3.0-a6;rpnphy=6.3.0-a6;modelutils=1.8.0-a6
