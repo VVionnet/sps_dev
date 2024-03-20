@@ -46,13 +46,17 @@ Before making changes, create your own branch from the current branch
 git checkout -b mybranch
 ```
 
-## Preparing sps compilation for Intel compiler
+## Linking to SPS database (to be done once)
 ```
 ./scripts/link-dbase.sh
+```
+
+## Preparing sps compilation for Intel compiler
+```
 . ./.eccc_setup_intel
 ```
 
-### Or for gnu
+## Or preparing sps compilation for gnu compiler suite
 
 Please note you cannot compile with Intel and then with GNU in the same shell
 ```
@@ -114,8 +118,10 @@ cado cmake-static
 See others options with cado -h (short help) or cado help
 
 ## Running SPS: example
+```
 cd $SPS_WORK
 sps.sh --dircfg ./configurations/SPS_cfgs --ptopo 2x2x1 --inorder
+```
 
 ## Running SPS using DDT: example
 ```
@@ -143,7 +149,7 @@ cd $SPS_WORK
 
 ## Some tips for compilation
 
-When the cado cmake command is called, information is printed, among which
+When the `cado cmake` command is called, information is printed, among which
 the list of compilation flags used, such as (example with Intel on science
 side):
 ```
