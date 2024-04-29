@@ -61,11 +61,11 @@ install(DIRECTORY ../scripts/ DESTINATION scripts USE_SOURCE_PERMISSIONS PATTERN
 install(DIRECTORY ../share/configurations/ DESTINATION share/configurations USE_SOURCE_PERMISSIONS)
 install(DIRECTORY ../share/misc/ DESTINATION share/misc USE_SOURCE_PERMISSIONS)
 
-# Copy nml reference file and physics_input_table from rpnphy
+# Copy nml reference file and physics_input_table from rpnphy, using rpnphy_version environment variable
 install(CODE "
    message(STATUS \"Copying nml reference file from rpnphy\")
    execute_process(
-     COMMAND cp -p ${CMAKE_SOURCE_DIR}/src/rpnphy/share/nml_ref/rpnphy_settings.${SPS_VERSION}.ref ${CMAKE_SOURCE_DIR}/share/nml_ref/sps_settings.${SPS_VERSION}.ref
+     COMMAND cp -p ${CMAKE_SOURCE_DIR}/src/rpnphy/share/nml_ref/rpnphy_settings.$ENV{rpnphy_version}.ref ${CMAKE_SOURCE_DIR}/share/nml_ref/sps_settings.${SPS_VERSION}.ref
      COMMAND_ERROR_IS_FATAL ANY
 )
    message(STATUS \"Copying physics_input_table_GENERIC from rpnphy\")
