@@ -42,12 +42,12 @@ module dyn_input_mod
    real,parameter :: P0MIN =  30000. !# Above highest Mtn
    real,parameter :: P0MAX = 108570. !# Highest ever recorded
    integer,parameter :: MAXNVAR = 64
-   integer,parameter :: STAT_PRECISION = 4
    integer,parameter :: NK_MAX0 = 1024
    integer,parameter :: NK_MAX1 = 2
    character(len=*),parameter :: WB_LVL_SEC = 'levels_cfgs/'
    character(len=*),parameter :: HGRID_S = 'local#'
    character(len=*),parameter :: HGRIDZ_S = 'localz'
+
 
    interface dyn_input
       module procedure dyn_input0
@@ -119,6 +119,8 @@ contains
       integer, save :: inputid = -1
       integer, save :: nbvar = 0
       integer, save :: nskip = 0
+      integer, save :: STAT_PRECISION = 4
+      logical, save :: Stat_dble_L = .false.
       character(len=32), save :: skip_list_S(16)
 
       integer :: ivar,istat,nread,nk_max
@@ -142,6 +144,8 @@ contains
       if (F_step == 0) nk_max = NK_MAX0
       IF_INIT: if (.not.is_init_L) then
          is_init_L = .true.
+         istat = wb_get('sps_cfgs/stat_dble_l',stat_dble_l)
+         if (Stat_dble_l) STAT_PRECISION=8
          istat = wb_get('ptopo/ngrids',G_ngrids)
          if (.not.RMN_IS_OK(F_istat)) G_ngrids = 1
          !TODO: DXDY from cfgs if Y grid

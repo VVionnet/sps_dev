@@ -87,13 +87,20 @@ contains
    !*@/
       logical,parameter :: NOPRINT = .false.
       integer,parameter :: MAXNVAR = 64
-      integer,parameter :: STAT_PRECISION = 4
       integer,parameter :: STAT_NK_MAX = 2
       character(len=MSG_MAXLEN) :: msg_S
       character(len=32) :: varlist_S(MAXNVAR),name_S,name2_S
+      logical,save      :: init_L = .false.
+      logical,save      :: Stat_dble_L = .false.
+      integer,save      :: STAT_PRECISION = 4
       integer :: istat,nvars,ivar,k0,kn,k
       real,pointer :: gmmdata3d(:,:,:),gmmdata2d(:,:)
       !---------------------------------------------------------------------
+      if (.not. init_L) then
+          init_L = .true.
+          istat = wb_get('sps_cfgs/stat_dble_l',stat_dble_l)
+          if (Stat_dble_L) STAT_PRECISION=8
+      endif
       write(msg_S,'(a,I5.5)') '---- (dyn) Blocstat Step=',F_step
       call msg(MSG_INFO,trim(msg_S)//' [Begin] ------------')
 
