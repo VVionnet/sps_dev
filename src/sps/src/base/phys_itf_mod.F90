@@ -353,7 +353,6 @@ contains
       integer,intent(in) :: F_step
       logical,intent(in) :: F_by_levels_L
    !*@/
-      integer,parameter :: STAT_PRECISION = 4
       integer,parameter :: NSTATMAX = 64
 !!$      integer,parameter :: MAX_PARAMS = 8
 !!$      integer,parameter :: BUSPAR_NIK=2
@@ -363,6 +362,8 @@ contains
       integer,save :: u_ijk(3) = (/0,0,0/)
       integer,save :: nstat = 0
       logical,save :: init_L = .false.
+      integer,save :: STAT_PRECISION = 4
+      logical,save :: Stat_dble_L = .false.
       character(len=MSG_MAXLEN) :: msg_S,name2_S
       real,pointer :: data3dr4(:,:,:)
       integer :: istat,ivar,grid_id,gi0,gj0,lni,lnj,hx,hy,k0,kn,k
@@ -371,6 +372,8 @@ contains
       !---------------------------------------------------------------------
       IF_INIT: if (.not.init_L) then
          istat = wb_get('sps_cfgs/stat_list_s',stat_list_S,nstat)
+         istat = wb_get('sps_cfgs/stat_dble_l',stat_dble_l)
+         if (Stat_dble_l) STAT_PRECISION=8
          istat = hgrid_wb_get(HGRID_S,grid_id,gi0,gj0,lni,lnj,hx,hy)
          if (.not.RMN_IS_OK(istat)) then
             call msg(MSG_ERROR,'(phys_blocstats) Problem getting grid info')
