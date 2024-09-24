@@ -33,10 +33,10 @@ else
         export sps_DIR=$PWD
         SPS_MODEL_DFILES=${SPS_MODEL_DFILES:-${sps_DIR}/sps_dbase}
         export SPS_MODEL_DFILES
-        export ATM_MODEL_VERSION=`cat MANIFEST | sed -n '/VERSION/s/.*: //p'`
-        export spsdyn_version=`cat src/sps/MANIFEST | sed -n '/VERSION/s/.*: //p'`
-        export rpnphy_version=`cat src/rpnphy/MANIFEST | sed -n '/VERSION/s/.*: //p'`
-        export modelutils_version=`cat src/modelutils/MANIFEST | sed -n '/VERSION/s/.*: //p'`
+        export ATM_MODEL_VERSION=`cat MANIFEST | sed -n '/^VERSION/s/.*: //p'`
+        export spsdyn_version=`cat src/sps/MANIFEST | sed -n '/^VERSION/s/.*: //p'`
+        export rpnphy_version=`cat src/rpnphy/MANIFEST | sed -n '/^VERSION/s/.*: //p'`
+        export modelutils_version=`cat src/modelutils/MANIFEST | sed -n '/^VERSION/s/.*: //p'`
         # Check if at ECCC
         if [ -n "${EC_ARCH}" ]; then
             # Check whether GOAS_SCRIPT_MODE variable exists
