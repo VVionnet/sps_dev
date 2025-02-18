@@ -365,7 +365,39 @@ deploy:staging:
    script:
       - ~/ci-admin/bin/ci-stage-ssm.sh sps sps "${CI_COMMIT_TAG}" "${ECCI_PROCESS}"
 
-#----- Running test configuration for rhel-8-icelake-64-intel-2022.1.2
+#----- Running test configurations for rhel-8-icelake-64-intel-2022.1.2
+caldas_hrdps_isba_intel:
+  stage: run_intel
+  dependencies:
+  - build:rhel-8-icelake-64-intel-2022.1.2
+  when: always
+  allow_failure: true
+  script:
+    - set +e
+    - . ${ECCI_ENV}/latest/profile.sh
+    - . ./.eccc_setup_intel
+    - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
+    - set -e
+    - ./scripts/link-dbase.sh
+    - cd $SPS_WORK
+    - sps.sh --dircfg ./configurations/caldas_hrdps_isba SPS_cfgs --ptopo=6x1 --btopo=1x1 --inorder
+
+CSLM_cfgs_intel:
+  stage: run_intel
+  dependencies:
+  - build:rhel-8-icelake-64-intel-2022.1.2
+  when: always
+  allow_failure: true
+  script:
+    - set +e
+    - . ${ECCI_ENV}/latest/profile.sh
+    - . ./.eccc_setup_intel
+    - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
+    - set -e
+    - ./scripts/link-dbase.sh
+    - cd $SPS_WORK
+    - sps.sh --dircfg ./configurations/CSLM_cfgs --ptopo=8x10 --btopo=1x1 --inorder
+
 SPS_cfgs_intel:
   stage: run_intel
   dependencies:
@@ -398,7 +430,71 @@ SPS_isba_intel:
     - cd $SPS_WORK
     - sps.sh --dircfg configurations/SPS_isba_cfgs --ptopo=2x2x1 --btopo=1x1 --inorder
 
-#----- Running test configuration for rhel-8-amd64_gnu-9.3.0
+tape1_grid_intel:
+  stage: run_intel
+  dependencies:
+  - build:rhel-8-icelake-64-intel-2022.1.2
+  when: always
+  allow_failure: true
+  script:
+    - set +e
+    - . ${ECCI_ENV}/latest/profile.sh
+    - . ./.eccc_setup_intel
+    - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
+    - set -e
+    - ./scripts/link-dbase.sh
+    - cd $SPS_WORK
+    - sps.sh --dircfg ./configurations/tape1_grid --ptopo=1x1x1 --btopo=1x1 --inorder
+
+TEB_national_intel:
+  stage: run_intel
+  dependencies:
+  - build:rhel-8-icelake-64-intel-2022.1.2
+  when: always
+  allow_failure: true
+  script:
+    - set +e
+    - . ${ECCI_ENV}/latest/profile.sh
+    - . ./.eccc_setup_intel
+    - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
+    - set -e
+    - ./scripts/link-dbase.sh
+    - cd $SPS_WORK
+    - sps.sh --dircfg ./configurations/TEB_national --ptopo=8x10 --btopo=1x1 --inorder
+
+#----- Running test configurations for rhel-8-amd64_gnu-9.3.0
+caldas_hrdps_isba_gnu:
+  stage: run_gnu
+  dependencies:
+  - build:rhel-8-amd64_gnu-9.3.0
+  when: always
+  allow_failure: true
+  script:
+    - set +e
+    - . ${ECCI_ENV}/latest/profile.sh
+    - . ./.eccc_setup_gnu
+    - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
+    - ./scripts/link-dbase.sh
+    - set -e
+    - cd $SPS_WORK
+    - sps.sh --dircfg ./configurations/caldas_hrdps_isba SPS_cfgs --ptopo=6x1 --btopo=1x1 --inorder
+
+CSLM_cfgs_gnu:
+  stage: run_gnu
+  dependencies:
+  - build:rhel-8-amd64_gnu-9.3.0
+  when: always
+  allow_failure: true
+  script:
+    - set +e
+    - . ${ECCI_ENV}/latest/profile.sh
+    - . ./.eccc_setup_gnu
+    - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
+    - ./scripts/link-dbase.sh
+    - set -e
+    - cd $SPS_WORK
+    - sps.sh --dircfg ./configurations/CSLM_cfgs --ptopo=8x10 --btopo=1x1 --inorder
+
 SPS_cfgs_gnu_9.3.0:
   stage: run_gnu
   dependencies:
@@ -430,3 +526,35 @@ SPS_isba_gnu_9.3.0:
     - set -e
     - cd $SPS_WORK
     - sps.sh --dircfg configurations/SPS_isba_cfgs --ptopo=2x2x1 --btopo=1x1 --inorder
+
+tape1_grid_gnu:
+  stage: run_gnu
+  dependencies:
+  - build:rhel-8-amd64_gnu-9.3.0
+  when: always
+  allow_failure: true
+  script:
+    - set +e
+    - . ${ECCI_ENV}/latest/profile.sh
+    - . ./.eccc_setup_gnu
+    - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
+    - ./scripts/link-dbase.sh
+    - set -e
+    - cd $SPS_WORK
+    - sps.sh --dircfg ./configurations/tape1_grid --ptopo=1x1x1 --btopo=1x1 --inorder
+
+TEB_national_gnu:
+  stage: run_gnu
+  dependencies:
+  - build:rhel-8-amd64_gnu-9.3.0
+  when: always
+  allow_failure: true
+  script:
+    - set +e
+    - . ${ECCI_ENV}/latest/profile.sh
+    - . ./.eccc_setup_gnu
+    - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
+    - ./scripts/link-dbase.sh
+    - set -e
+    - cd $SPS_WORK
+    - sps.sh --dircfg ./configurations/TEB_national --ptopo=8x10 --btopo=1x1 --inorder
