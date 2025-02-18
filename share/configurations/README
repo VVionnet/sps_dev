@@ -11,7 +11,7 @@ Verify namelists (example):
 checknml share/configurations/SPS_cfgs/cfg_0000/sps.cfg
 checknml share/configurations/SPS_isba_cfgs/cfg_0000/sps.cfg
 
-Interactive to run all test cases (Do this on Science backend node):
+Interactive to run all test cases (Can do this on Science backend node):
 ---------------
 sps_tests.sh
 
@@ -27,45 +27,29 @@ sps_tests.sh
 #For Science: ord_soumet -jobfile myjob.sh -jn job_SPStests -d ppp5 -mpi -norerun -c 80x1 -m 2G -w 30 -v -listing $HOME/listings
 #For GPSCC: ord_soumet -jobfile myjob.sh -jn job_SPStests -d gpscc3 -project eccc_pegasus_mrd -mpi -norerun -c 80x1 -m 2G -w 30 -v -listing $HOME/listings -qos low
 
-
 Batch example to run 1 case for Intel
 -----------------
-in myjob.sh
+in mySPS_cfgs.job
 
 !/bin/bash
 cd [path of your SPS git clone]
 . ./.eccc_setup_intel
 cd $SPS_WORK
-sps.sh --dircfg configurations/SPS_cfgs --ptopo=1x1 --btopo=1x1 > list_sps_cfgs 2>&1
+sps.sh --dircfg configurations/SPS_cfgs --ptopo=2x2 --btopo=1x1 > list_sps_cfgs 2>&1
 
+then submit mySPS_cfgs.job using ord_soumet (note: 2x2=4x1)
+#For Science: ord_soumet -jobfile mySPS_cfgs.job -jn job_SPS_cfgs -d ppp5 -mpi -norerun -c 4x1 -m 2G -w 30 -v -listing $HOME/listings
 
-CPU and PE topologies for the following configurations:
+-----------------------------
+CPU and PE topologies for the following configurations as tested in sps_test.sh:
+(all use --btopo=1x1)
 
------------------
-mySPSsvs.job:
-sps.sh --dircfg configurations/SPS_cfgs --ptopo=2x2x1 --btopo=1x1 > list_svs_2x2 2>&1
-#ord_soumet -jobfile mySPSsvs.job -jn job_SPSsvs_2x2x1 -d ppp5 -mpi -norerun -c 4x1 -m 2G -w 60 -v -listing $HOME/listings
------------------
-mySPSisba.job:
-sps.sh --dircfg configurations/SPS_isba_cfgs --ptopo=2x2x1 --btopo=1x1 > list_isba_2x2 2>&1
-#ord_soumet -jobfile mySPSisba.job -jn job_SPSisba_2x2x1 -d ppp5 -mpi -norerun -c 4x1 -m 2G -w 60 -v -listing $HOME/listings
------------------
-myHRDLPS.job:
-sps.sh --dircfg configurations/hrdlps --ptopo=4x20 --btopo=1x1 > list_hrdlps_4x20 2>&1
-#ord_soumet -jobfile myHRDLPS.job -jn job_SPShrdlps_20x4x1 -d ppp5 -mpi -norerun -c 80x1 -m 2G -w 60 -v -listing $HOME/listings
------------------
-myYIN15.job:
-sps.sh --dircfg configurations/yin15 --ptopo=4x10 --btopo=1x1 > list_yin15_4x10 2>&1
-#ord_soumet -jobfile myYIN15.job -jn job_SPSyin_4x10x1 -d ppp5 -mpi -norerun -c 40x1 -m 2G -w 60 -v -listing $HOME/listings
------------------
-myYAN15.job:
-sps.sh --dircfg configurations/yan15 --ptopo=4x10 --btopo=1x1 > list_yan15_4x10 2>&1
-#ord_soumet -jobfile myYAN15.job -jn job_SPSyan_4x10x1 -d ppp5 -mpi -norerun -c 40x1 -m 2G -w 60 -v -listing $HOME/listings
------------------
-myCALDAS.job:
-sps.sh --dircfg configurations/caldas_hrdps_isba --ptopo=6x1 --btopo=1x1 > list_caldas_hrdps_isba_6x1 2>&1
-#ord_soumet -jobfile myCALDAS.job -jn job_SPScaldas_6x1x1 -d ppp5 -mpi -norerun -c 6x1 -m 6G -w 10 -v -listing $HOME/listings
------------------
-myTAPE1.job
-sps.sh --dircfg configurations/tape1_grid --ptopo=1x1x1 --btopo=1x1 > list_tape1 2>&1
-#ord_soumet myTAPE1.job -c 1x1 -t 600 -mach ppp5 -m 4000M -mpi -jn sps_tape1_1x1 -shell bash -w 10 -v -listing $HOME/listings
+tape1_grid: --ptopo=1x1x1
+SPS_cfgs:   --ptopo=2x2x1
+SPS_isba_cfgs: --ptopo=2x2x1 
+hrdlps: --ptopo=4x20
+yin15: --ptopo=4x10
+yan15: --ptopo=4x10
+caldas_hrdps_isba: --ptopo=6x1
+TEB_national: --ptopo=8x10
+CSLM_cfgs: --ptopo=8x10
