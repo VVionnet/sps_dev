@@ -77,5 +77,6 @@ sps=6.3.0-a9;spsdyn=6.3.0-a9;rpnphy=6.3.0-a9;modelutils=1.8.0-a9
 sps=6.3.0-a10;spsdyn=6.3.0-a10;rpnphy=6.3.0-a10;modelutils=1.8.0-a10
 sps=6.3.0-a11;spsdyn=6.3.0-a10;rpnphy=6.3.0-a10;modelutils=1.8.0-a10
 sps=6.3.0-a12;spsdyn=6.3.0-a10;rpnphy=6.3.0-a12;modelutils=1.8.0-a10
+sps=6.3.0-a13;spsdyn=6.3.0-a10;rpnphy=6.3.0-a13;modelutils=1.8.0-a10
 
 
