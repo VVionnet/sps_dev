@@ -4,7 +4,7 @@ variables:
   ORD_SOUMET_TMPFS: "10G"
   ORD_SOUMET_M: "100G"
   ORD_SOUMET_W: "60"
-  GIT_SUBMODULE_STRATEGY: none
+  GIT_SUBMODULE_STRATEGY: recursive
 
 stages:
   - build
