@@ -204,15 +204,17 @@ contains
       endif
       if (nphyoutlist == 0) then
          call msg(MSG_WARNING, 'No Phy output resquested')
-      else
+      elseif (nphyoutlist < 0) then
          call msg(MSG_WARNING, 'Unknown phy output resquests, allocating and computing all diagnostics')
       endif
-      if (ptp_L) then
-         phyoutlist_S(nphyoutlist+1) = 'UP00'
-         phyoutlist_S(nphyoutlist+2) = 'VP00'
-         phyoutlist_S(nphyoutlist+3) = 'TP00'
+      if (nphyoutlist >= 0) then
+         if (ptp_L) then
+            phyoutlist_S(nphyoutlist+1) = 'UP00'
+            phyoutlist_S(nphyoutlist+2) = 'VP00'
+            phyoutlist_S(nphyoutlist+3) = 'TP00'
+         endif
+         nphyoutlist = nphyoutlist + nextra
       endif
-      nphyoutlist = nphyoutlist + nextra
 
       ier = wb_get('itf_phy/DYNOUT', dynout)
       if (.not.WB_IS_OK(ier)) dynout = .false.
