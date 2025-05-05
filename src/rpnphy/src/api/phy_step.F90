@@ -95,7 +95,7 @@ contains
     endif
 
     if (.not.associated(phystepoutlist_S)) &
-         allocate(phystepoutlist_S(max(1,nphyoutlist)))
+         allocate(phystepoutlist_S(max(1,nphyoutlist)))    
     phystepoutlist_S(:) = ' '
     nphystepoutlist = -1
     if (nphyoutlist > 0) then
@@ -188,7 +188,7 @@ contains
         ntmp = ntmp+1
         F_olist_S(ntmp) = tmp_S
      enddo DO_OLIST
-     F_n = ntmp
+     if (F_n >=0 ) F_n = ntmp
      if (ntmp < size(F_olist_S)) F_olist_S(ntmp+1:) = ' '
      
      if (F_n == 0) then
