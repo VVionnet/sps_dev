@@ -34,12 +34,18 @@
  sortie_p(['TJ','TDK','TG','UD','VD'],                                          grid, 1, levels, 2, steps, 3)
  sortie_p([TSTW,EMTW,ALSC,AL],                                                  grid, 1, levels, 2, steps, 3) 
  sortie_p([DQ,FI,FB,J9,H8,HV,T8,U1,U3,FC,FV,IO],                                grid, 1, levels, 2, steps, 3)
+ sortie_p([N3,RNAC], 
+grid, 1, levels, 2, steps, 3)
+ sortie_p([RTSU,GTSU,DXSU,GXSU,RTFS], 
+grid, 1, levels, 2, steps, 3)
+ sortie_p([RTSU,GTSU,DXSU,GXSU,RTFS], 
+grid, 1, levels, 2, steps, 1)
+
  sortie_p(['SWRF','STRF','SDRF','SWRD','STRD','SDRD','WSRF',
         'WSRD','QHRD','QERD','QHRF','QHWL','TLRF','TLRD',
         'TLWL','QGRD','QGRF','QGWL','QGTW','TCAN','QCAN',
         'TBLD','SARF','SERF','SSRF','TIRD','SARD','SERD',
         'SSRD'],                                                                grid, 1, levels, 2, steps, 3)
-
 
 
  sortie_p([Z0,VG,J1,J2],                                                        grid, 1, levels, 2, steps, 2)
