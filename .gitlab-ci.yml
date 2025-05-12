@@ -380,7 +380,7 @@ caldas_hrdps_isba_intel:
     - set -e
     - ./scripts/link-dbase.sh
     - cd $SPS_WORK
-    - sps.sh --dircfg ./configurations/caldas_hrdps_isba SPS_cfgs --ptopo=6x1 --btopo=1x1 --inorder
+    - sps.sh --dircfg ./configurations/caldas_hrdps_isba --ptopo=6x1 --btopo=1x1 --inorder
 
 CSLM_cfgs_intel:
   stage: run_intel
@@ -477,7 +477,7 @@ caldas_hrdps_isba_gnu:
     - ./scripts/link-dbase.sh
     - set -e
     - cd $SPS_WORK
-    - sps.sh --dircfg ./configurations/caldas_hrdps_isba SPS_cfgs --ptopo=6x1 --btopo=1x1 --inorder
+    - sps.sh --dircfg ./configurations/caldas_hrdps_isba --ptopo=6x1 --btopo=1x1 --inorder
 
 CSLM_cfgs_gnu:
   stage: run_gnu
