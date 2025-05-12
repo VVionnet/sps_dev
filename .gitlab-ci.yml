@@ -142,7 +142,7 @@ package:rhel-8-icelake-64-intel-2022.1.2:
       - tags
       - /^dev_6\.[0-9]$/
       - schedules
-   dependencies:
+   needs:
       - build:rhel-8-icelake-64-intel-2022.1.2
    script:
       - set +e
@@ -194,7 +194,7 @@ package:rhel-8-icelake-64-intel-2021.4.0:
       - tags
       - /^dev_6\.[0-9]$/
       - schedules
-   dependencies:
+   needs:
       - build:rhel-8-icelake-64-intel-2021.4.0
    script:
       - set +e
@@ -251,7 +251,7 @@ package:ubuntu-22.04-amd64-intel-2022.1.2:
       - /^dev_6\.[0-9]$/
       - tags
       - schedules
-   dependencies:
+   needs:
       - build:ubuntu-22.04-amd64-intel-2022.1.2
    environment:
       name: testing
@@ -311,7 +311,7 @@ package:ubuntu-22.04-amd64-intel-2023.2.0:
       - /^dev_6\.[0-9]$/
       - tags
       - schedules
-   dependencies:
+   needs:
       - build:ubuntu-22.04-amd64-intel-2023.2.0
    environment:
       name: testing
@@ -368,7 +368,7 @@ deploy:staging:
 #----- Running test configurations for rhel-8-icelake-64-intel-2022.1.2
 caldas_hrdps_isba_intel:
   stage: run_intel
-  dependencies:
+  needs:
   - build:rhel-8-icelake-64-intel-2022.1.2
   when: always
   allow_failure: true
@@ -384,7 +384,7 @@ caldas_hrdps_isba_intel:
 
 CSLM_cfgs_intel:
   stage: run_intel
-  dependencies:
+  needs:
   - build:rhel-8-icelake-64-intel-2022.1.2
   when: always
   allow_failure: true
@@ -400,7 +400,7 @@ CSLM_cfgs_intel:
 
 SPS_cfgs_intel:
   stage: run_intel
-  dependencies:
+  needs:
   - build:rhel-8-icelake-64-intel-2022.1.2
   when: always
   allow_failure: true
@@ -416,7 +416,7 @@ SPS_cfgs_intel:
 
 SPS_isba_intel:
   stage: run_intel
-  dependencies:
+  needs:
   - build:rhel-8-icelake-64-intel-2022.1.2
   when: always
   allow_failure: true
@@ -432,7 +432,7 @@ SPS_isba_intel:
 
 tape1_grid_intel:
   stage: run_intel
-  dependencies:
+  needs:
   - build:rhel-8-icelake-64-intel-2022.1.2
   when: always
   allow_failure: true
@@ -448,7 +448,7 @@ tape1_grid_intel:
 
 TEB_national_intel:
   stage: run_intel
-  dependencies:
+  needs:
   - build:rhel-8-icelake-64-intel-2022.1.2
   when: always
   allow_failure: true
@@ -465,7 +465,7 @@ TEB_national_intel:
 #----- Running test configurations for rhel-8-amd64_gnu-9.3.0
 caldas_hrdps_isba_gnu:
   stage: run_gnu
-  dependencies:
+  needs:
   - build:rhel-8-amd64_gnu-9.3.0
   when: always
   allow_failure: true
@@ -481,7 +481,7 @@ caldas_hrdps_isba_gnu:
 
 CSLM_cfgs_gnu:
   stage: run_gnu
-  dependencies:
+  needs:
   - build:rhel-8-amd64_gnu-9.3.0
   when: always
   allow_failure: true
@@ -497,7 +497,7 @@ CSLM_cfgs_gnu:
 
 SPS_cfgs_gnu_9.3.0:
   stage: run_gnu
-  dependencies:
+  needs:
   - build:rhel-8-amd64_gnu-9.3.0
   when: always
   allow_failure: true
@@ -513,7 +513,7 @@ SPS_cfgs_gnu_9.3.0:
 
 SPS_isba_gnu_9.3.0:
   stage: run_gnu
-  dependencies:
+  needs:
   - build:rhel-8-amd64_gnu-9.3.0
   when: always
   allow_failure: true
@@ -529,7 +529,7 @@ SPS_isba_gnu_9.3.0:
 
 tape1_grid_gnu:
   stage: run_gnu
-  dependencies:
+  needs:
   - build:rhel-8-amd64_gnu-9.3.0
   when: always
   allow_failure: true
@@ -545,7 +545,7 @@ tape1_grid_gnu:
 
 TEB_national_gnu:
   stage: run_gnu
-  dependencies:
+  needs:
   - build:rhel-8-amd64_gnu-9.3.0
   when: always
   allow_failure: true
