@@ -8,14 +8,14 @@ URL        : https://gitlab.science.gc.ca/MIG/sps
 DOC	   : https://wiki.cmc.ec.gc.ca/wiki/SPS
 
 # Components
-modelutils = 1.8.0-a10
-rpnphy = 6.3.0-a14+
+modelutils = 1.8.0-a15
+rpnphy = 6.3.0-a15
 spsdyn = 6.3.0-a11
 
 # Dependencies 
 #    =,<,<=,>,>= : Version rules
 #    ~           : Optional
-rmn  >= 20.1.0-a8
-tdpack >= 1.6.3.6
-vgrid >= 6.9.6
-rpncomm >= 4.6.4
+rmn  >= 20.1.0-b1
+tdpack >= 1.6.3.10
+vgrid >= 6.9.7.2
+rpncomm >= 4.6.5.1
