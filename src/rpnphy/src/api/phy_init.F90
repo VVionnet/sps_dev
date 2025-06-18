@@ -391,7 +391,8 @@ contains
          return
       endif
 #endif
-      
+
+      sl_Lmin_type = -1.
       ier = WB_OK
       ier = min(wb_get('sfc/beta'        ,beta        ),ier)
       ier = min(wb_get('sfc/bh91_a'      ,bh91_a      ),ier)
@@ -425,6 +426,11 @@ contains
       ier = min(wb_get('sfc/z0dir'       ,z0dir       ),ier)
       ier = min(wb_get('sfc/zt'          ,zt          ),ier)
       ier = min(wb_get('sfc/zu'          ,zu          ),ier)
+      ier = min(wb_get('sfc/sl_Lmin_soil',    sl_Lmin_type(indx_soil)),    ier)
+      ier = min(wb_get('sfc/sl_Lmin_glacier', sl_Lmin_type(indx_glacier)), ier)
+      ier = min(wb_get('sfc/sl_Lmin_water',   sl_Lmin_type(indx_water)),   ier)
+      ier = min(wb_get('sfc/sl_Lmin_seaice',  sl_Lmin_type(indx_ice)),  ier)
+      ier = min(wb_get('sfc/sl_Lmin_town',    sl_Lmin_type(indx_urb)),     ier)
       if (.not.WB_IS_OK(ier)) then
          call msg_toall(MSG_ERROR,'(phy_init) Problem with WB_get #2')
          ier = RMN_ERR

@@ -42,7 +42,7 @@ subroutine phybusinit(ni,nk)
    character(len=4), parameter :: LVLM2= 'M*2'
    character(len=4), parameter :: LVLT = 'T'
 
-   character(len=6)  :: nag, nmar, dwwz, nuv, psss
+   character(len=6)  :: nag, nmar, dwwz, nuv, psss, nccl
    integer :: ier, iverb, nsurf, i
    logical :: lbourg3d, lbourg
    logical :: lkfbe, lshal, lshbkf, lmid
@@ -78,6 +78,7 @@ subroutine phybusinit(ni,nk)
    write(nag,'(a,i2)') 'A*', nagrege
 
    write(nuv,'(a,i2)') 'A*', RAD_NUVBRANDS
+   write(nccl,'(a,i2)') 'A*', RAD_TCCL
 
    !# nmar is the number of 2d Markov fields
    write(nmar,'(a,i2)') 'A*', ens_nc2d
@@ -191,6 +192,16 @@ subroutine phybusinit(ni,nk)
    ecdiag = (ecdiag .or. debug_alldiag_L .or. nphyoutlist < 0)
    ecdiag = (ecdiag .and. fluvert /= 'SURFACE')
 
+   ! Activate final-state screen-level diagnostics only if outputs are requested by the user
+   i = 1
+   do while (.not.fsdiag .and. i <= nphyoutlist)
+      if (any(phyoutlist_S(i) == (/ &
+           'SLT    ', 'SLQ    ', 'SLTD   ', 'SLU    ', 'SLV    ' &
+           /))) fsdiag = .true.
+      i = i+1
+   enddo
+   fsdiag = (fsdiag .or. debug_alldiag_L .or. nphyoutlist < 0)   
+
    ! Activate lightning diagnostics only if outputs are requested by the user
    llight = .false.
    if (any(bb_keylist(:bb_n) == "LIGHTNING")) then
@@ -288,19 +299,6 @@ subroutine phybusinit(ni,nk)
    etccdiag = (etccdiag .or. debug_alldiag_L .or. nphyoutlist < 0)
    etccdiag = (etccdiag .and. fluvert /= 'SURFACE')
 
-   etccdiagout = .false.
-   i = 1
-   do while (.not.etccdiagout .and. i <= nphyoutlist)
-      if (any(phyoutlist_S(i) == (/ &
-           'TCCM', 'NF  ', 'TSHM', 'TSMM', 'TSLM', 'TZHM', 'TZMM', 'TZLM', &
-           'NTAF' &
-           /))) etccdiagout = .true.
-      i = i+1
-   enddo
-   etccdiagout = (etccdiagout .or. debug_alldiag_L .or. nphyoutlist < 0)
-   etccdiagout = (etccdiagout .and. fluvert /= 'SURFACE')
-
-   
    lhn_init = (lhn /= 'NIL')
    lsfcflx = (sfcflx_filter_order > 0)
 

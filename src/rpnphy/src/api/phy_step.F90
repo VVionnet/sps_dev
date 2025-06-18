@@ -97,13 +97,16 @@ contains
     if (.not.associated(phystepoutlist_S)) &
          allocate(phystepoutlist_S(max(1,nphyoutlist)))    
     phystepoutlist_S(:) = ' '
-    nphystepoutlist = -1
+    nphystepoutlist = min(nphyoutlist, 0)
     if (nphyoutlist > 0) then
        istat = wb_get('itf_phy/PHYSTEPOUT_N', nphystepoutlist)
-       if (.not.WB_IS_OK(istat)) nphystepoutlist = -1
-       if (nphystepoutlist > 0) then
-          istat = wb_get('itf_phy/PHYSTEPOUT_V', phystepoutlist_S, itmp)
-          if (.not.WB_IS_OK(istat)) nphystepoutlist = -1
+       if (WB_IS_OK(istat)) then
+          if (nphystepoutlist > 0) &
+               istat = wb_get('itf_phy/PHYSTEPOUT_V', phystepoutlist_S, itmp)
+       endif
+       if (.not.WB_IS_OK(istat)) then
+          nphystepoutlist  = nphyoutlist
+          phystepoutlist_S = phyoutlist_S
        endif
     endif
     nphystepoutlist = min(nphystepoutlist, size(phystepoutlist_S))
