@@ -28,6 +28,15 @@ grep -ia "Status              :" vlist_TEB_national_8x10
 echo "(9) testing CSLM_cfgs (3min)" `date`
 sps.sh --dircfg configurations/CSLM_cfgs --ptopo=8x10 --btopo=1x1 --inorder > vlist_CSLM_cfgs_8x10 2>&1
 grep -ia "Status              :" vlist_CSLM_cfgs_8x10
+echo "(10) testing SVS2_cfgs (3min)" `date`
+sps.sh --dircfg configurations/SVS2_cfgs --ptopo=6x6 --btopo=1x1 --inorder > vlist_SVS2_cfgs_6x6 2>&1
+grep -ia "Status              :" vlist_SVS2_cfgs_6x6
+echo "(11) testing svs1_freezing (3min)" `date`
+sps.sh --dircfg configurations/svs1_freezing --ptopo=8x10 --btopo=1x1 --inorder > vlist_svs1_freezing_8x10 2>&1
+grep -ia "Status              :" vlist_svs1_freezing_8x10
+echo "(12) testing svs1_mosa (3min)" `date`
+sps.sh --dircfg configurations/svs1_mosa --ptopo=4x20 --btopo=1x1 --inorder > vlist_svs1_mosa_4x20 2>&1
+grep -ia "Status              :" vlist_svs1_mosa_4x20
 date
 ckstat=`grep "status=END" vlist_* | wc -l`
-echo "$ckstat tests out of 9 succeeded"
+echo "$ckstat tests out of 12 succeeded"
