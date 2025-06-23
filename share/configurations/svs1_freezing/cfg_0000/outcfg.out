@@ -1,0 +1,32 @@
+etk_S=SVS;
+units_S=hour;
+datyp=134;
+closeopen=hours,1;
+nbits=16;
+ip3=0;
+ndigits=6;
+linbot=0;
+vinterp_S=cubic;
+debug_L=f;
+flip_L=f;
+rewrite_L=f;
+
+levels=1,model,diag;
+levels=2,model,all;
+
+grid=1,model;
+grid=2,core;
+
+steps=1,hour, 0.; 
+steps=2,step,all;
+steps=3,hour,<0.,24.,1.>;
+steps=4,hour,<0.,24.,3.>;
+steps=5,hour,24.; 
+
+#sortie_d(['MFBR','MF'],         grid, 1, levels, 2, steps, 1)
+#sortie_p([MF,MT,MG,ML,LA,LO,DRND,SLOP]                        ,    grid, 1, levels, 2, steps, 1)
+sortie_p([TRAF,ALAT,O1,PR,AHFL,ACWF,WT,TJ,TDK,UD,VD,WSOL,ISOL,TGRD,WPON]   ,    grid, 1, levels, 2, steps, 3)
+#sortie_p([SLOP,DRND,J1,J2,VEGH,VEGL,Z0,ZP]   ,    grid, 1, levels, 2, steps, 3)
+sortie_p([I7,I8,I9,ISOL,SNAL,SVAL,SNDP,SVDP,SNDN,SVDN,SD,TM,TGR,TVG,TSN,TSNV,WVEG,WSOL,WSN,WSV,TGRD,WPON]       ,    grid, 1, levels, 2, steps, 5)
+sortie_p([PSGL,VEGH,VEGL,SVSW],   grid, 1, levels, 2, steps, 5)
+#sortie_p([N3,RNAC],   grid, 1, levels, 2, steps, 5)

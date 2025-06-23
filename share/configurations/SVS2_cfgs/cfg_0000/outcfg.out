@@ -1,0 +1,40 @@
+etk_S=SVS2_621;
+units_S=hour;
+datyp=134;
+closeopen=hours,1;
+nbits=16;
+ip3=0;
+ndigits=6;
+linbot=0;
+vinterp_S=cubic;
+debug_L=f;
+flip_L=f;
+rewrite_L=f;
+
+levels=1,model,diag;
+levels=2,model,all;
+
+grid=1,model;
+grid=2,core;
+
+steps=1,hour, 0.; 
+steps=2,step,all;
+steps=3,hour,<0.,24.,1.>;
+steps=4,hour,<0.,24.,3.>;
+steps=5,hour,24.; 
+steps=6,hour,<0.,24.,6.>;
+
+sortie_d(['MFBR','MF'],         grid, 1, levels, 2, steps, 1)
+sortie_p([TRAF,ALAT,O1,PR,AHFL,ACWF,TJ,UD,VD,WT]   ,    grid, 1, levels, 2, steps, 3)
+sortie_p([P8,H8,T8,SIGT,PR0],    grid, 1, levels, 2, steps, 2)
+sortie_p([I7,I8,I9,ISOL,SNAL,SVAL,SNDP,SVDP,SNM,SVM,SD,TM,TGR,TSN,TSNV,WSOL,WSN,WSV,3HES,3HEV,G1ES,G1EV,G2ES,G2EV,I5ES,I5EV,7SES,7SEV,I4ES,I4EV,TSNL,TSLV,HIES,HIEV,TGRD,TSGV,TVGL,TVGH,WVGL,WVGH,SCM,U1,U3],    grid, 1, levels, 2, steps, 3)
+sortie_p([VEGH,VEGL,SVSW, N3, RNAC],   grid, 1, levels, 2, steps, 3)
+sortie_p(['RS','R1','EG','LEG','ETR','LETR'], grid, 1, levels, 2, steps, 5)
+sortie_p(['MG','GL','2F'],    grid, 1, levels, 2, steps, 5)
+sortie_p([RSAC,RSVC]       ,    grid, 1, levels, 2, steps, 5)
+sortie_p([VGHH,VGHD,HVAP]       ,    grid, 1, levels, 2, steps, 5)
+
+
+xnbit ([TRAF,ALAT,O1,PR,AHFL,ACWF],bits,32)
+xnbit([I5ES,I4ES],bits,64)
+xnbit([I5EV,I4EV],bits,64)

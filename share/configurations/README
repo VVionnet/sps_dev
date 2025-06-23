@@ -53,3 +53,6 @@ yan15: --ptopo=4x10
 caldas_hrdps_isba: --ptopo=6x1
 TEB_national: --ptopo=8x10
 CSLM_cfgs: --ptopo=8x10
+SVS2_cfgs: --ptopo=6x6
+svs1_freezing: --ptopo=8x10
+svs1_mosa: --ptopo=4x20
