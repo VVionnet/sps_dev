@@ -133,7 +133,7 @@ contains
             i = i+1
          enddo
       endif
-      thermal_stress = (thermal_stress .or. debug_alldiag_L .or. nphyoutlist < 0)
+      thermal_stress = (thermal_stress .or. debug_alldiag_L)
 
       F_istat = RMN_OK
       !----------------------------------------------------------------------
