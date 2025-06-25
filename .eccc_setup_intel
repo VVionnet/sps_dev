@@ -22,13 +22,13 @@ case ${INTEL_SCRIPT_NAME} in
     .eccc_setup_intel_2023.2.0)
         export COMPILER_VERSION=2023.2.0
         ;;
-    .eccc_setup_intel_2024.2.0)
-        export COMPILER_VERSION=2024.2.0
+    .eccc_setup_intel_2025.1.0)
+        export COMPILER_VERSION=2025.1.0
         ;;
 esac
 
 # Load code-tools 
-. r.load.dot rpn/code-tools/20240719/env/inteloneapi-${COMPILER_VERSION}
+. r.load.dot rpn/code-tools/20250521/env/inteloneapi-${COMPILER_VERSION}
 
 # Load latest version of RPN-SI libraries and utilities
 . r.load.dot rpn/libs/20241105-alpha
