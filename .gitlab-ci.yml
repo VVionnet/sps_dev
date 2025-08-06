@@ -443,33 +443,33 @@ package:ubuntu-22.04-amd64-intel-2023.2.0:
       - ~/ci-admin/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
 
 #----- ubuntu-22.04-amd64_gnu-11.4.0
-build:ubuntu-22.04-amd64-gnu-11.4.0:
-   variables:
-      ORD_SOUMET_MACH    : gpsc7
-      ORD_SOUMET_IMAGE   : registry.maze.science.gc.ca/ssc-hpcs/generic-job:ubuntu22.04
-      ORD_SOUMET_PROJECT : eccc_mrd
-      ORD_SOUMET_CPUS    : "2"
-      ORD_SOUMET_W: "10"
-      ORD_SOUMET_M: "8G"
-      ORD_SOUMET_TMPFS: "1G"
-   stage: build
-   tags:
-     - concurrent
-   only:
-     - master
-     - /^dev_6\.[0-9]$/
-     - tags
-   script:
-      - set +e
-      - . ${ECCI_ENV}/latest/profile.sh
-      - . r.env.dot --arch amd64
-      - . ./.eccc_setup_gnu
-      - set -e
-      - SRC_DIR=$(pwd)
-      - mkdir -pv ${PIPELINE_SUBDIR}/build-ubuntu-22.04-amd64-64-gnu-11.4.0
-      - cd ${PIPELINE_SUBDIR}/build-ubuntu-22.04-amd64-64-gnu-11.4.0
-      - cmake -DWITH_SYSTEM_RPN=TRUE ${SRC_DIR}
-      - time make -j $NCPUS
+# build:ubuntu-22.04-amd64-gnu-11.4.0:
+#    variables:
+#       ORD_SOUMET_MACH    : gpsc7
+#       ORD_SOUMET_IMAGE   : registry.maze.science.gc.ca/ssc-hpcs/generic-job:ubuntu22.04
+#       ORD_SOUMET_PROJECT : eccc_mrd
+#       ORD_SOUMET_CPUS    : "2"
+#       ORD_SOUMET_W: "10"
+#       ORD_SOUMET_M: "8G"
+#       ORD_SOUMET_TMPFS: "1G"
+#    stage: build
+#    tags:
+#      - concurrent
+#    only:
+#      - master
+#      - /^dev_6\.[0-9]$/
+#      - tags
+#    script:
+#       - set +e
+#       - . ${ECCI_ENV}/latest/profile.sh
+#       - . r.env.dot --arch amd64
+#       - . ./.eccc_setup_gnu
+#       - set -e
+#       - SRC_DIR=$(pwd)
+#       - mkdir -pv ${PIPELINE_SUBDIR}/build-ubuntu-22.04-amd64-64-gnu-11.4.0
+#       - cd ${PIPELINE_SUBDIR}/build-ubuntu-22.04-amd64-64-gnu-11.4.0
+#       - cmake -DWITH_SYSTEM_RPN=TRUE ${SRC_DIR}
+#       - time make -j $NCPUS
 
 deploy:staging:
    stage: deploy
@@ -520,6 +520,9 @@ SPS_cfgs_intel:
   needs:
   - build:rhel-8-icelake-64-intel-2022.1.2
   when: always
+  only:
+  - /^dev_6\.[0-9]$/
+  - tags
   allow_failure: true
   script:
     - set +e
@@ -536,6 +539,9 @@ SPS_isba_intel:
   needs:
   - build:rhel-8-icelake-64-intel-2022.1.2
   when: always
+  only:
+  - /^dev_6\.[0-9]$/
+  - tags
   allow_failure: true
   script:
     - set +e 
@@ -617,6 +623,9 @@ SPS_cfgs_gnu_9.3.0:
   needs:
   - build:rhel-8-amd64_gnu-9.3.0
   when: always
+  only:
+  - /^dev_6\.[0-9]$/
+  - tags
   allow_failure: true
   script:
     - set +e
@@ -633,6 +642,9 @@ SPS_isba_gnu_9.3.0:
   needs:
   - build:rhel-8-amd64_gnu-9.3.0
   when: always
+  only:
+  - /^dev_6\.[0-9]$/
+  - tags
   allow_failure: true
   script:
     - set +e
