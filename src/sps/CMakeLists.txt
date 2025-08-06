@@ -53,7 +53,6 @@ target_link_libraries(spsdyn PRIVATE
    modelutils_tmg_stubs
    modelutils_ov_ifort
    ${phy_LIBRARIES}
-   ${cpl_LIBRARIES}
 )
 
 if ("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "GNU")
