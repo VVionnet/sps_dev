@@ -85,7 +85,7 @@ build:intel-with-sources-rhel-8-icelake-64-intel-2022.1.2:
   script:
     - set +e
     - . ${ECCI_ENV}/latest/profile.sh
-    - . ./.eccc_setup_intel
+    - . ./.eccc_setup_intel_2022.1.2
     - set -e
     - export WITH_SYSTEM_RPN=FALSE
     - mkdir -pv ${PIPELINE_SUBDIR}/build-rhel-8-icelake-64-intel-2022.1.2-with-sources
@@ -228,7 +228,7 @@ build:rhel-8-icelake-64-intel-2022.1.2:
   script:
     - set +e
     - . ${ECCI_ENV}/latest/profile.sh
-    - . ./.eccc_setup_intel
+    - . ./.eccc_setup_intel_2022.1.2
     - set -e
     - mkdir -pv ${PIPELINE_SUBDIR}/build-rhel-8-icelake-64-intel-2022.1.2
     - mkdir -pv ${PIPELINE_SUBDIR}/work-rhel-8-icelake-64-intel-2022.1.2
@@ -262,7 +262,7 @@ package:rhel-8-icelake-64-intel-2022.1.2:
    script:
       - set +e
       - . ${ECCI_ENV}/latest/profile.sh
-      - . ./.eccc_setup_intel
+      - . ./.eccc_setup_intel_2022.1.2
       - set -e
       - cd ${PIPELINE_SUBDIR}/build-rhel-8-icelake-64-intel-2022.1.2
       - make package
@@ -341,7 +341,7 @@ build:ubuntu-22.04-amd64-intel-2022.1.2:
       - set +e
       - . ${ECCI_ENV}/latest/profile.sh
       - . r.env.dot --arch amd64
-      - . ./.eccc_setup_intel
+      - . ./.eccc_setup_intel_2022.1.2
       - set -e
       - SRC_DIR=$(pwd)
       - mkdir -pv ${PIPELINE_SUBDIR}/build-ubuntu-22.04-amd64-64-intel-2022.1.2
@@ -374,7 +374,7 @@ package:ubuntu-22.04-amd64-intel-2022.1.2:
       - set +e
       - . ${ECCI_ENV}/latest/profile.sh
       - . r.env.dot --arch amd64
-      - . ./.eccc_setup_intel
+      - . ./.eccc_setup_intel_2022.1.2
       - set -e
       - cd ${PIPELINE_SUBDIR}/build-ubuntu-22.04-amd64-64-intel-2022.1.2
       - make package
@@ -484,13 +484,13 @@ deploy:staging:
 caldas_hrdps_isba_intel:
   stage: run_intel
   needs:
-  - build:rhel-8-icelake-64-intel-2022.1.2
+  - build:rhel-8-icelake-64-intel-2025.1.0
   when: always
   allow_failure: true
   script:
     - set +e
     - . ${ECCI_ENV}/latest/profile.sh
-    - . ./.eccc_setup_intel
+    - . ./.eccc_setup_intel_2025.1.0
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
     - set -e
     - ./scripts/link-dbase.sh
@@ -500,13 +500,13 @@ caldas_hrdps_isba_intel:
 CSLM_cfgs_intel:
   stage: run_intel
   needs:
-  - build:rhel-8-icelake-64-intel-2022.1.2
+  - build:rhel-8-icelake-64-intel-2025.1.0
   when: always
   allow_failure: true
   script:
     - set +e
     - . ${ECCI_ENV}/latest/profile.sh
-    - . ./.eccc_setup_intel
+    - . ./.eccc_setup_intel_2025.1.0
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
     - set -e
     - ./scripts/link-dbase.sh
@@ -516,13 +516,13 @@ CSLM_cfgs_intel:
 SPS_cfgs_intel:
   stage: run_intel
   needs:
-  - build:rhel-8-icelake-64-intel-2022.1.2
+  - build:rhel-8-icelake-64-intel-2025.1.0
   when: always
   allow_failure: true
   script:
     - set +e
     - . ${ECCI_ENV}/latest/profile.sh
-    - . ./.eccc_setup_intel
+    - . ./.eccc_setup_intel_2025.1.0
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
     - set -e
     - ./scripts/link-dbase.sh
@@ -532,13 +532,13 @@ SPS_cfgs_intel:
 SPS_isba_intel:
   stage: run_intel
   needs:
-  - build:rhel-8-icelake-64-intel-2022.1.2
+  - build:rhel-8-icelake-64-intel-2025.1.0
   when: always
   allow_failure: true
   script:
     - set +e 
     - . ${ECCI_ENV}/latest/profile.sh
-    - . ./.eccc_setup_intel
+    - . ./.eccc_setup_intel_2025.1.0
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
     - set -e
     - ./scripts/link-dbase.sh
@@ -548,13 +548,13 @@ SPS_isba_intel:
 tape1_grid_intel:
   stage: run_intel
   needs:
-  - build:rhel-8-icelake-64-intel-2022.1.2
+  - build:rhel-8-icelake-64-intel-2025.1.0
   when: always
   allow_failure: true
   script:
     - set +e
     - . ${ECCI_ENV}/latest/profile.sh
-    - . ./.eccc_setup_intel
+    - . ./.eccc_setup_intel_2025.1.0
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
     - set -e
     - ./scripts/link-dbase.sh
@@ -564,13 +564,13 @@ tape1_grid_intel:
 TEB_national_intel:
   stage: run_intel
   needs:
-  - build:rhel-8-icelake-64-intel-2022.1.2
+  - build:rhel-8-icelake-64-intel-2025.1.0
   when: always
   allow_failure: true
   script:
     - set +e
     - . ${ECCI_ENV}/latest/profile.sh
-    - . ./.eccc_setup_intel
+    - . ./.eccc_setup_intel_2025.1.0
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
     - set -e
     - ./scripts/link-dbase.sh
