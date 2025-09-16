@@ -45,10 +45,10 @@ build:rhel-8-amd64_gnu-9.3.0:
     expire_in: 4 hrs
     paths:
     - work-rhel-8-amd64-64-gnu-9.3.0
-    - sps_dbase
+    - gem_dbase
 
-#----- rhel-8-amd64_gnu-12.1.0
-build:rhel-8-amd64_gnu-12.1.0:
+#----- rhel-8-amd64_gnu-14.2.0
+build:rhel-8-amd64_gnu-14.2.0:
   variables:
      ORD_SOUMET_CPUS: "4"
      ORD_SOUMET_W: "30"
@@ -61,13 +61,12 @@ build:rhel-8-amd64_gnu-12.1.0:
   script:
     - set +e
     - . ${ECCI_ENV}/latest/profile.sh
-    - . ./.eccc_setup_gnu_12
-    - git submodule update --recursive --init
+    - . ./.eccc_setup_gnu_14
     - set -e
-    - mkdir -pv ${PIPELINE_SUBDIR}/build-rhel-8-amd64-64-gnu-12.1.0
+    - mkdir -pv ${PIPELINE_SUBDIR}/build-rhel-8-amd64-64-gnu-14.2.0
     - SRC_DIR=$(pwd)
-    - cd ${PIPELINE_SUBDIR}/build-rhel-8-amd64-64-gnu-12.1.0
-    - cmake -DWITH_SYSTEM_RPN=FALSE ${SRC_DIR}
+    - cd ${PIPELINE_SUBDIR}/build-rhel-8-amd64-64-gnu-14.2.0
+    - cmake ${SRC_DIR}
     - time make -j $NCPUS
   allow_failure: true
 
@@ -89,7 +88,6 @@ build:intel-with-sources-rhel-8-icelake-64-intel-2022.1.2:
     - . ./.eccc_setup_intel
     - set -e
     - export WITH_SYSTEM_RPN=FALSE
-    - git submodule update --recursive --init
     - mkdir -pv ${PIPELINE_SUBDIR}/build-rhel-8-icelake-64-intel-2022.1.2-with-sources
     - SRC_DIR=$(pwd)
     - cd ${PIPELINE_SUBDIR}/build-rhel-8-icelake-64-intel-2022.1.2-with-sources
@@ -244,7 +242,7 @@ build:rhel-8-icelake-64-intel-2022.1.2:
     expire_in: 4 hrs
     paths:
     - work-rhel-8-icelake-64-intel-2022.1.2
-    - sps_dbase
+    - gem_dbase
 
 package:rhel-8-icelake-64-intel-2022.1.2:
    variables:
@@ -520,9 +518,6 @@ SPS_cfgs_intel:
   needs:
   - build:rhel-8-icelake-64-intel-2022.1.2
   when: always
-  only:
-  - /^dev_6\.[0-9]$/
-  - tags
   allow_failure: true
   script:
     - set +e
@@ -539,9 +534,6 @@ SPS_isba_intel:
   needs:
   - build:rhel-8-icelake-64-intel-2022.1.2
   when: always
-  only:
-  - /^dev_6\.[0-9]$/
-  - tags
   allow_failure: true
   script:
     - set +e 
@@ -623,9 +615,6 @@ SPS_cfgs_gnu_9.3.0:
   needs:
   - build:rhel-8-amd64_gnu-9.3.0
   when: always
-  only:
-  - /^dev_6\.[0-9]$/
-  - tags
   allow_failure: true
   script:
     - set +e
@@ -642,9 +631,6 @@ SPS_isba_gnu_9.3.0:
   needs:
   - build:rhel-8-amd64_gnu-9.3.0
   when: always
-  only:
-  - /^dev_6\.[0-9]$/
-  - tags
   allow_failure: true
   script:
     - set +e
