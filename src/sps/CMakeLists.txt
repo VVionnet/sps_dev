@@ -74,13 +74,13 @@ if ("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "GNU")
   endif()
 endif()
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/sps_version.in ${CMAKE_CURRENT_SOURCE_DIR}/include/sps_version.inc @ONLY)
-
 message(STATUS "(EC) Generating mainspsdm Makefile")
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/main/mainspsdm.in ${CMAKE_CURRENT_SOURCE_DIR}/src/main/mainspsdm.F90)
-
 add_executable(mainspsdm src/main/mainspsdm.F90)
+target_compile_definitions(mainspsdm PUBLIC
+  modelutils_VERSION="${modelutils_VERSION}"
+  phy_VERSION="${phy_VERSION}"
+)
 
 target_link_libraries(mainspsdm
    spsdyn

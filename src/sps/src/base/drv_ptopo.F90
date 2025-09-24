@@ -178,6 +178,7 @@ contains
 
    !/@*
    subroutine drv_ptopo_terminate(F_status_S)
+      use App
       implicit none
       !@objective Finalize... the MPI way
       !@arguments
@@ -187,7 +188,6 @@ contains
       !  Ron McTaggart-Cowan, Feb 2008
       !  Stephane Chamberland, Feb 2008
    !*@/
-      logical,parameter :: IS_BEGIN_L = .true.
       character(len=64) :: status_S,model_name_S
       integer :: istat
       !---------------------------------------------------------------------
@@ -196,7 +196,7 @@ contains
       call write_status_file3('_status='//trim(status_S))
       call close_status_file3()
   
-      call drv_print_banner(.not.IS_BEGIN_L)
+      app_status=app_end(0)
 
       istat = wb_get('ATM_MODEL_NAME',model_name_S)
       if (.not.RMN_IS_OK(istat)) &

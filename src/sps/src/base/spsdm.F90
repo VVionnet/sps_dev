@@ -171,7 +171,6 @@ subroutine spsdm()
    call timing_stop(TMG_ALL)
    call timing_terminate2(ptopo_grid_ipe,MODEL_NAME)
    call model_usage_stats(trim(MODEL_NAME)//': END OF_RUN',PRINT_ACCUM_L)
-   call model_mem_usage_stats(ptopo_grid_npe, ptopo_grid_ipe)
 
    tmp_S = 'END'
    if (stepno < steps_total) tmp_S = 'RESTART'
