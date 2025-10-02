@@ -64,6 +64,7 @@ contains
 
    !/@*
     function drv_ptopo_init(F_ngrids) result(F_istat)
+      use App
       implicit none
       !@objective Initialize processor topology
       !@argument
@@ -91,10 +92,13 @@ contains
       F_istat = RMN_ERR
       if (ptopo_is_init_L) return
       F_istat = RMN_OK
-
+      
       !- RPN_COMM [MPI] and OpenMP Initialization
       call rpn_comm_mydomain(drv_ptopo_ndoms, mydomain) !- UM_EXEC_NDOMAINS
       ndomains = 1
+
+      call app_start()
+
       istat = wb_get('ptopo_cfgs/ndomains',ndomains)
 !!$      call rpn_comm_bcast(ndomains,1,RPN_COMM_INTEGER,RPN_COMM_MASTER, &
 !!$           RPN_COMM_GRID,istat) !TODO-later: is this needed? is drv_ptopo_ndoms called on all pe?

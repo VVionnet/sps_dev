@@ -9,7 +9,6 @@
 
 !/@*
 subroutine drv_ptopo_p0(F_npx,F_npy)
-   use App
    use, intrinsic :: iso_fortran_env, only: INT64
    use clib_itf_mod, only: clib_isdir, clib_isfile, clib_mkdir, clib_getenv
    use wb_itf_mod
@@ -48,8 +47,6 @@ subroutine drv_ptopo_p0(F_npx,F_npy)
    if (.not.RMN_IS_OK(istat)) istat = clib_mkdir(path_output_S)
    call open_status_file3(trim(path_output_S)//'/'//trim(statusfile_S))
    call write_status_file3('_status=ABORT')
-
-   call app_start()
 
    !- Get processor topology
    F_npx  = 0

@@ -30,7 +30,6 @@ subroutine spsdm()
    !  2010-07, Stephane Chamberland: refactor for ico/geodesic model
    !  2012-02, Stephane Chamberland: RPNPhy offline (SPS)
 !*@/
-!!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
 #include <rmn/msg.h>
 
