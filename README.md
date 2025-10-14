@@ -39,7 +39,7 @@ git submodule update --init --recursive
 git branch # what is the current branch
 git branch -a # list all branches (look at the list of remote branches to choose from)
 git tag # list tags (if you want to select a tagged version)
-git checkout <hash|branch|tag> # checkout a branch, a tag, or a specific hash.  Example: git checkout 6.2.0-rc3
+git checkout <hash|branch|tag> # checkout a branch, a tag, or a specific hash.  Example: git checkout sps_6.3-branch
 ```
 Before making changes, create your own branch from the current branch
 ```
@@ -74,7 +74,7 @@ other submodules, or adding or removing source files):
 Scripts in `scripts/support` and `scripts/rpy` directories are a copy of scripts
 already loaded from SSM domains when a `.eccc_setup file` is called. By
 default, they are not used, but if you want to test or modify them, you can
-override SSM scripts by setting GOAS_SCRIPT_MODE variable before sourcing
+override SSM scripts by setting `GOAS_SCRIPT_MODE` variable before sourcing
 `.eccc_setup_intel` or `.eccc_setup_gnu`:
 
 ```
@@ -109,7 +109,7 @@ cado work -j
 
 `cado work -j` can be used to compile and install in the same step.
 
-In development mode, sps is compiled using Intel shared libraries: use the
+In development mode, SPS is compiled using Intel shared libraries: use the
 following command to compile with static libraries:
 ```
 cado cmake-static
