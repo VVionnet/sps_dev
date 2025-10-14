@@ -4,17 +4,18 @@
 	branch = master
 [submodule "src/rpn-si/vgrid"]
 	path = src/rpn-si/vgrid
-	url = https://gitlab.science.gc.ca/RPN-SI/vgrid.git
+        url = https://gitlab.science.gc.ca/RPN-SI/vgrid.git
 	branch = master
 [submodule "src/rpn-si/rpncomm"]
 	path = src/rpn-si/rpncomm
-	url = https://gitlab.science.gc.ca/RPN-SI/rpncomm.git
+        url = https://gitlab.science.gc.ca/RPN-SI/rpncomm.git
 	branch = main
 [submodule "src/rpn-si/rmn"]
 	path = src/rpn-si/rmn
-	url = https://gitlab.science.gc.ca/RPN-SI/librmn.git
-	branch = master
+        url = https://gitlab.science.gc.ca/RPN-SI/librmn.git
+	branch = alpha
 [submodule "src/rpn-si/tdpack"]
 	path = src/rpn-si/tdpack
-	url = https://gitlab.science.gc.ca/RPN-SI/tdpack.git
+        url = https://gitlab.science.gc.ca/RPN-SI/tdpack.git
 	branch = master
+
