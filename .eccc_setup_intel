@@ -39,6 +39,14 @@ esac
 # Load latest version of RPNPY
 . r.load.dot rpn/MIG/ENV/rpnpy/2.2.0
 
+# Check and tell if maestro is loaded
+if [ -z "${MAESTRO_VERSION}" ]; then
+    echo ""
+    echo "Maestro is not loaded: GEM task setup scripts will be used instead of maestro scripts."
+else
+    echo "Maestro ${MAESTRO_VERSION} scripts will be used"
+fi
+
 # Call common setup file
 export COMPILER_SUITE=intel
 . ./.common_setup ${COMPILER_SUITE}
