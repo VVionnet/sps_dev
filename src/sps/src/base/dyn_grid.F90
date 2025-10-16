@@ -37,7 +37,6 @@ module dyn_grid_mod
 !*@/
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
-#include <rmn/msg.h>
 
    character(len=*),parameter :: WB_GRID_SEC = 'grid_cfgs/'
    integer,parameter :: IGRID_YIN = 0
@@ -50,6 +49,7 @@ contains
 
    !/@*
    function dyn_grid_init(F_ni,F_nj,F_halox,F_haloy,F_periodx,F_periody,F_grid_id) result(F_istat)
+      use App
       implicit none
       !@objective Provide grid info for the dyn grid/tile
       !@arguments
@@ -70,14 +70,14 @@ contains
       integer :: istat,msgUnit,ierx,iery,ig1,ig2,ig3,ig4,hx,hy
       character(len=256) :: tmp_S
       !---------------------------------------------------------------------
-      call msg(MSG_DEBUG,'[BEGIN] dyn_grid_init')
+      call App_Log(APP_DEBUG,'[BEGIN] dyn_grid_init')
       F_istat = RMN_OK
       if (m_init_L) return
       m_init_L = .true.
 
       F_istat = wb_get(WB_GRID_SEC//'Grd_typ_S',Grd_typ_S)
       if (.not.RMN_IS_OK(F_istat)) then
-         call msg(MSG_ERROR,'(dyn_grid) Unable to get Grd_typ_S from WB')
+         call App_Log(APP_ERROR,'(dyn_grid) Unable to get Grd_typ_S from WB')
          return
       endif
       Grd_typ_S = adjustl(Grd_typ_S)
@@ -118,20 +118,20 @@ contains
       F_istat = min(wb_get(WB_GRID_SEC//'Grd_gauss_L',Grd_gauss_L),F_istat)
 
       if (.not.RMN_IS_OK(F_istat)) then
-         call msg(MSG_ERROR,'(dyn_grid) Unable to get Grid def from WB')
+         call App_Log(APP_ERROR,'(dyn_grid) Unable to get Grid def from WB')
          return
       endif
 
       istat = wb_get('ptopo/ngrids',G_ngrids)
       istat = min(wb_get('ptopo/igrid',G_igrid),istat)
       if (.not.RMN_IS_OK(F_istat)) then
-         call msg(MSG_WARNING,'(dyn_grid) Unable to get Grid index from WB, assuming only one grid ')
+         call App_Log(APP_WARNING,'(dyn_grid) Unable to get Grid index from WB, assuming only one grid ')
          G_ngrids = 1
          G_igrid  = 0
       endif
 
       if ((Grd_typ_S == 'GY' .and. G_ngrids /= 2) .or. (Grd_typ_S /= 'GY' .and. G_ngrids /= 1)) then
-         call msg(MSG_ERROR,'(dyn_grid) Wrong number of RPN_COMM grids for Grd_typ_S='//trim(Grd_typ_S))
+         call App_Log(APP_ERROR,'(dyn_grid) Wrong number of RPN_COMM grids for Grd_typ_S='//trim(Grd_typ_S))
          F_istat = RMN_ERR
          return
       endif
@@ -150,7 +150,7 @@ contains
             G_islam_L = .true.
             F_istat = yyg_checkrot2(Grd_xlat1,Grd_xlon1,Grd_xlat2,Grd_xlon2)
             if (.not.RMN_IS_OK(F_istat)) then
-               call msg(MSG_ERROR,'(dyn_grid) Wrong GY grid rotation config')
+               call App_Log(APP_ERROR,'(dyn_grid) Wrong GY grid rotation config')
                return
             endif
             IF_YANG: if (G_igrid == IGRID_YANG) then
@@ -192,11 +192,11 @@ contains
 
         case('V')             ! Variable resolution
             if (Grd_nila*Grd_njla*Grd_dx*Grd_dy == 0) then
-               call msg(MSG_ERROR,'(dyn_grid) Verify Grd_nila, Grd_njla, Grd_dx , Grd_dy in grid_cfgs')
+               call App_Log(APP_ERROR,'(dyn_grid) Verify Grd_nila, Grd_njla, Grd_dx , Grd_dy in grid_cfgs')
                F_istat = RMN_ERR
             endif
          case default
-            call msg(MSG_ERROR,'(dyn_grid) Unrecognize Grd_typ_S in grid_cfgs: '//trim(Grd_typ_S))
+            call App_Log(APP_ERROR,'(dyn_grid) Unrecognize Grd_typ_S in grid_cfgs: '//trim(Grd_typ_S))
             F_istat = RMN_ERR
          end select SEL_GTYPE
 
@@ -219,12 +219,12 @@ contains
             Grd_xl   = Grd_x0   + (Grd_ni  -1) * Grd_dx
             Grd_yl   = Grd_y0   + (Grd_nj  -1) * Grd_dy
             if (Grd_dx*Grd_dy == 0.) then
-               call msg(MSG_ERROR,'(dyn_grid) Verify Grd_dx, Grd_dy in grid_cfgs')
+               call App_Log(APP_ERROR,'(dyn_grid) Verify Grd_dx, Grd_dy in grid_cfgs')
                F_istat = RMN_ERR
             endif
             if (Grd_iref < 1 .or. Grd_iref > Grd_ni .or. &
                  Grd_jref < 1.or.Grd_jref > Grd_nj) then
-               call msg(MSG_ERROR,'(dyn_grid) Verify Grd_iref, Grd_jref (out of range [1:Grd_ni], [1:Grd_nj]) ')
+               call App_Log(APP_ERROR,'(dyn_grid) Verify Grd_iref, Grd_jref (out of range [1:Grd_ni], [1:Grd_nj]) ')
                F_istat = RMN_ERR
             endif
             if (Grd_x0 < 0.) Grd_x0 = Grd_x0 + 360.
@@ -232,11 +232,11 @@ contains
             if (Grd_x0 < 0. .or. Grd_y0 < -90. .or. &
                  Grd_xl > 360. .or. Grd_yl > 90.) then
                write(tmp_S,'(4f10.3)') Grd_x0,Grd_y0,Grd_xl,Grd_yl
-               call msg(MSG_ERROR,'(dyn_grid) Wrong grid config, verify grid_cfgs; x0,y0,x1,y1 = '//trim(tmp_S))
+               call App_Log(APP_ERROR,'(dyn_grid) Wrong grid config, verify grid_cfgs; x0,y0,x1,y1 = '//trim(tmp_S))
                 F_istat = RMN_ERR
             endif
          case default
-            call msg(MSG_ERROR,'(dyn_grid) Unrecognize Grd_typ_S in grid_cfgs: '//trim(Grd_typ_S))
+            call App_Log(APP_ERROR,'(dyn_grid) Unrecognize Grd_typ_S in grid_cfgs: '//trim(Grd_typ_S))
             F_istat = RMN_ERR
          end select SEL_LTYPE
 
@@ -244,14 +244,13 @@ contains
 
       if (nint(360./max(tiny(1.),Grd_dxmax)) > Grd_ni+1 .or. &
           nint(180./max(tiny(1.),Grd_dymax)) > Grd_nj+1) then
-         call msg(MSG_ERROR,'(dyn_grid) Inconsistent Grd_ni, Grd_nj, Grd_dxmax & Grd_dymax values, verify grid_cfgs')
+         call App_Log(APP_ERROR,'(dyn_grid) Inconsistent Grd_ni, Grd_nj, Grd_dxmax & Grd_dymax values, verify grid_cfgs')
          F_istat = RMN_ERR
       endif
 
       if (.not.RMN_IS_OK(F_istat)) return
 
-      msgUnit = msg_getUnit(MSG_INFO)
-
+      msgUnit = (0)
       allocate(&
            m_xgi_8(Grd_ni,1), &
            m_ygi_8(1,Grd_nj), &
@@ -269,7 +268,7 @@ contains
            x0_8, xl_8, Grd_left, y0_8, yl_8, Grd_belo, &
            Grd_nila, Grd_njla, Grd_dxmax, Grd_dymax,           &
            Grd_yy_L,Grd_gauss_L, G_islam_L, G_isuniform_L, &
-           ierx, iery, (msgUnit >= 0))
+           ierx, iery, (msgUnit >= APP_INFO))
 
       F_periodx = .not.G_islam_L
       F_periody = .false.
@@ -280,13 +279,13 @@ contains
             xgi(1-hx:0,:) = m_xgi_8(Grd_ni-hx+1:Grd_ni,:) - 360.
             xgi(Grd_ni+1:Grd_ni+hx,:) = m_xgi_8(1:1+hx-1,:) + 360.
          else
-            call msg(MSG_ERROR,'(dyn_grid_init) non periodic grid with halo-x not yet implemented')
+            call App_Log(APP_ERROR,'(dyn_grid_init) non periodic grid with halo-x not yet implemented')
             F_istat = RMN_ERR
          endif
       endif
       if (hy > 0) then
          F_istat = RMN_ERR
-         call msg(MSG_ERROR,'(dyn_grid_init) halyy >0 yet implemented')
+         call App_Log(APP_ERROR,'(dyn_grid_init) halyy >0 yet implemented')
       endif
 
       if (.not.RMN_IS_OK(F_istat)) then
@@ -308,13 +307,14 @@ contains
       F_grid_id = G_grid_id
 
 !!$      print *,'(dyn_grid_init)',F_istat,F_ni,F_nj,F_halox,F_haloy,F_periodx,F_periody,F_grid_id ; call flush(6)
-      call msg(MSG_DEBUG,'[END] dyn_grid_init')
+      call App_Log(APP_DEBUG,'[END] dyn_grid_init')
       !---------------------------------------------------------------------
       endif
       return
    end function dyn_grid_init
 
    function dyn_tape_init(F_ni,F_nj,F_halox,F_haloy,F_periodx,F_periody,F_grid_id) result(F_istat)
+      use App
       use rmn_fst24
       implicit none
       !@objective Provide grid info for the dyn grid/tile
@@ -349,13 +349,13 @@ contains
       !real(kind = real32), dimension(:  ), pointer :: xg,yg
       real :: xlat1,xlat2,xlon1,xlon2
       !---------------------------------------------------------------------
-      call msg(MSG_DEBUG,'[BEGIN] dyn_tape_init')
+      call App_Log(APP_DEBUG,'[BEGIN] dyn_tape_init')
       F_istat = RMN_OK
       F_istat = wb_get('path/config_dir0',config_dir0_S)
 
       if (.not. file_in%open(trim(config_dir0_S)//'/'//INPUT_HGRID,'RND+R/O')) then
-          call msg(MSG_ERROR, '(dyn_grid_tape) Problem opening file')
-          call msg(MSG_ERROR, '(dyn_grid_tape) cannot open'//INPUT_HGRID)
+          call App_Log(APP_ERROR, '(dyn_grid_tape) Problem opening file')
+          call App_Log(APP_ERROR, '(dyn_grid_tape) cannot open'//INPUT_HGRID)
           stop
       endif
       query = file_in%new_query(nomvar='>>  ')
@@ -364,7 +364,7 @@ contains
           allocate(xg(F_ni))
           success = record % read(data = c_loc(xg)) ! Read data from disk
       else
-          call msg(MSG_ERROR, '(dyn_grid_tape) Problem reading record >>')
+          call App_Log(APP_ERROR, '(dyn_grid_tape) Problem reading record >>')
           stop
       end if
       call query%free()
@@ -375,7 +375,7 @@ contains
           allocate(yg(F_nj))
           success = record % read(data = c_loc(yg)) ! Read data from disk
       else
-          call msg(MSG_ERROR, '(dyn_grid_tape) Problem reading record ^^')
+          call App_Log(APP_ERROR, '(dyn_grid_tape) Problem reading record ^^')
           stop
       end if
 
@@ -402,13 +402,14 @@ contains
       F_haloy = 0
       F_grid_id = G_grid_id
 
-      call msg(MSG_DEBUG,'[END] grid_tape_init')
+      call App_Log(APP_DEBUG,'[END] grid_tape_init')
       !---------------------------------------------------------------------
       return
    end function dyn_tape_init
 
    !/@*
    function dyn_grid_post_init(F_imin,F_imax,F_jmin,F_jmax,F_ni,F_nj) result(F_istat)
+      use App
       implicit none
       !@objective Check dims and Compute grid point positions
       !@arguments
@@ -433,11 +434,11 @@ contains
       if (m_init2_L) return
       m_init2_L = .true.
 
-      call msg(MSG_DEBUG,'[BEGIN] dyn_grid_post_init')
+      call App_Log(APP_DEBUG,'[BEGIN] dyn_grid_post_init')
 
 !!$      if (Grd_typ_S == 'GY') then
 !!$         !TODO-later: define YinYang grid communicators
-!!$         call msg(MSG_ERROR,'(dyn_grid) GY grid not yet supported')
+!!$         call App_Log(APP_ERROR,'(dyn_grid) GY grid not yet supported')
 !!$         F_istat = RMN_ERR
 !!$         return
 !!$      endif
@@ -457,7 +458,7 @@ contains
 !!$         F_istat = min(dyn_comm_xch_halo2(F_ni,2,lat,lon),F_istat)
 
 
-      call msg(MSG_DEBUG,'[END] dyn_grid_post_init')
+      call App_Log(APP_DEBUG,'[END] dyn_grid_post_init')
       !---------------------------------------------------------------------
       return
    end function dyn_grid_post_init
@@ -465,6 +466,7 @@ contains
 
    !/@*
    function dyn_lat_lon(lat,lon) result(F_istat)
+      use App
       implicit none
       !@objective
       !@arguments
@@ -480,7 +482,7 @@ contains
       F_istat = RMN_ERR
       if (.not.m_init2_L) return
 !!$      F_istat = RMN_OK
-      call msg(MSG_ERROR,'(dyn_grid) dyn_lat_lon not yet implemented')
+      call App_Log(APP_ERROR,'(dyn_grid) dyn_lat_lon not yet implemented')
       !TODO-later: dyn_lat_lon = ezgrid_latlon(gridid, lat,lon)
       !---------------------------------------------------------------------
       return

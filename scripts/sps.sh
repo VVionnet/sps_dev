@@ -57,7 +57,6 @@ Options:
 EOF
 }
 
-
 #==== Parse inline options
 verbosity=info
 postclean=0
@@ -422,6 +421,13 @@ runmodel() {
    export UM_EXEC_NDOMAINS=$MPI_DOMS
    export UM_EXEC_TIMEOUT=${timeout:-${UM_EXEC_TIMEOUT}}
    export OMP_NUM_THREADS=$MPI_NOMP
+   #export APP_VERBOSE_TIME=MSECOND
+   export APP_LOG_STREAM=stdout
+   #export APP_LOG_STREAM=sps
+   #export APP_LOG_SPLIT=TRUE
+   #export APP_VERBOSE_RANK=-1
+   #export APP_VERBOSE=DEBUG
+   unset APP_VERBOSE_COLOR
 
    #-- Run
    cd ${TASK_BASEDIR}

@@ -9,6 +9,7 @@
 
 !/@*
 module dyn_step_mod
+   use App
    use, intrinsic :: iso_fortran_env, only: REAL64, INT64
    use rmn_gmm
    use clib_itf_mod
@@ -31,7 +32,6 @@ module dyn_step_mod
 !*@/
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
-#include <rmn/msg.h>
 
    integer,parameter :: MAXNVAR = 64
    integer,parameter :: NK_MAX0 = 1024
@@ -51,13 +51,12 @@ contains
       !@author Stephane Chamberland, 2012-03
       !@revisions
    !*@/
-      character(len=MSG_MAXLEN) :: msg_S
       character(len=32) :: readlist_S(MAXNVAR)
       integer :: istat,nread,nk_max
       logical :: read_hu_L
       !---------------------------------------------------------------------
-      write(msg_S,'(a,I5.5)') '(dyn) Step=',F_step
-      call msg(MSG_INFO,trim(msg_S)//' [Begin]')
+      write(app_msg,'(a,I5.5)') '(dyn) Step=',F_step
+      call App_Log(APP_INFO,trim(app_msg)//' [Begin]')
       F_istat = RMN_OK
 
       nk_max = NK_MAX1 !# Note: limite operations to nk-1:nk (speed optimiz)
@@ -97,9 +96,9 @@ contains
       F_istat = min(priv_checklist(readlist_S,nread,F_step),F_istat)
 
       if (RMN_IS_OK(F_istat)) then
-         call msg(MSG_INFO,trim(msg_S)//' [End] OK')
+         call App_Log(APP_INFO,trim(app_msg)//' [End] OK')
       else
-         call msg(MSG_ERROR,trim(msg_S)//' [End] with Problems')
+         call App_Log(APP_ERROR,trim(app_msg)//' [End] with Problems')
       endif
       !---------------------------------------------------------------------
       return
@@ -133,7 +132,7 @@ contains
       istat = gmmx_data('PW_PT:P',pt3d)
       if (.not.(associated(ip1_m) .and. associated(ip1_t) .and. &
            associated(p0) .and. associated(pm3d) .and. associated(pt3d))) then
-         call msg(MSG_ERROR,'(dyn_step) Probleme getting data to compute Pressure')
+         call App_Log(APP_ERROR,'(dyn_step) Probleme getting data to compute Pressure')
          return
       endif
       knm = ubound(ip1_m,1)
@@ -144,7 +143,7 @@ contains
       istat = vgd_levels(vgrid_m,ip1_m(k0m:knm),pm3d0,p0(:,:,1),in_log=.false.)
       istat = min(vgd_levels(vgrid_t,ip1_t(k0t:knt),pt3d0,p0(:,:,1),in_log=.false.),istat)
       if (.not.RMN_IS_OK(istat)) then
-         call msg(MSG_ERROR,'(dyn_step) Probleme getting pressure from vgrid')
+         call App_Log(APP_ERROR,'(dyn_step) Probleme getting pressure from vgrid')
          return
       endif
       pm3d(:,:,k0m:knm) = pm3d0(:,:,1:knm-k0m+1)
@@ -156,7 +155,7 @@ contains
       my_nread = min(my_nread+1,size(my_readlist_S))
       my_readlist_S(my_nread) = 'pw_pt:p'
       my_istat = RMN_OK
-      call msg(MSG_INFO,'(dyn_step) Compute Pressure [PW_PM:P, PW_PT:P]')
+      call App_Log(APP_INFO,'(dyn_step) Compute Pressure [PW_PM:P, PW_PT:P]')
       !---------------------------------------------------------------------
       return
    end function dyn_press
@@ -206,14 +205,14 @@ contains
            associated(hr) .and. associated(tt)        .and. &
            associated(pt) .and. associated(pm)        .and. &
            associated(p0))) then
-         call msg(MSG_ERROR,'(dyn_step) Probleme getting data in dyn_mfbr2mf_adapt')
+         call App_Log(APP_ERROR,'(dyn_step) Probleme getting data in dyn_mfbr2mf_adapt')
          my_istat = RMN_ERR
          return
       endif
 
       if (my_step == 0) then
          if (.not.any(my_readlist_S(1:my_nread) == 'mfbr')) then
-            call msg(MSG_ERROR,'(dyn_step) Cannot run adaptation without MFBR')
+            call App_Log(APP_ERROR,'(dyn_step) Cannot run adaptation without MFBR')
             my_istat = RMN_ERR
             return
          endif
@@ -231,7 +230,7 @@ contains
       endif
 
       if (nodiff_L) then
-         call msg(MSG_INFO,'(dyn_step) Adaptation to High Res. Topography (nothing to do)')
+         call App_Log(APP_INFO,'(dyn_step) Adaptation to High Res. Topography (nothing to do)')
          return
       endif
 
@@ -267,7 +266,7 @@ contains
        p0(:,:,1) = pm(:,:,kn)
 
 
-       call msg(MSG_INFO,'(dyn_step) Adaptation to High Res. Topography')
+       call App_Log(APP_INFO,'(dyn_step) Adaptation to High Res. Topography')
       !---------------------------------------------------------------------
       return
    end function dyn_mfbr2mf_adapt
@@ -300,7 +299,7 @@ contains
       if (.not.(RMN_IS_OK(my_istat) .and. &
            associated(hu) .and. associated(hr) .and. &
            associated(tt) .and. associated(pt) )) then
-         call msg(MSG_ERROR,'(dyn_step) Probleme Getting pointers, cannot compute HU')
+         call App_Log(APP_ERROR,'(dyn_step) Probleme Getting pointers, cannot compute HU')
          return
       endif
       lijk = lbound(hu)
@@ -315,7 +314,7 @@ contains
       endif
       my_nread = min(my_nread+1,size(my_readlist_S))
       my_readlist_S(my_nread) = 'tr/hu:p'
-      call msg(MSG_INFO,'(dyn_step) Compute Specific Humidity HU')
+      call App_Log(APP_INFO,'(dyn_step) Compute Specific Humidity HU')
       !---------------------------------------------------------------------
       return
    end function dyn_hr2hu
@@ -343,7 +342,7 @@ contains
       if (.not.(RMN_IS_OK(my_istat) &
            .and. associated(mf) .and. associated(gz) .and. associated(tt) &
            .and. associated(hu) .and. associated(pm) )) then
-         call msg(MSG_ERROR,'(dyn_step) Probleme Getting pointers, cannot compute GZ')
+         call App_Log(APP_ERROR,'(dyn_step) Probleme Getting pointers, cannot compute GZ')
          return
       endif
       lijk = lbound(gz)
@@ -365,7 +364,7 @@ contains
 
       my_nread = min(my_nread+1,size(my_readlist_S))
       my_readlist_S(my_nread) = 'PW_GZ:P'
-      call msg(MSG_INFO,'(dyn_step) Compute AGL GZ ')
+      call App_Log(APP_INFO,'(dyn_step) Compute AGL GZ ')
       !---------------------------------------------------------------------
       return
    end function dyn_aglgz
@@ -393,7 +392,7 @@ contains
       if (.not.(RMN_IS_OK(my_istat) &
            .and. associated(mf) .and. associated(p0) &
            .and. associated(pw_me) .and. associated(pw_p0) )) then
-         call msg(MSG_ERROR,'(dyn_step) Probleme Getting pointers, cannot copy fields to PW')
+         call App_Log(APP_ERROR,'(dyn_step) Probleme Getting pointers, cannot copy fields to PW')
          return
       endif
 
@@ -404,7 +403,7 @@ contains
       my_readlist_S(my_nread) = 'PW_ME:M'
       my_nread = min(my_nread+1,size(my_readlist_S))
       my_readlist_S(my_nread) = 'PW_P0:P'
-      call msg(MSG_INFO,'(dyn_step) Copy special ')
+      call App_Log(APP_INFO,'(dyn_step) Copy special ')
       !---------------------------------------------------------------------
       return
    end function priv_copy_special
@@ -442,9 +441,9 @@ contains
               .not.any(my_readlist_S(1:my_nread) == varlist2_S(1,ivar))) then
             my_nread = min(my_nread+1,size(my_readlist_S))
             my_readlist_S(my_nread) = varlist2_S(1,ivar)
-            call msg(MSG_INFOPLUS,'(dyn_step) Add shuffled Var: '//trim(varlist2_S(1,ivar)))
+            call App_Log(APP_TRIVIAL,'(dyn_step) Add shuffled Var: '//trim(varlist2_S(1,ivar)))
          else
-            call msg(MSG_INFOPLUS,'(dyn_step) Skipping shuffled Var: '//trim(varlist2_S(1,ivar)))
+            call App_Log(APP_TRIVIAL,'(dyn_step) Skipping shuffled Var: '//trim(varlist2_S(1,ivar)))
          endif
       enddo
       !---------------------------------------------------------------------
@@ -493,7 +492,7 @@ contains
          if (my_nread == 0 .or. &
               .not.any(req_varlist_S(ivar) == my_readlist_S(1:my_nread))) then
             my_istat = RMN_ERR
-            call msg(MSG_ERROR,'(dyn_step) Missing mandatory var: '//trim(req_varlist_S(ivar)))
+            call App_Log(APP_ERROR,'(dyn_step) Missing mandatory var: '//trim(req_varlist_S(ivar)))
          endif
       enddo
       !---------------------------------------------------------------------

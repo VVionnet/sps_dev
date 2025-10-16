@@ -9,6 +9,7 @@
 
 !/@*
 subroutine drv_ptopo_p0(F_npx,F_npy)
+   use App
    use, intrinsic :: iso_fortran_env, only: INT64
    use clib_itf_mod, only: clib_isdir, clib_isfile, clib_mkdir, clib_getenv
    use wb_itf_mod
@@ -29,7 +30,6 @@ subroutine drv_ptopo_p0(F_npx,F_npy)
 !*@/
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
-#include <rmn/msg.h>
 
    character(len=*),parameter :: section_S = 'ptopo_cfgs'
    character(len=*),parameter :: statusfile_S = 'status_mod.dot'
@@ -58,7 +58,7 @@ subroutine drv_ptopo_p0(F_npx,F_npy)
    istat = wb_get(section_S//'/npx',F_npx)
    istat = min(istat,wb_get(section_S//'/npy',F_npy))
    READ_NML: if (RMN_IS_OK(istat)) then
-      call msg(MSG_INFO,'(drv_ptopo_p0) Got topology from Whiteboard')
+      call App_Log(APP_INFO,'(drv_ptopo_p0) Got topology from Whiteboard')
    else
       istat = clib_getenv('UM_EXEC_CONFIG_BASENAME',tmp_S)
       if (.not.RMN_IS_OK(istat)) &
@@ -74,24 +74,24 @@ subroutine drv_ptopo_p0(F_npx,F_npy)
 
       istat = clib_isfile(dict_S)
       if (RMN_IS_OK(istat)) then
-         call msg(MSG_INFO,'(drv_ptopo_p0) Reading topology from: '//trim(user_S)//'::'//trim(section_S))
+         call App_Log(APP_INFO,'(drv_ptopo_p0) Reading topology from: '//trim(user_S)//'::'//trim(section_S))
          istat = wb_read(section_S//'/',dict_S,section_S,WB_DICT_FILE)
       endif
       READ_DICT: if (.not.RMN_IS_OK(istat)) then
-         call msg(MSG_ERROR,'(drv_ptopo_p0) Unable to read: '//trim(dict_S)//'::'//trim(section_S))
+         call App_Log(APP_ERROR,'(drv_ptopo_p0) Unable to read: '//trim(dict_S)//'::'//trim(section_S))
          is_ok = .false.
       else
          istat = clib_isfile(user_S)
          if (RMN_IS_OK(istat)) &
               istat = wb_read(section_S//'/',user_S,section_S,WB_CONF_FILE)
          if (.not.RMN_IS_OK(istat)) then
-            call msg(MSG_WARNING,'(drv_ptopo_p0) Using default npx,npy - Unable to read: '//trim(user_S)//'::'//trim(section_S))
+            call App_Log(APP_WARNING,'(drv_ptopo_p0) Using default npx,npy - Unable to read: '//trim(user_S)//'::'//trim(section_S))
          endif
 
          istat = wb_get(section_S//'/npx',F_npx)
          istat = min(istat,wb_get(section_S//'/npy',F_npy))
          if (.not.RMN_IS_OK(istat)) then
-            call msg(MSG_ERROR,'(drv_ptopo_p0) Unable to get processor topology from: '//trim(user_S)//'::'//trim(section_S))
+            call App_Log(APP_ERROR,'(drv_ptopo_p0) Unable to get processor topology from: '//trim(user_S)//'::'//trim(section_S))
             is_ok = .false.
          endif
       endif READ_DICT
@@ -100,7 +100,7 @@ subroutine drv_ptopo_p0(F_npx,F_npy)
    if (any((/F_npx,F_npy/) < 1)) is_ok = .false.
 
    if (.not.is_ok) then
-      call msg(MSG_CRITICAL,'(drv_ptopo_p0) Topology not defined or not valid\n==== ABORT ====')
+      call App_Log(APP_ERROR,'(drv_ptopo_p0) Topology not defined or not valid\n==== ABORT ====')
       F_npx = 0
       F_npy = 0
       return
@@ -131,7 +131,7 @@ subroutine drv_ptopo_p0(F_npx,F_npy)
    write(tmp_S,'(a,2i4,a,2i4,a,2i4)') &
         "(drv_ptopo_p0) Topology defined: npex,y=",F_npx,F_npy,'; nblocx,y=:', &
         nblocx, nblocy,'; ninblocx,y:',ninblocx, ninblocy
-   call msg(MSG_INFO,tmp_S)
+   call App_Log(APP_INFO,tmp_S)
    !---------------------------------------------------------------------
    return
 end subroutine drv_ptopo_p0

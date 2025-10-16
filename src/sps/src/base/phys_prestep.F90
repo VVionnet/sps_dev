@@ -9,6 +9,7 @@
 
 !>
 module phys_prestep_mod
+   use App
    use, intrinsic :: iso_fortran_env, only: REAL64, INT64
    use rmn_gmm
    use wb_itf_mod
@@ -31,7 +32,6 @@ module phys_prestep_mod
 !**/
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
-#include <rmn/msg.h>
 
 contains
 
@@ -48,24 +48,23 @@ contains
       real,pointer :: data3d(:,:,:)
       real, save :: max_neg_pr0 = -1.0000E-5
       integer :: istat
-      character(len=MSG_MAXLEN) :: msg_S
       !---------------------------------------------------------------------
       F_istat = RMN_OK
 
       if (.not.is_init_L) then
-         call msg(MSG_INFO,'(Phys) Pre-Step Init [Begin]')
+         call App_Log(APP_INFO,'(Phys) Pre-Step Init [Begin]')
          F_istat = wb_get('sps_cfgs/max_neg_pr0',max_neg_pr0)
          if (max_neg_pr0 > 0. .or. .not.RMN_IS_OK(F_istat)) then
-            write(msg_S,'(a,es10.3,a)') '(Phys) Pre-Step ABORT: BAD sps cfg option: max_neg_pr0 (=',max_neg_pr0,') should be NEGATIVE '
+            write(app_msg,'(a,es10.3,a)') '(Phys) Pre-Step ABORT: BAD sps cfg option: max_neg_pr0 (=',max_neg_pr0,') should be NEGATIVE '
             F_istat = RMN_ERR
-            call msg(MSG_ERROR,msg_S)
+            call App_Log(APP_ERROR,app_msg)
          endif
          call collect_error(F_istat)
          if (.not.RMN_IS_OK(F_istat)) then
-            call msg(MSG_ERROR,'(Phys) Pre-Step Problem in Init')
+            call App_Log(APP_ERROR,'(Phys) Pre-Step Problem in Init')
             return
          else
-            call msg(MSG_INFO,'(Phys) Pre-Step Init End')
+            call App_Log(APP_INFO,'(Phys) Pre-Step Init End')
          endif
          is_init_L = .true.
       endif
@@ -73,7 +72,7 @@ contains
       !# Reset to Zero at every step: tendencies, accumulators, ... in Vol Bus
       F_istat = phymem_busreset(PHY_VBUSIDX)
       if (.not.RMN_IS_OK(F_istat)) then
-         call msg(MSG_ERROR,'(Phys) Pre-Step problem resetting volbus')
+         call App_Log(APP_ERROR,'(Phys) Pre-Step problem resetting volbus')
          return
       endif
 
@@ -82,7 +81,7 @@ contains
       F_istat = phy_get(data3d,'PREN')
       if (.not.(RMN_IS_OK(F_istat).and.associated(data3d))) then
          F_istat = RMN_ERR
-         call msg(MSG_ERROR,'(Phys) Pre-Step problem getting PREN')
+         call App_Log(APP_ERROR,'(Phys) Pre-Step problem getting PREN')
          return
       endif
 
@@ -91,8 +90,8 @@ contains
       endif
       call collect_error(F_istat)
       if (.not.RMN_IS_OK(F_istat)) then
-         write(msg_S,'(a,es10.3,a,es10.3,a)') '(Phys) Pre-Step ABORT: 1hr precip accum. PR0 (=',minval(data3d),') exceeds maximum negative value allowed (max_neg_pr0=',max_neg_pr0,') '
-         call msg(MSG_ERROR,msg_S)
+         write(app_msg,'(a,es10.3,a,es10.3,a)') '(Phys) Pre-Step ABORT: 1hr precip accum. PR0 (=',minval(data3d),') exceeds maximum negative value allowed (max_neg_pr0=',max_neg_pr0,') '
+         call App_Log(APP_ERROR,app_msg)
          return
       endif
 
@@ -101,7 +100,7 @@ contains
       istat = phy_put(data3d,'TSS')
       if (.not.RMN_IS_OK(F_istat)) then
          F_istat = RMN_ERR
-         call msg(MSG_ERROR,'(Phys) Pre-Step problem updating TSS')
+         call App_Log(APP_ERROR,'(Phys) Pre-Step problem updating TSS')
          return
       endif
 

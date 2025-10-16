@@ -26,7 +26,6 @@ module drv_levels_mod
 !*@/
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
-#include <rmn/msg.h>
 
    include "drv_dyn_itf.inc"
 
@@ -40,6 +39,7 @@ contains
 
    !/@*
    function drv_levels_config(F_cfg_basename_S) result(F_istat)
+      use App
       implicit none
       !@objective Read levels config from file to WB
       !@arguments
@@ -50,9 +50,9 @@ contains
       !  Stephane Chamberland, Feb 2008
    !*@/
       !---------------------------------------------------------------------
-      call msg(MSG_DEBUG,'[BEGIN] levels_config')
+      call App_Log(APP_DEBUG,'[BEGIN] levels_config')
       F_istat = config_read(F_cfg_basename_S,'levels_cfgs')
-      call msg(MSG_DEBUG,'[END] levels_config')
+      call App_Log(APP_DEBUG,'[END] levels_config')
       !---------------------------------------------------------------------
       return
    end function drv_levels_config
@@ -60,6 +60,7 @@ contains
 
    !/@*
    function drv_levels_init() result(F_istat)
+      use App
       implicit none
       !@objective Initialize drv grid
       !@returns
@@ -79,7 +80,7 @@ contains
       character(len=256) :: tmp_S
       type(vgrid_descriptor) :: vcoor
       !---------------------------------------------------------------------
-      call msg(MSG_DEBUG,'[BEGIN] levels_init')
+      call App_Log(APP_DEBUG,'[BEGIN] levels_init')
       F_istat = dyn_levels_init(l_nk,vcoor,stag_L,surf_idx)      
 
       nullify(std_p_prof,ip1_m,ip1_t,p_ip1,p_ip1_m,p_ip1_t)
@@ -119,7 +120,7 @@ contains
             write(tmp_S,'(a,i3,a,i3,a,i9,a,i9,a,i9,a,i9)') &
                  '(drv_levels) ip1_m(',i0,':',in,')=', ip1mt(1),', ', &
                  ip1mt(2),', ...,', ip1mt(3),', ', ip1mt(4)
-            call msg(MSG_INFO,tmp_S)
+            call App_Log(APP_INFO,tmp_S)
             i0 = lbound(p_ip1_t,1); in = ubound(p_ip1_t,1)
             i1 = min(i0+1,in) ; in1 = max(in-1,i0)
             ip1mt(1) = p_ip1_t(i0) ; ip1mt(2) = p_ip1_t(i1)
@@ -127,7 +128,7 @@ contains
             write(tmp_S,'(a,i3,a,i3,a,i9,a,i9,a,i9,a,i9)') &
                  '(drv_levels) ip1_t(',i0,':',in,')=', ip1mt(1),', ', &
                  ip1mt(2),', ...,', ip1mt(3),', ', ip1mt(4)
-            call msg(MSG_INFO,tmp_S)
+            call App_Log(APP_INFO,tmp_S)
             i0 = lbound(std_p_prof,1); in = ubound(std_p_prof,1)
             i1 = min(i0+1,in) ; in1 = max(in-1,i0)
             r14(1) = std_p_prof(i0) ; r14(2) = std_p_prof(i1)
@@ -135,7 +136,7 @@ contains
             write(tmp_S,'(a,i3,a,i3,a,f10.2,a,f10.2,a,f10.2,a,f10.2)') &
                  '(drv_levels) std_p_prof_m(',i0,':',in,')=', r14(1),', ', &
                  r14(2),', ...,', r14(3),', ', r14(4)
-            call msg(MSG_INFO,tmp_S)
+            call App_Log(APP_INFO,tmp_S)
          endif
 
          if (stag_L) then
@@ -151,7 +152,7 @@ contains
             write(tmp_S,'(a,i3,a,i3,a,f10.2,a,f10.2,a,f10.2,a,f10.2)') &
                  '(drv_levels) std_p_prof_t(',i0,':',in,')=', r14(1),', ', &
                  r14(2),', ...,', r14(3),', ', r14(4)
-            call msg(MSG_INFO,tmp_S)
+            call App_Log(APP_INFO,tmp_S)
          endif
          if (associated(std_p_prof)) deallocate(std_p_prof,stat=istat)
          if (associated(ip1_m)) deallocate(ip1_m,stat=istat)
@@ -164,11 +165,11 @@ contains
 
       if (RMN_IS_OK(F_istat)) then
          write(tmp_S,'(a,i4,a)') '(drv_levels) Initialization OK: [nk=',l_nk,']'
-         call msg(MSG_INFO,tmp_S)
+         call App_Log(APP_INFO,tmp_S)
       else
-         call msg(MSG_ERROR,'(drv_levels) Problem in Initialisation')
+         call App_Log(APP_ERROR,'(drv_levels) Problem in Initialisation')
       endif
-      call msg(MSG_DEBUG,'[BEGIN] levels_init')
+      call App_Log(APP_DEBUG,'[BEGIN] levels_init')
       !---------------------------------------------------------------------
       return
    end function drv_levels_init

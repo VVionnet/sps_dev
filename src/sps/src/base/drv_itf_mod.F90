@@ -45,12 +45,12 @@ module drv_itf_mod
    !*@/
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
-#include <rmn/msg.h>
 
 contains
 
    !/@*
    function drv_config(F_cfg_basename_S) result(F_istat)
+      use App
       implicit none
       !@arguments
       character(len=*),intent(out) :: F_cfg_basename_S
@@ -60,7 +60,7 @@ contains
       !---------------------------------------------------------------------
       F_istat = clib_getenv('UM_EXEC_CONFIG_BASENAME',F_cfg_basename_S)
       if (.not.RMN_IS_OK(F_istat)) then
-         call msg(MSG_WARNING,'(drv_config) UM_EXEC_CONFIG_BASENAME not defiened, trying with default settings file, model_settings')
+         call App_Log(APP_WARNING,'(drv_config) UM_EXEC_CONFIG_BASENAME not defiened, trying with default settings file, model_settings')
          F_cfg_basename_S = './model_settings'
       endif
       call config_init(drv_path_config_dir0_S)
@@ -95,87 +95,58 @@ contains
 
    !/@*
    subroutine drv_verbosity(F_prefix_S)
+      use App
       implicit none
       !@objective Set verbosity
       !@argument
       character(len=*),intent(in) :: F_prefix_S
       !@author  Stephane Chamberland, 2011-09
       !*@/
-      integer :: istat,myproc,mycol,myrow
+      integer :: istat
       character(len=256) :: tmp_S,prefix_S
       logical :: debug_L
       !---------------------------------------------------------------------
       prefix_S = F_prefix_S
       if (len_trim(prefix_S) > 0) prefix_S = trim(prefix_S)//'_'
 
-      istat = clib_getenv(trim(prefix_S)//'VERBOSITY_PROC',tmp_S)
+      istat = clib_getenv(trim(prefix_S)//'VERBOSITY',tmp_S)
       if (RMN_IS_OK(istat)) then
          call str_tab2space(tmp_S)
          tmp_S = adjustl(tmp_S)
          istat = clib_tolower(tmp_S)
          select case(tmp_S(1:1))
-         case('0') !- print from pe0 only
-            istat = rpn_comm_mype(myproc,mycol,myrow)
-         case('a') !- print from all proc
-            myproc = 0
-         case('b') !- print from bloc master only
-            call rpn_comm_rank(RPN_COMM_BLOC_COMM,myproc,istat)
-         end select
-      else
-         istat = rpn_comm_mype(myproc,mycol,myrow)
-      endif
-      call msg_set_p0only(max(0,myproc))
+         case('d')
+            tmp_S='debug'
+            istat = App_LogLevelNo(APP_DEBUG)
 
-      istat = env_get('UM_EXEC_DEBUG',debug_L,.false.)
-      if (debug_L) then
-         tmp_S = 'debug'
-      else
-         istat = clib_getenv(trim(prefix_S)//'VERBOSITY',tmp_S)
+            call handle_error_setdebug(debug_L)
+         case('p')
+            tmp_S='plus'
+            istat = App_LogLevelNo(APP_TRIVIAL)
+            istat = Lib_LogLevelNo(APP_LIBFST,APP_INFO);
+            istat = Lib_LogLevelNo(APP_LIBWB,APP_WARNING);
+            istat = Lib_LogLevelNo(APP_LIBGMM,APP_ERROR);
+         case('w')
+            tmp_S='warn'
+            istat = App_LogLevelNo(APP_WARNING)
+            istat = Lib_LogLevelNo(APP_LIBFST,APP_ERROR);
+            istat = Lib_LogLevelNo(APP_LIBWB,APP_WARNING);
+            istat = Lib_LogLevelNo(APP_LIBGMM,APP_ERROR);
+         case('e')
+            tmp_S='error'
+            istat = App_LogLevelNo(APP_ERROR)
+         case('c')
+            tmp_S='critical'
+            istat = App_LogLevelNo(APP_FATAL)
+         case('i')
+            tmp_S='info'
+            istat = App_LogLevelNo(APP_INFO)
+            istat = Lib_LogLevelNo(APP_LIBFST,APP_ERROR);
+            istat = Lib_LogLevelNo(APP_LIBWB,APP_WARNING);
+            istat = Lib_LogLevelNo(APP_LIBGMM,APP_ERROR);
+         end select
+         call App_Log(APP_INFO,'(drv) Set Verbosity Level='//trim(tmp_S))
       endif
-      if (.not.RMN_IS_OK(istat)) tmp_S='info'
-      call str_tab2space(tmp_S)
-      tmp_S = adjustl(tmp_S)
-      istat = clib_tolower(tmp_S)
-      select case(tmp_S(1:1))
-      case('d')
-         tmp_S='debug'
-         istat = fstopc('MSGLVL','DEBUG',RMN_OPT_SET)
-         istat = wb_verbosity(WB_MSG_DEBUG)
-         istat = gmm_verbosity(GMM_MSG_DEBUG)
-         call msg_set_minMessageLevel(MSG_DEBUG)
-         call handle_error_setdebug(debug_L)
-      case('p')
-         tmp_S='plus'
-         istat = fstopc('MSGLVL','INFORM',RMN_OPT_SET)
-         istat = wb_verbosity(WB_MSG_WARN)
-         istat = gmm_verbosity(GMM_MSG_ERROR)
-         call msg_set_minMessageLevel(MSG_INFOPLUS)
-      case('w')
-         tmp_S='warn'
-         istat = fstopc('MSGLVL','SYSTEM',RMN_OPT_SET)
-         istat = wb_verbosity(WB_MSG_WARN)
-         istat = gmm_verbosity(GMM_MSG_ERROR)
-         call msg_set_minMessageLevel(MSG_WARNING)
-      case('e')
-         tmp_S='error'
-         istat = fstopc('MSGLVL','SYSTEM',RMN_OPT_SET)
-         istat = wb_verbosity(WB_MSG_ERROR)
-         istat = gmm_verbosity(GMM_MSG_ERROR)
-         call msg_set_minMessageLevel(MSG_ERROR)
-      case('c')
-         tmp_S='critical'
-         istat = fstopc('MSGLVL','SYSTEM',RMN_OPT_SET)
-         istat = wb_verbosity(WB_MSG_ERROR)
-         istat = gmm_verbosity(GMM_MSG_FATAL)
-         call msg_set_minMessageLevel(MSG_CRITICAL)
-      case default
-         tmp_S='info'
-         istat = fstopc('MSGLVL','SYSTEM',RMN_OPT_SET)
-         istat = wb_verbosity(WB_MSG_WARN)
-         istat = gmm_verbosity(GMM_MSG_ERROR)
-         call msg_set_minMessageLevel(MSG_INFO)
-      end select
-      call msg(MSG_INFO,'(drv) Set Verbosity Level='//trim(tmp_S))
       !---------------------------------------------------------------------
       return
    end subroutine drv_verbosity

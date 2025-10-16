@@ -43,7 +43,6 @@ module drv_path_mod
    !@/
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
-#include <rmn/msg.h>
 
 contains
 
@@ -82,6 +81,7 @@ contains
 
    !/@
    function drv_path_set(F_mydomain,F_ngrids,F_igrid,F_ipex,F_ipey) result(F_istat)
+      use App
       implicit none
       !@arguments
       integer,intent(in) :: F_mydomain
@@ -91,12 +91,12 @@ contains
       !@/
       character(len=512) :: tmp_S
       !---------------------------------------------------------------------
-      call msg(MSG_DEBUG,'[BEGIN] drv_path_set')
+      call App_Log(APP_DEBUG,'[BEGIN] drv_path_set')
       F_istat = clib_getenv('TASK_WORK',drv_path_work_S)
       F_istat = min(clib_getenv('TASK_INPUT' ,drv_path_input_S),F_istat)
       F_istat = min(clib_getenv('TASK_OUTPUT',drv_path_output_S),F_istat)
       if (.not.RMN_IS_OK(F_istat)) then
-         call msg(MSG_WARNING,'(drv_path_set) Undefined: TASK_WORK, TASK_INPUT, TASK_OUTPUT')
+         call App_Log(APP_WARNING,'(drv_path_set) Undefined: TASK_WORK, TASK_INPUT, TASK_OUTPUT')
          return
       endif
 
@@ -143,7 +143,7 @@ contains
 !!$      Path_nml_S    = trim(pwd_S)//'/model_settings'
 !!$      Path_outcfg_S = trim(pwd_S)//'/output_settings'
 !!$      Path_phyincfg_S = trim(pwd_S)//'/physics_input_table'
-      call msg(MSG_DEBUG,'[END] drv_path_set')
+      call App_Log(APP_DEBUG,'[END] drv_path_set')
       !---------------------------------------------------------------------
       return
    end function drv_path_set
@@ -151,6 +151,7 @@ contains
 
    !/@
    subroutine priv_add_path_element(F_name_S,F_path_S,F_part_S)
+      use App
       implicit none
       !@arguments
       character(len=*),intent(inout) ::F_path_S
@@ -166,7 +167,7 @@ contains
       istat = clib_mkdir(trim(F_path_S))
       istat = clib_isdir(trim(F_path_S))
       if (.not.RMN_IS_OK(istat)) then
-         call msg(MSG_WARNING,'(drv_path_set) Dir Not Found: '//trim(F_path_S))
+         call App_Log(APP_WARNING,'(drv_path_set) Dir Not Found: '//trim(F_path_S))
       endif
       istat = wb_put('path/'//trim(F_name_S),F_path_S,WB_REWRITE_MANY)
       !---------------------------------------------------------------------

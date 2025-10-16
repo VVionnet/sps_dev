@@ -9,6 +9,7 @@
 
 !/@*
 module drv_time_mod
+   use App
    use, intrinsic :: iso_fortran_env, only: REAL64, INT64
    use clib_itf_mod, only: clib_tolower
    use wb_itf_mod
@@ -19,7 +20,6 @@ module drv_time_mod
    implicit none
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
-#include <rmn/msg.h>
    private
    !@objective Manage time steping
    !@author
@@ -81,11 +81,11 @@ contains
       !  Stephane Chamberland, Feb 2008
       !*@/
       !---------------------------------------------------------------------
-      call msg(MSG_DEBUG,'[BEGIN] drv_time_config')
+      call App_Log(APP_DEBUG,'[BEGIN] drv_time_config')
       F_istat = RMN_OK
       if (m_init_L) return
       F_istat = config_read(F_cfg_basename_S,'time_cfgs')
-      call msg(MSG_DEBUG,'[END] drv_time_config')
+      call App_Log(APP_DEBUG,'[END] drv_time_config')
       !---------------------------------------------------------------------
       return
    end function drv_time_config
@@ -114,7 +114,7 @@ contains
       !*@/
       integer :: istat,datev
       !---------------------------------------------------------------------
-      call msg(MSG_DEBUG,'[BEGIN] drv_time_init')
+      call App_Log(APP_DEBUG,'[BEGIN] drv_time_init')
       istat = RMN_OK
       if (m_init_L) return
       m_init_L = .true.
@@ -161,12 +161,12 @@ contains
       istat = min(wb_put('time_datev',datev,WB_REWRITE_MANY),istat)
       F_istat = istat
       if (RMN_IS_OK(F_istat)) then
-         call msg(MSG_INFO,'(drv_time) Initialisation OK')
+         call App_Log(APP_INFO,'(drv_time) Initialisation OK')
       else
          m_init_L = .false.
-         call msg(MSG_ERROR,'(drv_time) Problem in Initialisation')
+         call App_Log(APP_ERROR,'(drv_time) Problem in Initialisation')
       endif
-      call msg(MSG_DEBUG,'[END] drv_time_init')
+      call App_Log(APP_DEBUG,'[END] drv_time_init')
       !---------------------------------------------------------------------
       return
    end function drv_time_init
@@ -197,7 +197,7 @@ contains
       character(len=256) :: msg_S
       !---------------------------------------------------------------------
       if (.not.m_init_L) then
-         call msg(MSG_ERROR,'(drv_time) Not Initialised')
+         call App_Log(APP_ERROR,'(drv_time) Not Initialised')
          return
       endif
 
@@ -233,7 +233,7 @@ contains
       datev_S = cmcdate_toprint(datev)
       write(msg_S,'("Step=",i4.4," (datev=",a,") (ckpt,last,stat)=(",l2,l2,l2,")")') &
            F_stepno,datev_S(1:15),F_is_chkpt_L,F_is_last_L,is_stat_L
-      call msg(MSG_INFO,'(drv_time) Increment: '//trim(msg_S))
+      call App_Log(APP_INFO,'(drv_time) Increment: '//trim(msg_S))
 
       !- update useful time values in global WB for other components to access
       istat = wb_put('time_stepno',time_stepno,WB_REWRITE_MANY)
@@ -263,7 +263,7 @@ contains
       real(REAL64) :: nhours_8
       !---------------------------------------------------------------------
       if (.not.m_init_L) then
-         call msg(MSG_ERROR,'(drv_time) Not Initialised')
+         call App_Log(APP_ERROR,'(drv_time) Not Initialised')
          return
       endif
 
@@ -405,7 +405,7 @@ contains
       integer :: ii,jj,istat,nflds,nlvl,swap_mode
       !---------------------------------------------------------------------
       if (.not.m_init_L) then
-         call msg(MSG_ERROR,'(drv_time) Not Initialised')
+         call App_Log(APP_ERROR,'(drv_time) Not Initialised')
          return
       endif
 
@@ -427,11 +427,11 @@ contains
             call drv_time_shuffle_name(namelist(jj),timeflags0(1:nlvl))
          enddo
          if (nlvl == 2) then
-            call msg(MSG_INFOPLUS,'(drv_time) shuffle: '//trim(namelist(1))//' <-> '//trim(namelist(2)))
+            call App_Log(APP_TRIVIAL,'(drv_time) shuffle: '//trim(namelist(1))//' <-> '//trim(namelist(2)))
          else if (nlvl == 3) then
-            call msg(MSG_INFOPLUS,'(drv_time) shuffle: '//trim(namelist(1))//' <- '//trim(namelist(2))//' <- '//trim(namelist(3)))
+            call App_Log(APP_INFO,'(drv_time) shuffle: '//trim(namelist(1))//' <- '//trim(namelist(2))//' <- '//trim(namelist(3)))
          else
-            call msg(MSG_INFOPLUS,'(drv_time) shuffle: '//trim(namelist(1))//' <-> ... <->'//trim(namelist(nlvl)))
+            call App_Log(APP_TRIVIAL,'(drv_time) shuffle: '//trim(namelist(1))//' <-> ... <->'//trim(namelist(nlvl)))
          endif
          if (swap_mode == DRV_TIME_MODE_SHUFFLE) then
             istat = gmm_shuffle(namelist(1:nlvl))
@@ -440,7 +440,7 @@ contains
          endif
       end do
       if (.not.RMN_IS_OK(istat)) then
-         call msg(MSG_ERROR,'(drv_time) Problem doing shuffle')
+         call App_Log(APP_ERROR,'(drv_time) Problem doing shuffle')
       endif
       !---------------------------------------------------------------------
       return
@@ -465,11 +465,11 @@ contains
          F_istat = gmm_getmeta(F_varlist_S(ivar),mymeta)
          F_istat = min(gmm_getmeta(F_varlist_S(ivar+1),mymeta2),F_istat)
          if (F_istat /= 0) then
-            call msg(MSG_ERROR,'(drv_time) Cannot copy fields, not same size/rank')
+            call App_Log(APP_ERROR,'(drv_time) Cannot copy fields, not same size/rank')
             return
          endif
          if (mymeta%l(3)%n /= mymeta2%l(3)%n) then
-            call msg(MSG_ERROR,'(drv_time) Cannot copy fields, not same size/rank')
+            call App_Log(APP_ERROR,'(drv_time) Cannot copy fields, not same size/rank')
             F_istat = RMN_ERR
             return
          endif
@@ -478,13 +478,13 @@ contains
             F_istat = gmm_get(F_varlist_S(ivar),ptr2d1)
             F_istat = min(gmm_get(F_varlist_S(ivar+1),ptr2d2),F_istat)
             if (.not.(RMN_IS_OK(F_istat).and.associated(ptr2d1).and.associated(ptr2d2))) then
-               call msg(MSG_ERROR,'(drv_time) Cannot copy fields, Problem getting data pointers')
+               call App_Log(APP_ERROR,'(drv_time) Cannot copy fields, Problem getting data pointers')
                F_istat = RMN_ERR
                return
             endif
             if (any(lbound(ptr2d1) /= lbound(ptr2d2)) .or. &
                  any(ubound(ptr2d1) /= ubound(ptr2d2))) then
-               call msg(MSG_ERROR,'(drv_time) Cannot copy fields, size mismatch')
+               call App_Log(APP_ERROR,'(drv_time) Cannot copy fields, size mismatch')
                F_istat = RMN_ERR
                return
             endif
@@ -494,13 +494,13 @@ contains
             F_istat = gmm_get(F_varlist_S(ivar),ptr3d1)
             F_istat = min(gmm_get(F_varlist_S(ivar+1),ptr3d2),F_istat)
             if (.not.(RMN_IS_OK(F_istat).and.associated(ptr3d1).and.associated(ptr3d2))) then
-               call msg(MSG_ERROR,'(drv_time) Cannot copy fields, Problem getting data pointers')
+               call App_Log(APP_ERROR,'(drv_time) Cannot copy fields, Problem getting data pointers')
                F_istat = RMN_ERR
                return
             endif
             if (any(lbound(ptr3d1) /= lbound(ptr3d2)) .or. &
                  any(ubound(ptr3d1) /= ubound(ptr3d2))) then
-               call msg(MSG_ERROR,'(drv_time) Cannot copy fields, size mismatch')
+               call App_Log(APP_ERROR,'(drv_time) Cannot copy fields, size mismatch')
                F_istat = RMN_ERR
                return
             endif
