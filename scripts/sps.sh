@@ -421,12 +421,14 @@ runmodel() {
    export UM_EXEC_NDOMAINS=$MPI_DOMS
    export UM_EXEC_TIMEOUT=${timeout:-${UM_EXEC_TIMEOUT}}
    export OMP_NUM_THREADS=$MPI_NOMP
-   #export APP_VERBOSE_TIME=MSECOND
+
+   #-- App control variable
    export APP_LOG_STREAM=stdout
-   #export APP_LOG_STREAM=sps
-   #export APP_LOG_SPLIT=TRUE
-   #export APP_VERBOSE_RANK=-1
-   #export APP_VERBOSE=DEBUG
+   #export APP_LOG_STREAM=sps         # logfile name
+   #export APP_LOG_SPLIT=TRUE         # Split log per rank
+   #export APP_VERBOSE_TIME=MSECOND   # Use milliseconds (usefull to reconstituate all ranks flow)
+   #export APP_VERBOSE_RANK=-1        # Output form all ranks
+   #export APP_VERBOSE=DEBUG          # Change verbose level (default: INFO)
    unset APP_VERBOSE_COLOR
 
    #-- Run
