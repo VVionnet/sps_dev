@@ -15,7 +15,7 @@ function spsdm() result(istat)
    use wb_itf_mod
    use env_utils, only: env_get
    use ptopo_utils, only: ptopo_grid_npe,ptopo_grid_ipe
-   use drv_itf_mod, only: drv_ptopo_init,drv_ptopo_terminate,drv_verbosity,drv_config, drv_init,drv_time_info,drv_time_increment
+   use drv_itf_mod, only: drv_ptopo_init,drv_ptopo_terminate,drv_config, drv_init,drv_time_info,drv_time_increment
    use phys_itf_mod, only: phys_config,phys_init,phys_input,phys_step,phys_output,phys_blocstats
    use dyn_itf_mod, only: dyn_config,dyn_init,dyn_input,dyn_step,dyn_output,dyn_blocstats,DYN_NTIMELEVELS
 !!$   use input_step_mod, only: input_step
@@ -75,8 +75,6 @@ function spsdm() result(istat)
    endif
 
    call model_usage_stats(MODEL_NAME,.not.PRINT_ACCUM_L)
-
-   call drv_verbosity('UM_EXEC')
 
    call timing_init2(ptopo_grid_ipe,MODEL_NAME)
    call timing_start2(TMG_ALL,MODEL_NAME//'-all',0)

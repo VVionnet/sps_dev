@@ -19,7 +19,7 @@ Options:
     -h, --help
        print this help
     -v, --verbosity
-        set verbosity level [debug, plusinfo, info, warning, error, critical]
+        set verbosity level [FATAL, SYSTEM, ERROR, WARNING, INFO, STAT, TRIVIAL, DEBUG, EXTRA]
         default=info
     --ptopo 
         Define processor topology, format {NPEX}x{NPEY}x{NOMP}
@@ -58,7 +58,7 @@ EOF
 }
 
 #==== Parse inline options
-verbosity=info
+verbosity=INFO
 postclean=0
 restart=0
 previous=""
@@ -78,7 +78,7 @@ timeout=""
 while [[ $# -gt 0 ]] ; do
    case $1 in
       (-h|--help) usage_long ; exit 0;;
-      (-v|--verbosity) verbosity=plus ;;
+      (-v|--verbosity) verbosity=TRIVIAL ;;
       (--verbosity=*) verbosity=${1##*=} ;;
       (--postclean) postclean=1 ;;
       (--restart) restart=1 ;;
@@ -430,6 +430,7 @@ runmodel() {
    #export APP_VERBOSE_RANK=-1        # Output form all ranks
    #export APP_VERBOSE=DEBUG          # Change verbose level (default: INFO)
    unset APP_VERBOSE_COLOR            # Enable/Disable color in log messages
+   export APP_VERBOSE=$verbosity
    export APP_VERBOSE_FST= APP_ERROR
    export APP_VERBOSE_WB= APP_WARNING
    export APP_VERBOSE_GMM= APP_ERROR
