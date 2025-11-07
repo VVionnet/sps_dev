@@ -6,6 +6,12 @@ program sps
 
 #include <sps_build_info.h>
 
+   interface
+      function spsdm() result(istat)
+         integer :: istat
+      end function spsdm
+   end interface
+
    integer :: ierror
 
    ! Initialisation
@@ -19,10 +25,10 @@ program sps
    call app_start()
 
    ! Run
-   call spsdm
+   app_status=spsdm()
 
    ! Finalisation
-   app_status=app_end(0)
+   app_status=app_end(app_status)
 
    call rpn_comm_barrier(RPN_COMM_WORLD, ierror)
    call rpn_comm_finalize(ierror)

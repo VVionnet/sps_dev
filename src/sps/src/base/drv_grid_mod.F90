@@ -98,9 +98,7 @@ contains
               "] [l_ni,l_nj=",l_ni,l_nj,"] [l_i0,l_j0=",l_i0,l_j0, &
               "] [hx,hy=",G_halox,G_haloy,"] [periodx,y=", &
               G_periodx,G_periody,"]"
-         rnk=App_LogRank(-1)
-         call App_Log(APP_INFO,tmp_S)
-         rnk=App_LogRank(rnk)
+         call App_LogAllRank(APP_INFO,tmp_S)
       else
          call App_Log(APP_ERROR,'(drv_grid) Problem in Initialisation')
       endif

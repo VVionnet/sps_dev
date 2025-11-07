@@ -8,7 +8,7 @@
 !-------------------------------------------------------------------------- 
 
 !/@*
-subroutine spsdm()
+function spsdm() result(istat)
    use App
    use, intrinsic :: iso_fortran_env, only: REAL64, INT64
    use rmn_gmm
@@ -69,7 +69,10 @@ subroutine spsdm()
    istat = env_get('UM_EXEC_TIMEOUT',timeout,TIMEOUT_DEFAULT,TIMEOUT_MIN,TIMEOUT_MAX)
    istat = env_get('UM_EXEC_NGRIDS',ngrids,NGRIDS_DEFAULT,NGRIDS_MIN,NGRIDS_MAX)
    istat = drv_ptopo_init(ngrids)
-   call handle_error(istat,MODEL_NAME,'(drv_ptopo_init) MPI init problems')
+   if (istat < 0) then
+      call app_logallranks(APP_ERROR,'MPI init problems from drv_ptopo_init')
+      return
+   endif
 
    call model_usage_stats(MODEL_NAME,.not.PRINT_ACCUM_L)
 
@@ -85,7 +88,10 @@ subroutine spsdm()
    istat = drv_config(config_name_S)
    istat = min(dyn_config(config_name_S),istat)
    istat = min(phys_config(config_name_S),istat)
-   call handle_error(istat,MODEL_NAME,'error in config read')
+   if (istat < 0) then
+      call app_logallranks(APP_FATAL,'error in config read')
+      return
+   endif
 
    !- Initialize model components
    seconds_since = model_timeout_alarm(timeout)
@@ -93,7 +99,10 @@ subroutine spsdm()
    if (RMN_IS_OK(istat)) istat = dyn_init(dateo_S,dt_8,stepno)
 
    if (RMN_IS_OK(istat)) istat = phys_init(dateo_S,dt_8,stepno)
-   call handle_error(istat,MODEL_NAME,'error in init')
+   if (istat < 0) then
+      call app_logallranks(APP_FATAL,'error in init')
+      return
+   endif
 
    istat = wb_get('sps_cfgs/stat_by_level_L',stat_by_level_L)   
 
@@ -118,22 +127,34 @@ subroutine spsdm()
       call timing_start2(TMG_IN,MODEL_NAME//'-in',0)
       istat = dyn_input(stepno)
       call timing_stop(TMG_IN)
-      call handle_error(istat,MODEL_NAME,'Problemes in dyn_input')
+      if (istat < 0) then
+         call app_logallranks(APP_FATAL,'Problems in dyn_input')
+         return
+      endif
 
       call timing_start2(TMG_DYN,MODEL_NAME//'-dyn',0)
       istat = min(dyn_step(stepno),istat)
       call timing_stop(TMG_DYN)
-      call handle_error(istat,MODEL_NAME,'Problemes in dyn_step')
+      if (istat < 0) then
+         call app_logallranks(APP_FATAL,'Problems in dyn_step')
+         return
+      endif
 
       call timing_start2(TMG_IN,MODEL_NAME//'-in',0)
       istat = phys_input(stepno)
       call timing_stop(TMG_IN)
-      call handle_error(istat,MODEL_NAME,'Problemes in phys_input')
+      if (istat < 0) then
+         call app_logallranks(APP_FATAL,'Problems in phys_input')
+         return
+      endif
 
       call timing_start2(TMG_PHYS,MODEL_NAME//'-phys',0)
       istat = min(phys_step(stepno),istat)
       call timing_stop(TMG_PHYS)
-      call handle_error(istat,MODEL_NAME,'Problemes in physstep')
+      if (istat < 0) then
+         call app_logallranks(APP_FATAL,'Problems in physstep')
+         return
+      endif
 
       if (is_stat.or.is_last) then
          call timing_start2(TMG_STAT,MODEL_NAME//'-stat',0)
@@ -163,7 +184,6 @@ subroutine spsdm()
    call model_usage_stats(trim(MODEL_NAME)//': TIMELOOP END',.not.PRINT_ACCUM_L)
 
    seconds_since = model_timeout_alarm(timeout)
-   call handle_error(istat,MODEL_NAME,'error... somewhere!!! ;-)')
       
  !!$   istat = min(out_finalize(),istat)
 
@@ -177,4 +197,4 @@ subroutine spsdm()
    !---------------------------------------------------------------------
    return
 
-end subroutine spsdm
+end function spsdm

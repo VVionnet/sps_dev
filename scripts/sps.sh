@@ -415,7 +415,7 @@ runmodel() {
    . ${TASK_SETUP} --file="$model_tsk_file" --base="$model_exp_storage""$myclean""$task_setup_verbose"
    
    #-- Export Mandatory EnvVar
-   export UM_EXEC_VERBOSITY=$verbosity
+#   export UM_EXEC_VERBOSITY=$verbosity
    export UM_EXEC_NGRIDS=$MPI_NGRIDS
    export UM_EXEC_CONFIG_BASENAME=${model_cfg_filename%.*}
    export UM_EXEC_NDOMAINS=$MPI_DOMS
@@ -429,7 +429,10 @@ runmodel() {
    #export APP_VERBOSE_TIME=MSECOND   # Use milliseconds (usefull to reconstituate all ranks flow)
    #export APP_VERBOSE_RANK=-1        # Output form all ranks
    #export APP_VERBOSE=DEBUG          # Change verbose level (default: INFO)
-   unset APP_VERBOSE_COLOR
+   unset APP_VERBOSE_COLOR            # Enable/Disable color in log messages
+   export APP_VERBOSE_FST= APP_ERROR
+   export APP_VERBOSE_WB= APP_WARNING
+   export APP_VERBOSE_GMM= APP_ERROR
 
    #-- Run
    cd ${TASK_BASEDIR}
