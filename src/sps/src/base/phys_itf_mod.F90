@@ -20,6 +20,7 @@ module phys_itf_mod
    use statfld_dm_mod
    use phy_output_mod, only: phy_output0, phy_output1_4
    use phys_prestep_mod
+   use mod_handle_error, only: collect_error
    implicit none
    private
    !@objective Interface to RPNPhy
