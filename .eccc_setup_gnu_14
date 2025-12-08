@@ -7,6 +7,7 @@
 # - Load RPN-SI libraries and utilities, and RPNPY
 # - Load a script for common setup to all compilers
 
+# to avoid linking with libgfortran.so in /lib64
 unset SSMUSE_LD_PREPEND
 
 # Load code-tools 

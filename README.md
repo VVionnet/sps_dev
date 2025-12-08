@@ -72,7 +72,7 @@ other submodules, or adding or removing source files):
 ### Scripts
 
 Scripts in `scripts/support` and `scripts/rpy` directories are a copy of scripts
-already loaded from SSM domains when a `.eccc_setup file` is called. By
+already loaded from SSM domains when a `.eccc_setup*` file is called.  By
 default, they are not used, but if you want to test or modify them, you can
 override SSM scripts by setting `GOAS_SCRIPT_MODE` variable before sourcing
 `.eccc_setup_intel` or `.eccc_setup_gnu`:
