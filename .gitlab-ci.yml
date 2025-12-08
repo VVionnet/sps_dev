@@ -601,6 +601,21 @@ TEB_national_intel:
     - cd $SPS_WORK
     - sps.sh --dircfg ./configurations/TEB_national --ptopo=8x10 --btopo=1x1 --inorder
 
+SVS2_cfgs_intel:
+  stage: run_intel
+  needs:
+  - build:rhel-8-icelake-64-intel-2025.1.0
+  when: always
+  allow_failure: true
+  script:
+    - set +e
+    - . ./.eccc_setup_intel_2025.1.0
+    - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
+    - set -e
+    - ./scripts/link-dbase.sh
+    - cd $SPS_WORK
+    - sps.sh --dircfg ./configurations/SVS2_cfgs --ptopo=6x6 --btopo=1x1 --inorder
+
 #----- Running test configurations for rhel-8-amd64_gnu-9.3.0
 caldas_hrdps_isba_gnu:
   stage: run_gnu
@@ -691,3 +706,18 @@ TEB_national_gnu:
     - set -e
     - cd $SPS_WORK
     - sps.sh --dircfg ./configurations/TEB_national --ptopo=8x10 --btopo=1x1 --inorder
+
+SVS2_cfgs_gnu:
+  stage: run_gnu
+  needs:
+  - build:rhel-8-amd64_gnu-9.3.0
+  when: always
+  allow_failure: true
+  script:
+    - set +e
+    - . ./.eccc_setup_gnu
+    - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20230316
+    - ./scripts/link-dbase.sh
+    - set -e
+    - cd $SPS_WORK
+    - sps.sh --dircfg ./configurations/SVS2_cfgs --ptopo=6x6 --btopo=1x1 --inorder
