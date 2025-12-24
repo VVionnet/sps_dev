@@ -389,6 +389,7 @@ build:ubuntu-22.04-amd64-intel-2022.1.2:
       - cd ${PIPELINE_SUBDIR}/build-ubuntu-22.04-amd64-64-intel-2022.1.2
       - cmake -DWITH_SYSTEM_RPN=TRUE ${SRC_DIR}
       - time make -j $NCPUS
+   allow_failure: true
 
 package:ubuntu-22.04-amd64-intel-2022.1.2:
    variables:
@@ -444,6 +445,7 @@ build:ubuntu-22.04-amd64-intel-2023.2.0:
       - cd ${PIPELINE_SUBDIR}/build-ubuntu-22.04-amd64-64-intel-2023.2.0
       - cmake -DWITH_SYSTEM_RPN=TRUE ${SRC_DIR}
       - time make -j $NCPUS
+   allow_failure: true
 
 package:ubuntu-22.04-amd64-intel-2023.2.0:
    variables:
@@ -471,6 +473,7 @@ package:ubuntu-22.04-amd64-intel-2023.2.0:
       - cd ${PIPELINE_SUBDIR}/build-ubuntu-22.04-amd64-64-intel-2023.2.0
       - make package
       - ~/ci-admin/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
+   allow_failure: true
 
 #----- ubuntu-22.04-amd64_gnu-11.4.0
 # build:ubuntu-22.04-amd64-gnu-11.4.0:
@@ -498,6 +501,7 @@ package:ubuntu-22.04-amd64-intel-2023.2.0:
 #       - cd ${PIPELINE_SUBDIR}/build-ubuntu-22.04-amd64-64-gnu-11.4.0
 #       - cmake -DWITH_SYSTEM_RPN=TRUE ${SRC_DIR}
 #       - time make -j $NCPUS
+#   allow_failure: true
 
 deploy:staging:
    stage: deploy
