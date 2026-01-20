@@ -47,6 +47,7 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/src/rpnphy/CMakeLists.txt)
   set(cpl_LIBRARIES rpnphy_cpl_stubs CACHE STRING "rpnphy coupling library")
   set(chm_LIBRARIES rpnphy_chm_stubs CACHE STRING "rpnphy chemistry stub library")
   add_subdirectory(rpnphy rpnphy)
+  set(phy_VERSION ${rpnphy_VERSION} CACHE STRING "rpnphy version")
 endif()
 
 add_subdirectory(sps sps)
@@ -60,3 +61,21 @@ endif()
 install(DIRECTORY ../scripts/ DESTINATION scripts USE_SOURCE_PERMISSIONS PATTERN "rpy" EXCLUDE PATTERN "support" EXCLUDE)
 install(DIRECTORY ../share/configurations/ DESTINATION share/configurations USE_SOURCE_PERMISSIONS)
 install(DIRECTORY ../share/misc/ DESTINATION share/misc USE_SOURCE_PERMISSIONS)
+
+# Copy nml reference file and physics_input_table from rpnphy
+install(CODE "
+   message(STATUS \"Copying nml reference file from rpnphy\")
+   execute_process(
+     COMMAND cp -p ${CMAKE_SOURCE_DIR}/src/rpnphy/share/nml_ref/rpnphy_settings.${SPS_VERSION}.ref ${CMAKE_SOURCE_DIR}/share/nml_ref/sps_settings.${SPS_VERSION}.ref
+     COMMAND_ERROR_IS_FATAL ANY
+)
+   message(STATUS \"Copying physics_input_table_GENERIC from rpnphy\")
+   execute_process(
+     COMMAND cp -p ${CMAKE_SOURCE_DIR}/src/rpnphy/include/physics_input_table_GENERIC ${CMAKE_SOURCE_DIR}/share/misc/physics_input_table
+     COMMAND_ERROR_IS_FATAL ANY
+)
+     ")
+
+install(FILES "${CMAKE_SOURCE_DIR}/share/nml_ref/sps_settings.${SPS_VERSION}.ref" DESTINATION share/nml_ref)
+install(FILES "${CMAKE_SOURCE_DIR}/share/misc/physics_input_table" DESTINATION share/misc)
+install(PROGRAMS "${CMAKE_SOURCE_DIR}/src/rpnphy/bin/rpnphy_nml_mkref" DESTINATION scripts)
