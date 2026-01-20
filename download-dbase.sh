@@ -3,7 +3,7 @@
 set -e
 
 SPS_DBASE="sps_dbase.tar.gz"
-SPS_DBASE_URL="http://collaboration.cmc.ec.gc.ca/science/outgoing/goas/${SPS_DBASE}"
+SPS_DBASE_URL="https://hpfx.collab.science.gc.ca/~sixf000/SPS/${SPS_DBASE}"
 SPS_DBASE_MD5SUM="b539d0110dc02fa248d5af41e4d7e642"
 
 printUsage() {
