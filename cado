@@ -166,6 +166,7 @@ case "${name}" in
      cmake-debug-extra) cmd=${cmake_debug_extra_command} ;;
            cmake-nvhpc) cmd=${cmake_nvhpc_command} ;;
             cmake-mach) cmd=${cmake_mach_command} ;;
+     cmake-mach-strict) cmd=${cmake_mach_strict_command} ;;
      cmake-mach-static) cmd=${cmake_mach_static_command} ;;
         cmake-all-mach) cmd=${cmake_all_mach_command} ;;
       cmake-mach-debug) cmd=${cmake_mach_debug_command} ;;
