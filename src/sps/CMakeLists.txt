@@ -1,4 +1,23 @@
+cmake_minimum_required(VERSION 3.16)
+
 message(STATUS "(EC) Generating spsdyn libraries Makefile")
+
+#----- Append EC specific module path
+list(APPEND ${CMAKE_SOURCE_DIR}/cmake_rpn/modules CMAKE_MODULE_PATH $ENV{EC_CMAKE_MODULE_PATH})
+
+ec_parse_manifest()        # Parse MANIFEST file
+
+project(${NAME} DESCRIPTION "${DESCRIPTION}" LANGUAGES Fortran)
+set(PROJECT_VERSION ${VERSION}${STATE})
+set(spsdyn_VERSION ${PROJECT_VERSION} CACHE INTERNAL "spsdyn version" FORCE) # Needed for cascaded version identification
+message(STATUS "(EC) ${PROJECT_NAME} version = ${PROJECT_VERSION}")
+
+ec_build_info()            # Generate build information
+include(ec_compiler_presets)
+
+# To build without OpenMP, you have to add -DWITH_OPENMP=FALSE to the cmake command line
+set(WITH_OPENMP TRUE CACHE BOOL "Control whether to use OpenMP")
+include(ec_openmp)
 
 find_package(MPI)
 if (MPI_FOUND)
@@ -7,6 +26,20 @@ if (MPI_FOUND)
 endif()
 
 file(GLOB F_FILES src/base/*.F90)
+
+# Adding specific flags for sps
+if (("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "Intel") AND NOT ("${CMAKE_SYSTEM_NAME}" STREQUAL "CrayLinuxEnvironment"))
+  if(CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER 2021)
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -qmkl -static-intel -diag-disable 5268")
+    set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -qmkl")
+  else()
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -mkl -static-intel -diag-disable 5268")
+    set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -mkl")
+  endif()
+elseif("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "GNU")
+  find_package(LAPACK)
+  find_package(BLAS)
+endif()
 
 set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/modules )
 
