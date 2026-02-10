@@ -3,6 +3,19 @@
 Warning: this repository uses submodules. Make sure you follow the
 instructions below.
 
+## Developers: how to contribute to the official physics using SPS DEV repository
+
+Read the [wiki page](https://gitlab.science.gc.ca/continental-surface-hydrology/sps-dev/-/wikis/How-to-contribute-to-the-official-physics-using-SPS-DEV-repository) which describes how developers of models of continental
+surfaces can prepare contributions to the official physics using the sps_dev
+repository.
+
+## Developers: how to work with branches under sps dev
+
+Read the [wiki
+page](https://gitlab.science.gc.ca/continental-surface-hydrology/sps-dev/-/wikis/How-to-work-with-branches-under-sps-dev)
+which describes how developers of models of continental surfaces can
+download and update branches of other developers under sps-dev.
+
 ## Getting sps git repository
 
 ### Choose one of the following methods:
