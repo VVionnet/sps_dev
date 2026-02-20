@@ -7,13 +7,29 @@
 ! It is distributed WITHOUT ANY WARRANTY of FITNESS FOR ANY PARTICULAR PURPOSE.
 !-------------------------------------------------------------------------- 
 
+function finalize()
+   use, intrinsic :: iso_c_binding
+   use rpn_comm_itf_mod
+   implicit none
+
+   integer(C_INT32_T) :: finalize
+   integer :: err
+
+   call rpn_comm_Barrier(RPN_COMM_WORLD, err)
+   call rpn_comm_FINALIZE(err)
+
+   finalize=1
+
+   return
+end function finalize
+
 !/@*
 function spsdm() result(istat)
    use App
    use, intrinsic :: iso_fortran_env, only: REAL64, INT64
    use rmn_gmm
-   use wb_itf_mod
    use env_utils, only: env_get
+   use wb_itf_mod
    use ptopo_utils, only: ptopo_grid_npe,ptopo_grid_ipe
    use drv_itf_mod, only: drv_ptopo_init,drv_ptopo_terminate,drv_config, drv_init,drv_time_info,drv_time_increment
    use phys_itf_mod, only: phys_config,phys_init,phys_input,phys_step,phys_output,phys_blocstats
@@ -69,10 +85,7 @@ function spsdm() result(istat)
    istat = env_get('UM_EXEC_TIMEOUT',timeout,TIMEOUT_DEFAULT,TIMEOUT_MIN,TIMEOUT_MAX)
    istat = env_get('UM_EXEC_NGRIDS',ngrids,NGRIDS_DEFAULT,NGRIDS_MIN,NGRIDS_MAX)
    istat = drv_ptopo_init(ngrids)
-   if (istat < 0) then
-      call app_logallranks(APP_ERROR,'MPI init problems from drv_ptopo_init')
-      return
-   endif
+   call app_logallranks(merge(APP_FATAL,APP_INFO,istat<0)+APP_COLLECT,'MPI init problems from drv_ptopo_init')
 
    call model_usage_stats(MODEL_NAME,.not.PRINT_ACCUM_L)
 
@@ -86,10 +99,7 @@ function spsdm() result(istat)
    istat = drv_config(config_name_S)
    istat = min(dyn_config(config_name_S),istat)
    istat = min(phys_config(config_name_S),istat)
-   if (istat < 0) then
-      call app_logallranks(APP_FATAL,'error in config read')
-      return
-   endif
+   call app_logallranks(merge(APP_FATAL,APP_INFO,istat<0)+APP_COLLECT,'error in config read')
 
    !- Initialize model components
    seconds_since = model_timeout_alarm(timeout)
@@ -97,10 +107,7 @@ function spsdm() result(istat)
    if (RMN_IS_OK(istat)) istat = dyn_init(dateo_S,dt_8,stepno)
 
    if (RMN_IS_OK(istat)) istat = phys_init(dateo_S,dt_8,stepno)
-   if (istat < 0) then
-      call app_logallranks(APP_FATAL,'error in init')
-      return
-   endif
+   call app_logallranks(merge(APP_FATAL,APP_INFO,istat<0)+APP_COLLECT,'error in init')
 
    istat = wb_get('sps_cfgs/stat_by_level_L',stat_by_level_L)   
 
@@ -125,34 +132,22 @@ function spsdm() result(istat)
       call timing_start2(TMG_IN,MODEL_NAME//'-in',0)
       istat = dyn_input(stepno)
       call timing_stop(TMG_IN)
-      if (istat < 0) then
-         call app_logallranks(APP_FATAL,'Problems in dyn_input')
-         return
-      endif
+      call app_logallranks(merge(APP_FATAL,APP_INFO,istat<0)+APP_COLLECT,'Problems in dyn_input')
 
       call timing_start2(TMG_DYN,MODEL_NAME//'-dyn',0)
       istat = min(dyn_step(stepno),istat)
       call timing_stop(TMG_DYN)
-      if (istat < 0) then
-         call app_logallranks(APP_FATAL,'Problems in dyn_step')
-         return
-      endif
+      call app_logallranks(merge(APP_FATAL,APP_INFO,istat<0)+APP_COLLECT,'Problems in dyn_step')
 
       call timing_start2(TMG_IN,MODEL_NAME//'-in',0)
       istat = phys_input(stepno)
       call timing_stop(TMG_IN)
-      if (istat < 0) then
-         call app_logallranks(APP_FATAL,'Problems in phys_input')
-         return
-      endif
+      call app_logallranks(merge(APP_FATAL,APP_INFO,istat<0)+APP_COLLECT,'Problems in phys_input')
 
       call timing_start2(TMG_PHYS,MODEL_NAME//'-phys',0)
       istat = min(phys_step(stepno),istat)
       call timing_stop(TMG_PHYS)
-      if (istat < 0) then
-         call app_logallranks(APP_FATAL,'Problems in physstep')
-         return
-      endif
+      call app_logallranks(merge(APP_FATAL,APP_INFO,istat<0)+APP_COLLECT,'Problems in physstep')
 
       if (is_stat.or.is_last) then
          call timing_start2(TMG_STAT,MODEL_NAME//'-stat',0)

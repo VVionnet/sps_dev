@@ -415,7 +415,6 @@ runmodel() {
    . ${TASK_SETUP} --file="$model_tsk_file" --base="$model_exp_storage""$myclean""$task_setup_verbose"
    
    #-- Export Mandatory EnvVar
-#   export UM_EXEC_VERBOSITY=$verbosity
    export UM_EXEC_NGRIDS=$MPI_NGRIDS
    export UM_EXEC_CONFIG_BASENAME=${model_cfg_filename%.*}
    export UM_EXEC_NDOMAINS=$MPI_DOMS
@@ -424,16 +423,15 @@ runmodel() {
 
    #-- App control variable
    export APP_LOG_STREAM=stdout
-   #export APP_LOG_STREAM=sps         # logfile name
+   #export APP_LOG_STREAM=sps         # Logfile name
    #export APP_LOG_SPLIT=TRUE         # Split log per rank
-   #export APP_VERBOSE_TIME=MSECOND   # Use milliseconds (usefull to reconstituate all ranks flow)
-   #export APP_VERBOSE_RANK=-1        # Output form all ranks
-   #export APP_VERBOSE=DEBUG          # Change verbose level (default: INFO)
    unset APP_VERBOSE_COLOR            # Enable/Disable color in log messages
-   export APP_VERBOSE=$verbosity
-   export APP_VERBOSE_FST= APP_ERROR
-   export APP_VERBOSE_WB= APP_WARNING
-   export APP_VERBOSE_GMM= APP_ERROR
+   export APP_VERBOSE=$verbosity      # Global verbose level (default: INFO)
+#   export APP_VERBOSE_FST= APP_ERROR  # FST specific verbose level
+#   export APP_VERBOSE_WB= APP_WARNING # Whiteboard specific verbose level
+#   export APP_VERBOSE_GMM= APP_ERROR  # GMM specific verbose level
+   #export APP_VERBOSE_TIME=MSECOND   # Use milliseconds (usefull to reconstitute all ranks flow)
+   #export APP_VERBOSE_RANK=-1        # Output form all ranks
 
    #-- Run
    cd ${TASK_BASEDIR}

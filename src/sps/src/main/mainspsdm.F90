@@ -10,6 +10,10 @@ program sps
       function spsdm() result(istat)
          integer :: istat
       end function spsdm
+
+      function finalize()
+         integer :: finalize
+      end function finalize
    end interface
 
    integer :: ierror
@@ -23,6 +27,11 @@ program sps
 
    call MPI_INIT(ierror)
    call app_start()
+
+!   type(C_FUNPTR) :: func_ptr_to_c
+!   func_ptr_to_c=C_FUNLOC(finalize)
+!   call app_finalizecallback(func_ptr_to_c)
+   call app_finalizecallback(C_FUNLOC(finalize))
 
    ! Run
    app_status=spsdm()
