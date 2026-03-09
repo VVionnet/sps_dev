@@ -82,8 +82,14 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/main/mainspsdm.in ${CMAKE_CURRENT
 
 add_executable(mainspsdm src/main/mainspsdm.F90)
 
+if (("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "IntelLLVM") AND (CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER 2025))
+  # link with libgcc_s to get a traceback
+  set(GCC_S gcc_s)
+endif()
+
 target_link_libraries(mainspsdm
    spsdyn
+   ${GCC_S}
    vgrid::vgrid
    tdpack::tdpack
    rpncomm::rpncomm
