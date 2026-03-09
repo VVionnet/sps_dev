@@ -36,4 +36,4 @@ sps.sh --dircfg configurations/SPS_MoSA_cfgs --ptopo=4x20 --btopo=1x1 --inorder 
 grep -ia "Status              :" vlist_SPS_MoSA_cfgs_4x20
 date
 ckstat=`grep "status=END" vlist_* | wc -l`
-echo "$ckstat tests out of 10 succeeded"
+echo "$ckstat tests out of 11 succeeded"
