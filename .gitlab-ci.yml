@@ -11,7 +11,7 @@ stages:
 
 before_script:
   - source ~/ci-admin/env/init.sh
-  - export PIPELINE_SUBDIR=${ECCI_BUILD_DIR}/precaution/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}/${CI_PIPELINE_ID}
+  - export PIPELINE_SUBDIR=${ECCI_BUILD_DIR}/precaution/${CI_PROJECT_PATH}/${CI_COMMIT_REF_NAME}/${CI_PIPELINE_ID}
 
 #----- rhel-9-amd64_gnu-11.4.1
 build:rhel-9-amd64_gnu-11.4.1:

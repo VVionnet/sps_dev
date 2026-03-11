@@ -31,6 +31,9 @@ grep -ia "Status              :" vlist_svs1_freezing_8x10
 echo "(10) testing svs1_mosa (3min)" `date`
 sps.sh --dircfg configurations/svs1_mosa --ptopo=4x20 --btopo=1x1 --inorder > vlist_svs1_mosa_4x20 2>&1
 grep -ia "Status              :" vlist_svs1_mosa_4x20
+echo "(11) testing SPS_MoSA_cfgs (3min)" `date`
+sps.sh --dircfg configurations/SPS_MoSA_cfgs --ptopo=4x20 --btopo=1x1 --inorder > vlist_SPS_MoSA_cfgs_4x20 2>&1
+grep -ia "Status              :" vlist_SPS_MoSA_cfgs_4x20
 date
 ckstat=`grep "status=END" vlist_* | wc -l`
-echo "$ckstat tests out of 10 succeeded"
+echo "$ckstat tests out of 11 succeeded"
