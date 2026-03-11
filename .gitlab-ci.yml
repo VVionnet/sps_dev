@@ -13,8 +13,8 @@ before_script:
   - source ~/ci-admin/env/init.sh
   - export PIPELINE_SUBDIR=${ECCI_BUILD_DIR}/precaution/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}/${CI_PIPELINE_ID}
 
-#----- rhel-8-amd64_gnu-9.3.0
-build:rhel-8-amd64_gnu-9.3.0:
+#----- rhel-9-amd64_gnu-11.4.1
+build:rhel-9-amd64_gnu-11.4.1:
   stage: build
   script:
     - set +e
@@ -24,8 +24,8 @@ build:rhel-8-amd64_gnu-9.3.0:
     - make cmake
     - make -j `nproc`
 
-#----- rhel-8-icelake-64-intel-2022.1.2
-build:rhel-8-icelake-64-intel-2022.1.2:
+#----- rhel-9-graniterapids-64-intel-2025.1.0
+build:rhel-9-graniterapids-64-intel-2025.1.0:
   stage: build
   script:
     - set +e
