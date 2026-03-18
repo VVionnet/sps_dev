@@ -9,7 +9,8 @@ variables:
 stages:
   - build
   - run_intel
-  - run_gnu
+  - run_gnu_11
+  - run_gnu_15
   - package
   - deploy
 
@@ -99,27 +100,27 @@ build:rhel-9-amd64_gnu-11.4.1:
     - work-rhel-9-amd64-64-gnu-11.4.1
     - sps_dbase
 
-# #----- rhel-9-amd64_gnu-15.2.0
-# build:rhel-9-amd64_gnu-15.2.0:
-#   variables:
-#      ORD_SOUMET_CPUS: "4"
-#      ORD_SOUMET_W: "30"
-#      ORD_SOUMET_M: "8G"
-#      ORD_SOUMET_TMPFS: "1G"
-#   stage: build
-#   tags:
-#     - ppp7-concurrent
-#   when: always
-#   script:
-#     - set +e
-#     - . ./.eccc_setup_gnu_15.2.0
-#     - set -e
-#     - mkdir -pv ${PIPELINE_SUBDIR}/build-rhel-9-amd64-64-15.2.0
-#     - SRC_DIR=$(pwd)
-#     - cd ${PIPELINE_SUBDIR}/build-rhel-9-amd64-64-15.2.0
-#     - cmake --fresh ${SRC_DIR}
-#     - time make -j $NCPUS
-#   allow_failure: true
+#----- rhel-9-amd64_gnu-15.2.0
+build:rhel-9-amd64_gnu-15.2.0:
+  variables:
+     ORD_SOUMET_CPUS: "4"
+     ORD_SOUMET_W: "30"
+     ORD_SOUMET_M: "8G"
+     ORD_SOUMET_TMPFS: "1G"
+  stage: build
+  tags:
+    - ppp7-concurrent
+  when: always
+  script:
+    - set +e
+    - . ./.eccc_setup_gnu_15.2.0
+    - set -e
+    - mkdir -pv ${PIPELINE_SUBDIR}/build-rhel-9-amd64-64-15.2.0
+    - SRC_DIR=$(pwd)
+    - cd ${PIPELINE_SUBDIR}/build-rhel-9-amd64-64-15.2.0
+    - cmake --fresh ${SRC_DIR}
+    - time make -j $NCPUS
+  allow_failure: true
 
 # #----- ubuntu-24.04-amd64_intel-2025.1.0
 # build:ubuntu-24.04-amd64-intel-2025.1.0:
@@ -438,7 +439,7 @@ SVS2_cfgs_intel:
 
 #----- Running test configurations for rhel-9-amd64_gnu-11.4.1
 caldas_hrdps_isba_gnu:
-  stage: run_gnu
+  stage: run_gnu_11
   needs:
   - build:rhel-9-amd64_gnu-11.4.1
   when: always
@@ -453,7 +454,7 @@ caldas_hrdps_isba_gnu:
     - sps.sh --dircfg ./configurations/caldas_hrdps_isba --ptopo=6x1 --btopo=1x1 --inorder
 
 CSLM_cfgs_gnu:
-  stage: run_gnu
+  stage: run_gnu_11
   needs:
   - build:rhel-9-amd64_gnu-11.4.1
   when: always
@@ -468,7 +469,7 @@ CSLM_cfgs_gnu:
     - sps.sh --dircfg ./configurations/CSLM_cfgs --ptopo=8x10 --btopo=1x1 --inorder
 
 SPS_cfgs_gnu:
-  stage: run_gnu
+  stage: run_gnu_11
   needs:
   - build:rhel-9-amd64_gnu-11.4.1
   when: always
@@ -483,7 +484,7 @@ SPS_cfgs_gnu:
     - sps.sh --dircfg ./configurations/SPS_cfgs --ptopo 2x2x1 --btopo=1x1 --inorder
 
 SPS_isba_gnu:
-  stage: run_gnu
+  stage: run_gnu_11
   needs:
   - build:rhel-9-amd64_gnu-11.4.1
   when: always
@@ -498,7 +499,7 @@ SPS_isba_gnu:
     - sps.sh --dircfg configurations/SPS_isba_cfgs --ptopo=2x2x1 --btopo=1x1 --inorder
 
 tape1_grid_gnu:
-  stage: run_gnu
+  stage: run_gnu_11
   needs:
   - build:rhel-9-amd64_gnu-11.4.1
   when: always
@@ -513,7 +514,7 @@ tape1_grid_gnu:
     - sps.sh --dircfg ./configurations/tape1_grid --ptopo=1x1x1 --btopo=1x1 --inorder
 
 TEB_national_gnu:
-  stage: run_gnu
+  stage: run_gnu_11
   needs:
   - build:rhel-9-amd64_gnu-11.4.1
   when: always
@@ -528,7 +529,7 @@ TEB_national_gnu:
     - sps.sh --dircfg ./configurations/TEB_national --ptopo=8x10 --btopo=1x1 --inorder
 
 SVS2_cfgs_gnu:
-  stage: run_gnu
+  stage: run_gnu_11
   needs:
   - build:rhel-9-amd64_gnu-11.4.1
   when: always
@@ -541,3 +542,20 @@ SVS2_cfgs_gnu:
     - set -e
     - cd $SPS_WORK
     - sps.sh --dircfg ./configurations/SVS2_cfgs --ptopo=6x6 --btopo=1x1 --inorder
+
+#----- Running one test configuration for rhel-9-amd64_gnu-15.2.0
+SPS_cfgs_gnu_15:
+  stage: run_gnu_15
+  needs:
+  - build:rhel-9-amd64_gnu-15.2.0
+  when: always
+  allow_failure: true
+  script:
+    - set +e
+    - . ./.eccc_setup_gnu_15.2.0
+    - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20250808
+    - ./scripts/link-dbase.sh
+    - set -e
+    - cd $SPS_WORK
+    - sps.sh --dircfg ./configurations/SPS_cfgs --ptopo 2x2x1 --btopo=1x1 --inorder
+
