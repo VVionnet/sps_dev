@@ -12,7 +12,7 @@
 6. [Preparing SPS compilation](#preparing-sps-compilation)
     1. [Information on scripts](#information-on-scripts)
 7. [Building and installing SPS](#building-and-installing-sps)
-8. [Running SPS](#Running SPS)
+8. [Running SPS](#running-sps)
     1. [Running SPS using DDT](#running-sps-using-ddt)
     2. [Running SPS using GDB](#running-sps-using-gdb)
 9. [Some tips for compilation](#some-tips-for-compilation)
@@ -103,7 +103,7 @@ git checkout -b mybranch
 ## Linking to SPS database
 
 To be done once:
- 
+
 ```
 ./scripts/link-dbase.sh
 ```
@@ -143,7 +143,7 @@ export GOAS_SCRIPT_MODE=true
 
 Please also note that if you load maestro, maestro scripts will be used,
 either in a maestro suite or when running SPS interactively. Otherwise, goas
-task setup files situated in the scripts directory will be used instead.
+task setup files situated in the `scripts` directory will be used instead.
 
 ## Building and installing SPS
 
@@ -221,19 +221,19 @@ When the `cado cmake` command is called, information is printed, among which
 the list of compilation flags used, such as (example with Intel on science
 side):
 ```
--- (EC) CMAKE_C_FLAGS=-fp-model precise -traceback -Wtrigraphs -xICELAKE-SERVER -diag-disable=10441 -qmkl 
--- (EC) CMAKE_Fortran_FLAGS=-convert big_endian -align array32byte -assume byterecl -fp-model source -fpe0 -traceback -stand f08 -xICELAKE-SERVER -diag-disable=5268,7025,7373 -qmkl -static-intel
+-- (EC) CMAKE_C_FLAGS=-fp-model precise -traceback -Wtrigraphs -xgraniterapids -qmkl
+-- (EC) CMAKE_Fortran_FLAGS=-convert big_endian -align array32byte -assume byterecl -fp-model source -fpe0 -traceback -stand f08 -xgraniterapids -diag-disable=5268,7025,7373 -qmkl -static-intel
 ```
 
 If you choose the debug version (`cado cmake-debug`), some flags are added to the previous ones, and, again, printed when `cado cmake-debug` is called:
 ```
--- (EC) CMAKE_C_FLAGS_DEBUG=-O0 -g -ftrapuv
--- (EC) CMAKE_Fortran_FLAGS_DEBUG=-O0 -g -ftrapuv
+-- (EC) CMAKE_C_FLAGS_DEBUG=-O0 -g3 -ftrapv
+-- (EC) CMAKE_Fortran_FLAGS_DEBUG=-O0 -g3 -ftrapuv -debug-parameters all
 ```
 With `cado cmake-debug-extra`:
 ```
--- (EC) CMAKE_C_FLAGS=-fp-model precise -traceback -Wtrigraphs -xICELAKE-SERVER -diag-disable=10441 -Wall -qmkl 
--- (EC) CMAKE_Fortran_FLAGS=-convert big_endian -align array32byte -assume byterecl -fp-model source -fpe0 -traceback -stand f08 -xICELAKE-SERVER -diag-disable=5268,7025,7373 -warn all -check all -qmkl -static-intel
+-- (EC) CMAKE_C_FLAGS_DEBUG=-O0 -g3 -ftrapv
+-- (EC) CMAKE_Fortran_FLAGS_DEBUG=-O0 -g3 -ftrapuv -debug-parameters all -qopt-report=3 -init=snan,arrays -warn nointerfaces -check noarg_temp_created,nouninit
 ```
 
 *Important note*: if you want to change the compilation type, for example, first, you compiled with the debug version (`cado cmake-debug`), and then you want to use the release version (`cado cmake`), you need to remove the contents of the build directory between these two commands. You can use the following command: `. ./.initial_setup` which will empty the build and work directories, and then you can proceed from the start with the `cado cmake` configure command.
