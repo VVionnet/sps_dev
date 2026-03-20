@@ -28,6 +28,7 @@ program sps
    call MPI_INIT(ierror)
    call app_start()
 
+!   TODO: Clenup when confirmed we can pass directly to function
 !   type(C_FUNPTR) :: func_ptr_to_c
 !   func_ptr_to_c=C_FUNLOC(finalize)
 !   call app_finalizecallback(func_ptr_to_c)
