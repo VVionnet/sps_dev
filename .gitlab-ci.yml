@@ -115,12 +115,19 @@ build:rhel-9-amd64_gnu-15.2.0:
     - set +e
     - . ./.eccc_setup_gnu_15.2.0
     - set -e
-    - mkdir -pv ${PIPELINE_SUBDIR}/build-rhel-9-amd64-64-15.2.0
+    - mkdir -pv ${PIPELINE_SUBDIR}/build-rhel-9-amd64-64-gnu-15.2.0
+    - mkdir -pv ${PIPELINE_SUBDIR}/work-rhel-9-amd64-64-gnu-15.2.0
+    - ln -sf ${PIPELINE_SUBDIR}/work-rhel-9-amd64-64-gnu-15.2.0 .
     - SRC_DIR=$(pwd)
-    - cd ${PIPELINE_SUBDIR}/build-rhel-9-amd64-64-15.2.0
+    - cd ${PIPELINE_SUBDIR}/build-rhel-9-amd64-64-gnu-15.2.0
     - cmake --fresh ${SRC_DIR}
     - time make -j $NCPUS
   allow_failure: true
+  artifacts:
+    expire_in: 4 hrs
+    paths:
+    - work-rhel-9-amd64-64-gnu-15.2.0
+    - sps_dbase
 
 # #----- ubuntu-24.04-amd64_intel-2025.1.0
 # build:ubuntu-24.04-amd64-intel-2025.1.0:
