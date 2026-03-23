@@ -122,6 +122,7 @@ build:rhel-9-amd64_gnu-15.2.0:
     - cd ${PIPELINE_SUBDIR}/build-rhel-9-amd64-64-gnu-15.2.0
     - cmake --fresh ${SRC_DIR}
     - time make -j $NCPUS
+    - time make work
   allow_failure: true
   artifacts:
     expire_in: 4 hrs
