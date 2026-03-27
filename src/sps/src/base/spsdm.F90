@@ -85,7 +85,7 @@ function spsdm() result(istat)
    istat = env_get('UM_EXEC_TIMEOUT',timeout,TIMEOUT_DEFAULT,TIMEOUT_MIN,TIMEOUT_MAX)
    istat = env_get('UM_EXEC_NGRIDS',ngrids,NGRIDS_DEFAULT,NGRIDS_MIN,NGRIDS_MAX)
    istat = drv_ptopo_init(ngrids)
-   call app_logallranks(merge(APP_FATAL,APP_INFO,istat<0)+APP_COLLECT,'MPI init problems from drv_ptopo_init')
+   call app_logallranks(merge(APP_FATAL,APP_QUIET,istat<0)+APP_COLLECT,'MPI init problems from drv_ptopo_init')
 
    call model_usage_stats(MODEL_NAME,.not.PRINT_ACCUM_L)
 
@@ -99,7 +99,7 @@ function spsdm() result(istat)
    istat = drv_config(config_name_S)
    istat = min(dyn_config(config_name_S),istat)
    istat = min(phys_config(config_name_S),istat)
-   call app_logallranks(merge(APP_FATAL,APP_INFO,istat<0)+APP_COLLECT,'error in config read')
+   call app_logallranks(merge(APP_FATAL,APP_QUIET,istat<0)+APP_COLLECT,'error in config read')
 
    !- Initialize model components
    seconds_since = model_timeout_alarm(timeout)
@@ -107,7 +107,7 @@ function spsdm() result(istat)
    if (RMN_IS_OK(istat)) istat = dyn_init(dateo_S,dt_8,stepno)
 
    if (RMN_IS_OK(istat)) istat = phys_init(dateo_S,dt_8,stepno)
-   call app_logallranks(merge(APP_FATAL,APP_INFO,istat<0)+APP_COLLECT,'error in init')
+   call app_logallranks(merge(APP_FATAL,APP_QUIET,istat<0)+APP_COLLECT,'error in init')
 
    istat = wb_get('sps_cfgs/stat_by_level_L',stat_by_level_L)   
 
@@ -132,22 +132,22 @@ function spsdm() result(istat)
       call timing_start2(TMG_IN,MODEL_NAME//'-in',0)
       istat = dyn_input(stepno)
       call timing_stop(TMG_IN)
-      call app_logallranks(merge(APP_FATAL,APP_INFO,istat<0)+APP_COLLECT,'Problems in dyn_input')
+      call app_logallranks(merge(APP_FATAL,APP_QUIET,istat<0)+APP_COLLECT,'Problems in dyn_input')
 
       call timing_start2(TMG_DYN,MODEL_NAME//'-dyn',0)
       istat = min(dyn_step(stepno),istat)
       call timing_stop(TMG_DYN)
-      call app_logallranks(merge(APP_FATAL,APP_INFO,istat<0)+APP_COLLECT,'Problems in dyn_step')
+      call app_logallranks(merge(APP_FATAL,APP_QUIET,istat<0)+APP_COLLECT,'Problems in dyn_step')
 
       call timing_start2(TMG_IN,MODEL_NAME//'-in',0)
       istat = phys_input(stepno)
       call timing_stop(TMG_IN)
-      call app_logallranks(merge(APP_FATAL,APP_INFO,istat<0)+APP_COLLECT,'Problems in phys_input')
+      call app_logallranks(merge(APP_FATAL,APP_QUIET,istat<0)+APP_COLLECT,'Problems in phys_input')
 
       call timing_start2(TMG_PHYS,MODEL_NAME//'-phys',0)
       istat = min(phys_step(stepno),istat)
       call timing_stop(TMG_PHYS)
-      call app_logallranks(merge(APP_FATAL,APP_INFO,istat<0)+APP_COLLECT,'Problems in physstep')
+      call app_logallranks(merge(APP_FATAL,APP_QUIET,istat<0)+APP_COLLECT,'Problems in physstep')
 
       if (is_stat.or.is_last) then
          call timing_start2(TMG_STAT,MODEL_NAME//'-stat',0)

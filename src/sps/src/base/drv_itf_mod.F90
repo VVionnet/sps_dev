@@ -60,7 +60,7 @@ contains
       !---------------------------------------------------------------------
       F_istat = clib_getenv('UM_EXEC_CONFIG_BASENAME',F_cfg_basename_S)
       if (.not.RMN_IS_OK(F_istat)) then
-         call App_Log(APP_WARNING,'(drv_config) UM_EXEC_CONFIG_BASENAME not defiened, trying with default settings file, model_settings')
+         call App_Log(APP_WARNING,'(drv_config) UM_EXEC_CONFIG_BASENAME not defined, trying with default settings file, model_settings')
          F_cfg_basename_S = './model_settings'
       endif
       call config_init(drv_path_config_dir0_S)
