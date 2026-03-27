@@ -88,7 +88,6 @@ target_link_libraries(mainspsdm
    tdpack::tdpack
    rpncomm::rpncomm
    rmn::rmn-ompi
-   App::App-ompi
    OpenMP::OpenMP_Fortran
    MPI::MPI_Fortran
    ${LAPACK_LIBRARIES}
