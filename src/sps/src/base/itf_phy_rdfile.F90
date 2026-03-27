@@ -79,7 +79,6 @@ subroutine itf_phy_rdfile2(F_fichier_S,F_read_cb,F_messg_s,F_mode)
 
    case(MODE_ALL_PE)
 
-      if (Ptopo_myproc > 0) inbr = fstopc('MSGLVL','SYSTEM',RMN_OPT_SET)
       fileid    = 0
       ilir   = fnom(fileid,filename_S,'STD+RND+OLD+R/O',0)
       ilir   = fstouv(fileid,'RND')
@@ -98,8 +97,6 @@ subroutine itf_phy_rdfile2(F_fichier_S,F_read_cb,F_messg_s,F_mode)
 
       if (Ptopo_myproc == RPN_COMM_MASTER) then
          call array_from_file(bufnml,size(bufnml),filename_S)
-      else
-         inbr = fstopc('MSGLVL','SYSTEM',RMN_OPT_SET)
       endif
       call rpn_comm_bcast(bufnml,size(bufnml),RPN_COMM_INTEGER,RPN_COMM_MASTER,RPN_COMM_GRID,ierr )
       filename_S = trim(F_fichier_S)
@@ -152,7 +149,7 @@ subroutine itf_phy_rdfile2(F_fichier_S,F_read_cb,F_messg_s,F_mode)
    end select
 
    call handle_error(istat,'itf_phy_rdfile','')
-   inbr = fstopc('MSGLVL','INFORM',RMN_OPT_SET)
+
    !---------------------------------------------------------------------
    return
 end subroutine itf_phy_rdfile2
