@@ -30,10 +30,10 @@ subroutine drv_ptopo_ndoms(F_ndomains,F_dom_deb,F_istat)
    character(len=16) :: ndomains_S,tmp1_S,tmp2_S
    integer :: dom_fin
    !-------------------------------------------------------------------
-   call App_Log(APP_DEBUG,'[BEGIN] drv_ptopo_ndoms')
+   call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[BEGIN] drv_ptopo_ndoms')
    F_istat = clib_getenv('UM_EXEC_NDOMAINS',ndomains_S)
    if (.not.RMN_IS_OK(F_istat)) then
-      call App_Log(APP_ERROR,'(drv_ptopo_ndoms) Env variable UM_EXEC_NDOMAINS is undefined')
+      call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(drv_ptopo_ndoms) Env variable UM_EXEC_NDOMAINS is undefined')
       return
    endif
 
@@ -47,7 +47,7 @@ subroutine drv_ptopo_ndoms(F_ndomains,F_dom_deb,F_istat)
       F_istat = min(str_toint(dom_fin,tmp2_S),F_istat)
    endif
    if (any((/F_dom_deb,dom_fin/) < 0) .or. .not.RMN_IS_OK(F_istat)) then
-      call App_Log(APP_ERROR,'(drv_ptopo_ndoms) Env variable UM_EXEC_NDOMAINS incorrectly defined: '//trim(ndomains_S))
+      call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(drv_ptopo_ndoms) Env variable UM_EXEC_NDOMAINS incorrectly defined: '//trim(ndomains_S))
       F_istat = RMN_ERR
       return
    endif
@@ -55,14 +55,14 @@ subroutine drv_ptopo_ndoms(F_ndomains,F_dom_deb,F_istat)
    F_ndomains = dom_fin - F_dom_deb + 1
    if (F_ndomains < 1) then
       write(tmp1_S,'(i4)') F_ndomains
-      call App_Log(APP_ERROR,'(drv_ptopo_ndoms)  ndomains_S= '//trim(tmp1_S)//' Check Env variable UM_EXEC_NDOMAINS: '//trim(ndomains_S))
+      call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(drv_ptopo_ndoms)  ndomains_S= '//trim(tmp1_S)//' Check Env variable UM_EXEC_NDOMAINS: '//trim(ndomains_S))
       F_istat = RMN_ERR
       return
    endif
 
    F_istat = wb_put('ptopo_cfgs/ndomains',F_ndomains)
    F_istat = 0
-   call App_Log(APP_DEBUG,'[END] drv_ptopo_ndoms')
+   call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[END] drv_ptopo_ndoms')
    !-------------------------------------------------------------------
    return
 end subroutine drv_ptopo_ndoms

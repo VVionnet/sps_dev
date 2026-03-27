@@ -52,19 +52,19 @@ contains
       F_istat = RMN_OK
 
       if (.not.is_init_L) then
-         call App_Log(APP_INFO,'(Phys) Pre-Step Init [Begin]')
+         call Lib_Log(APP_LIBSPSDYN,APP_INFO,'(Phys) Pre-Step Init [Begin]')
          F_istat = wb_get('sps_cfgs/max_neg_pr0',max_neg_pr0)
          if (max_neg_pr0 > 0. .or. .not.RMN_IS_OK(F_istat)) then
             write(app_msg,'(a,es10.3,a)') '(Phys) Pre-Step ABORT: BAD sps cfg option: max_neg_pr0 (=',max_neg_pr0,') should be NEGATIVE '
             F_istat = RMN_ERR
-            call App_Log(APP_ERROR,app_msg)
+            call Lib_Log(APP_LIBSPSDYN,APP_ERROR,app_msg)
          endif
          call collect_error(F_istat)
          if (.not.RMN_IS_OK(F_istat)) then
-            call App_Log(APP_ERROR,'(Phys) Pre-Step Problem in Init')
+            call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(Phys) Pre-Step Problem in Init')
             return
          else
-            call App_Log(APP_INFO,'(Phys) Pre-Step Init End')
+            call Lib_Log(APP_LIBSPSDYN,APP_INFO,'(Phys) Pre-Step Init End')
          endif
          is_init_L = .true.
       endif
@@ -72,7 +72,7 @@ contains
       !# Reset to Zero at every step: tendencies, accumulators, ... in Vol Bus
       F_istat = phymem_busreset(PHY_VBUSIDX)
       if (.not.RMN_IS_OK(F_istat)) then
-         call App_Log(APP_ERROR,'(Phys) Pre-Step problem resetting volbus')
+         call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(Phys) Pre-Step problem resetting volbus')
          return
       endif
 
@@ -81,7 +81,7 @@ contains
       F_istat = phy_get(data3d,'PREN')
       if (.not.(RMN_IS_OK(F_istat).and.associated(data3d))) then
          F_istat = RMN_ERR
-         call App_Log(APP_ERROR,'(Phys) Pre-Step problem getting PREN')
+         call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(Phys) Pre-Step problem getting PREN')
          return
       endif
 
@@ -91,7 +91,7 @@ contains
       call collect_error(F_istat)
       if (.not.RMN_IS_OK(F_istat)) then
          write(app_msg,'(a,es10.3,a,es10.3,a)') '(Phys) Pre-Step ABORT: 1hr precip accum. PR0 (=',minval(data3d),') exceeds maximum negative value allowed (max_neg_pr0=',max_neg_pr0,') '
-         call App_Log(APP_ERROR,app_msg)
+         call Lib_Log(APP_LIBSPSDYN,APP_ERROR,app_msg)
          return
       endif
 
@@ -100,7 +100,7 @@ contains
       istat = phy_put(data3d,'TSS')
       if (.not.RMN_IS_OK(F_istat)) then
          F_istat = RMN_ERR
-         call App_Log(APP_ERROR,'(Phys) Pre-Step problem updating TSS')
+         call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(Phys) Pre-Step problem updating TSS')
          return
       endif
 

@@ -50,9 +50,9 @@ contains
       integer :: F_istat
    !*@/
       !---------------------------------------------------------------------
-      call App_Log(APP_DEBUG,'[BEGIN] dyn_config')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[BEGIN] dyn_config')
       F_istat = config_read(F_cfg_basename_S,'sps_cfgs')
-      call App_Log(APP_DEBUG,'[END] dyn_config')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[END] dyn_config')
       !---------------------------------------------------------------------
       return
    end function dyn_config
@@ -70,7 +70,7 @@ contains
       integer :: F_istat
    !*@/
      !---------------------------------------------------------------------
-      call App_Log(APP_DEBUG,'[BEGIN] dyn_init')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[BEGIN] dyn_init')
       F_istat = priv_consis()
       !---------------------------------------------------------------------
       return
@@ -101,7 +101,7 @@ contains
           if (Stat_dble_L) STAT_PRECISION=8
       endif
       write(app_msg,'(a,I5.5)') '---- (dyn) Blocstat Step=',F_step
-      call App_Log(APP_INFO,trim(app_msg)//' [Begin] ------------')
+      call Lib_Log(APP_LIBSPSDYN,APP_INFO,trim(app_msg)//' [Begin] ------------')
 
       nvars = drv_time_shuffle_list(varlist_S,(/'m','p'/))
       do ivar = 1, nvars
@@ -128,7 +128,7 @@ contains
          endif
       enddo
 
-      call App_Log(APP_INFO,trim(app_msg)//' [End]   ------------')
+      call Lib_Log(APP_LIBSPSDYN,APP_INFO,trim(app_msg)//' [End]   ------------')
       !---------------------------------------------------------------------
       return
    end subroutine dyn_blocstats
@@ -146,7 +146,7 @@ contains
       real :: Lvl_list(MAX_LEVELS)
       real :: zta, zua = -1.
       !---------------------------------------------------------------------
-      call App_Log(APP_TRIVIAL,'(dyn_itf) Checking options consistency')
+      call Lib_Log(APP_LIBSPSDYN,APP_TRIVIAL,'(dyn_itf) Checking options consistency')
       F_istat = wb_get('sps_cfgs/read_hu_l',read_hu_L)
       F_istat = min(wb_get('sps_cfgs/adapt_L',adapt_L),F_istat)
       F_istat = min(wb_get('sps_cfgs/zta',zta),F_istat)
@@ -154,12 +154,12 @@ contains
       F_istat = min(wb_get('sps_cfgs/zua',zua),F_istat)
       F_istat = min(wb_put('itf_phy/zua',zua),F_istat)
       if (.not.RMN_IS_OK(F_istat)) then
-         call App_Log(APP_WARNING,'(dyn_itf) Problem getting sps_cfgs params to check options consistency')
+         call Lib_Log(APP_LIBSPSDYN,APP_WARNING,'(dyn_itf) Problem getting sps_cfgs params to check options consistency')
          return
       endif
 
       if (read_hu_L .and. adapt_L) then
-         call App_Log(APP_WARNING,'(dyn_itf) Incompatible options: read_hu_L=.T. and adapt_L=.T.')
+         call Lib_Log(APP_LIBSPSDYN,APP_WARNING,'(dyn_itf) Incompatible options: read_hu_L=.T. and adapt_L=.T.')
          F_istat = RMN_ERR
          return
       endif

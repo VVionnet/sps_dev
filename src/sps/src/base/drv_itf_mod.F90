@@ -60,7 +60,7 @@ contains
       !---------------------------------------------------------------------
       F_istat = clib_getenv('UM_EXEC_CONFIG_BASENAME',F_cfg_basename_S)
       if (.not.RMN_IS_OK(F_istat)) then
-         call App_Log(APP_WARNING,'(drv_config) UM_EXEC_CONFIG_BASENAME not defined, trying with default settings file, model_settings')
+         call Lib_Log(APP_LIBSPSDYN,APP_WARNING,'(drv_config) UM_EXEC_CONFIG_BASENAME not defined, trying with default settings file, model_settings')
          F_cfg_basename_S = './model_settings'
       endif
       call config_init(drv_path_config_dir0_S)
@@ -145,7 +145,7 @@ contains
             istat = Lib_LogLevelNo(APP_LIBWB,APP_WARNING);
             istat = Lib_LogLevelNo(APP_LIBGMM,APP_ERROR);
          end select
-         call App_Log(APP_INFO,'(drv) Set Verbosity Level='//trim(tmp_S))
+         call Lib_Log(APP_LIBSPSDYN,APP_INFO,'(drv) Set Verbosity Level='//trim(tmp_S))
       endif
       !---------------------------------------------------------------------
       return

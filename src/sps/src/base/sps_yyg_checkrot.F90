@@ -34,10 +34,10 @@ function yyg_checkrot2(Grd_xlat1,Grd_xlon1,Grd_xlat2,Grd_xlon2) result(F_istat)
    F_istat = RMN_OK
 
    if (Grd_xlat1 < 0. .and. Grd_xlat2 < 0. .and. Grd_xlon2 > Grd_xlon1) then
-      call App_Log(APP_ERROR,'(yyg_checkrot) Grd_xlat1,Grdxlat2 < 0.0 and Grd_xlon2 > Grd_xlon1')
+      call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(yyg_checkrot) Grd_xlat1,Grdxlat2 < 0.0 and Grd_xlon2 > Grd_xlon1')
       F_istat = RMN_ERR
    else if (Grd_xlat1 >= 0. .and. Grd_xlat2 >= 0. .and. Grd_xlon1 > Grd_xlon2) then
-      call App_Log(APP_ERROR,'(yyg_checkrot) Grd_xlat1,Grd_xlat2 >= 0.0 and Grd_xlon1 > Grd_xlon2')
+      call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(yyg_checkrot) Grd_xlat1,Grd_xlat2 >= 0.0 and Grd_xlon1 > Grd_xlon2')
       F_istat = RMN_ERR
    endif
    !-------------------------------------------------------------------

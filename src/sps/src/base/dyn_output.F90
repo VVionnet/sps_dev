@@ -50,7 +50,7 @@ contains
       !---------------------------------------------------------------------
       F_istat = RMN_OK
       if (out_id < 0) then
-         call App_Log(APP_INFO,'(dyn) Output Init Begin')
+         call Lib_Log(APP_LIBSPSDYN,APP_INFO,'(dyn) Output Init Begin')
          F_istat = min(wb_get('path/config_dir0',config_dir0_S),F_istat)
          F_istat = min(config_cp2localdir(OUTCFG_NAME,config_dir0_S),F_istat)
          F_istat = min(clib_getcwd(pwd_S),F_istat)
@@ -68,10 +68,10 @@ contains
          call collect_error(F_istat)
          if (.not.RMN_IS_OK(F_istat)) then
             out_id  = -1
-            call App_Log(APP_ERROR,'(dyn) Output Problem in Init')
+            call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(dyn) Output Problem in Init')
             return
          else
-            call App_Log(APP_INFO,'(dyn) Output Init End')
+            call Lib_Log(APP_LIBSPSDYN,APP_INFO,'(dyn) Output Init End')
          endif
          istat = wb_get(WB_LVL_SEC//'nk',l_nk)
          istat = output_set_diag_level(out_id,l_nk)
@@ -81,12 +81,12 @@ contains
       call collect_error(F_istat)
       write(app_msg,'(a,I5.5)') '(dyn) Output Step=',F_step
      if (F_istat == 0) then
-         call App_Log(APP_INFO,trim(app_msg)//' No Output')
+         call Lib_Log(APP_LIBSPSDYN,APP_INFO,trim(app_msg)//' No Output')
       else if (F_istat > 0) then
          write(app_msg,'(a,I5)') trim(app_msg)//' Wrote nvar=',F_istat
-         call App_Log(APP_INFO,trim(app_msg))
+         call Lib_Log(APP_LIBSPSDYN,APP_INFO,trim(app_msg))
       else
-         call App_Log(APP_INFO,trim(app_msg)//' End with problems')
+         call Lib_Log(APP_LIBSPSDYN,APP_INFO,trim(app_msg)//' End with problems')
       endif
       !---------------------------------------------------------------------
       return

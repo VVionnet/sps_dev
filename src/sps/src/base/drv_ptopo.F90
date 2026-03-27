@@ -87,7 +87,7 @@ contains
       integer,external :: rpn_comm_init_multi_level
       external :: drv_ptopo_ndoms,drv_ptopo_p0 !- call back s/r to define: ndomains, mydomain, npex,npey
       !---------------------------------------------------------------------
-      call App_Log(APP_DEBUG,'[BEGIN] drv_ptopo_init')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[BEGIN] drv_ptopo_init')
 
       F_istat = RMN_ERR
       if (ptopo_is_init_L) return
@@ -113,7 +113,7 @@ contains
 !!$      igrid = rpn_comm_init_multigrid(drv_ptopo_p0,myproc,numproc,npex,npey,ngrids)
       F_istat = min(F_istat,igrid)
       if (.not.RMN_IS_OK(F_istat)) then
-         call App_Log(APP_ERROR,'(drv_ptopo_init) Problem in rpn_comm_init_multi_level')
+         call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(drv_ptopo_init) Problem in rpn_comm_init_multi_level')
          return
       endif
  
@@ -133,10 +133,10 @@ contains
 
       write(tmp_S,'(a,4i6)') '(drv_ptopo_init) idomain,igrid,ipex,ipey:',&
            ptopo_world_idom,ptopo_dom_igrid,ptopo_grid_ipex,ptopo_grid_ipey
-      call App_Log(APP_INFO,tmp_S)
+      call Lib_Log(APP_LIBSPSDYN,APP_INFO,tmp_S)
 
       ptopo_is_init_L = (RMN_IS_OK(F_istat))
-      call App_Log(APP_DEBUG,'[END] drv_ptopo_init')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[END] drv_ptopo_init')
       !---------------------------------------------------------------------
       return
    end function drv_ptopo_init

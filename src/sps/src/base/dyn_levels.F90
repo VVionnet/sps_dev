@@ -75,7 +75,7 @@ contains
       F_nk = n2(1) - 1
 
       if (F_nk < 1) then
-          call App_Log(APP_INFO,'(dyn_levels) Forcing at zua, zta <= 10m heights. Forcing level set to 0.999')
+          call Lib_Log(APP_LIBSPSDYN,APP_INFO,'(dyn_levels) Forcing at zua, zta <= 10m heights. Forcing level set to 0.999')
           Lvl_list(1) = 0.999
           F_nk = 1
       endif
@@ -111,7 +111,7 @@ contains
 
          F_stag_L = .false.
          if (Lvl_typ_S == 'HN') then
-            call App_Log(APP_ERROR,'(dyn_levels) Not yet supported Lvl_typ_S='//trim(Lvl_typ_S))
+            call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(dyn_levels) Not yet supported Lvl_typ_S='//trim(Lvl_typ_S))
 !!$            lvl_kind = VGRID_HYBN_KIND
 !!$            lvl_version = VGRID_HYBN_VER
          endif
@@ -132,7 +132,7 @@ contains
       endif IF_TYP
 
       if (.not.RMN_IS_OK(lvl_kind)) then
-         call App_Log(APP_ERROR,'(dyn_levels) Unknown Lvl_typ_S='//trim(Lvl_typ_S))
+         call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(dyn_levels) Unknown Lvl_typ_S='//trim(Lvl_typ_S))
          F_istat = RMN_ERR
          return
       endif
@@ -140,7 +140,7 @@ contains
       write(tmp_S,'(i4)') F_nk
       tmp_S = adjustl(tmp_S)
       write(app_msg,'(a," [type=",a,"] [stag=",l2,"] [surf_k=",i2,"] [nk=",i4,"] Lvl_list=",'//trim(tmp_S)//'(f10.7,","))') '(dyn_levels)',Lvl_typ_S(1:2),F_stag_L,F_surf_idx,F_nk,lvl_list(1:F_nk)
-      call App_Log(APP_INFO,app_msg)
+      call Lib_Log(APP_LIBSPSDYN,APP_INFO,app_msg)
 
       !---------------------------------------------------------------------
       return

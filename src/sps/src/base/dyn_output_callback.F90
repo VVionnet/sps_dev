@@ -71,7 +71,7 @@ function dyn_output_callback(F_step,F_name_s,F_outname_s,F_data3d,F_lijk,F_uijk)
    case('gz  ') !# convert from m2/s2 AGL to DAM ASL
       F_istat = gmmx_data('MF',mf)
       if (.not.RMN_IS_OK(F_istat)) then
-         call  App_Log(APP_WARNING,'(dyn_output_callback) Cannot transform GZ, MF not avail: '//trim(F_name_S)//' (ON='//trim(outname_S)//')')
+         call  Lib_Log(APP_LIBSPSDYN,APP_WARNING,'(dyn_output_callback) Cannot transform GZ, MF not avail: '//trim(F_name_S)//' (ON='//trim(outname_S)//')')
          return
       endif
       do k=F_lijk(3),F_uijk(3)
@@ -89,7 +89,7 @@ function dyn_output_callback(F_step,F_name_s,F_outname_s,F_data3d,F_lijk,F_uijk)
    case default
       return
    end select
-   call App_Log(APP_TRIVIAL,'(dyn_output_callback) '//trim(outname_S))
+   call Lib_Log(APP_LIBSPSDYN,APP_TRIVIAL,'(dyn_output_callback) '//trim(outname_S))
    !----------------------------------------------------------------------
    return
 end function dyn_output_callback

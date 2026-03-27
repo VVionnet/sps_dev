@@ -63,7 +63,7 @@ subroutine itf_phy_rdfile2(F_fichier_S,F_read_cb,F_messg_s,F_mode)
          ilir = wkoffit(filename_S)
          if (any(ilir == (/1,2,33,34/))) then
             write(tmp_S,'(a,i1,a)') 'READING '//trim(F_messg_s)//' FILE in MODE ',F_mode,' from:'//trim(filename_S)
-            call App_Log(APP_INFO,tmp_S)
+            call Lib_Log(APP_LIBSPSDYN,APP_INFO,tmp_S)
          else
             tmp_S = "File RPNFST Format: "//trim(filename_S)
             istat = -1
@@ -144,7 +144,7 @@ subroutine itf_phy_rdfile2(F_fichier_S,F_read_cb,F_messg_s,F_mode)
 
    case DEFAULT
 
-      call App_Log(APP_WARNING,'itf_phy_rdfile: invalid mode, nothing done')
+      call Lib_Log(APP_LIBSPSDYN,APP_WARNING,'itf_phy_rdfile: invalid mode, nothing done')
 
    end select
 

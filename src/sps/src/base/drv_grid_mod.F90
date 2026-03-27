@@ -58,9 +58,9 @@ contains
       !  Stephane Chamberland, Feb 2008
    !*@/
       !---------------------------------------------------------------------
-      call App_Log(APP_DEBUG,'[BEGIN] grid_config')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[BEGIN] grid_config')
       F_istat = config_read(F_cfg_basename_S,'grid_cfgs')
-      call App_Log(APP_DEBUG,'[END] grid_config')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[END] grid_config')
       !---------------------------------------------------------------------
       return
    end function drv_grid_config
@@ -88,7 +88,7 @@ contains
       real,pointer,dimension(:,:) :: dxdy !#,lat,lon
       type(gmm_metadata) :: mymeta
       !---------------------------------------------------------------------
-      call App_Log(APP_DEBUG,'[BEGIN] grid_init')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[BEGIN] grid_init')
       F_istat =  dyn_grid_init(G_ni,G_nj,G_halox,G_haloy,G_periodx,G_periody,G_grid_id)
       F_istat =  min(priv_init(G_ni,G_nj,G_halox,G_haloy),F_istat)
 
@@ -100,7 +100,7 @@ contains
               G_periodx,G_periody,"]"
          call App_LogAllRanks(APP_INFO,tmp_S)
       else
-         call App_Log(APP_ERROR,'(drv_grid) Problem in Initialisation')
+         call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(drv_grid) Problem in Initialisation')
       endif
 
       F_istat = min(dyn_grid_post_init(l_minx,l_maxx,l_miny,l_maxy,l_ni,l_nj),F_istat)
@@ -154,7 +154,7 @@ contains
 !!$      else
 !!$         F_istat = min(dyn_lat_lon(lat,lon),F_istat)
 !!$      endif
-      call App_Log(APP_DEBUG,'[BEGIN] grid_init')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[BEGIN] grid_init')
       !---------------------------------------------------------------------
       return
    end function drv_grid_init
@@ -177,7 +177,7 @@ contains
    !*@/
       integer :: G_lnimax,G_lnjmax
       !---------------------------------------------------------------------
-      call App_Log(APP_DEBUG,'[BEGIN] grid_init')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[BEGIN] grid_init')
       F_istat = RMN_OK
       !TODO-later: check that ptopo_init [or at least rpn_comm_init] is already done, if not error
 
@@ -189,7 +189,7 @@ contains
 
       !TODO-later: check_partition
 
-      call App_Log(APP_DEBUG,'[END] grid_init')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[END] grid_init')
       !---------------------------------------------------------------------
       return
    end function priv_init

@@ -126,7 +126,7 @@ function spsdm() result(istat)
       call drv_time_increment(stepno,is_chkpt,is_last,is_stat,F_timeFlags_S=TIME_FLAGS,F_delta_step=delta_step)
       delta_step = 1
       write(tmp_S,'(a,a,I0,a,I0,a,L1,a,L1,a,a)') new_line(' '), "==== Processing Stepno: ",stepno,'/',steps_total,' [chkpt=',is_chkpt,', last=',is_last,"] ============", new_line(' ')
-      call App_Log(APP_INFO,tmp_S)
+      call Lib_Log(APP_LIBSPSDYN,APP_INFO,tmp_S)
       write(tmp_S, '(i0)') stepno
 
       call timing_start2(TMG_IN,MODEL_NAME//'-in',0)
@@ -166,7 +166,7 @@ function spsdm() result(istat)
       !- Save info for restart
       CHECKPOINT: if (RMN_IS_OK(istat) .and. is_chkpt) then
          call timing_start2(TMG_CKPT,MODEL_NAME//'-ckpt',0)
-         call App_Log(APP_INFO,"Writing Restart File")
+         call Lib_Log(APP_LIBSPSDYN,APP_INFO,"Writing Restart File")
          istat2 = wb_checkpoint()
          istat2 = gmm_checkpoint_all(GMM_WRIT_CKPT)
          call timing_stop(TMG_CKPT)

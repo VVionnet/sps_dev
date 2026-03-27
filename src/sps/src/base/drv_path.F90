@@ -91,12 +91,12 @@ contains
       !@/
       character(len=512) :: tmp_S
       !---------------------------------------------------------------------
-      call App_Log(APP_DEBUG,'[BEGIN] drv_path_set')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[BEGIN] drv_path_set')
       F_istat = clib_getenv('TASK_WORK',drv_path_work_S)
       F_istat = min(clib_getenv('TASK_INPUT' ,drv_path_input_S),F_istat)
       F_istat = min(clib_getenv('TASK_OUTPUT',drv_path_output_S),F_istat)
       if (.not.RMN_IS_OK(F_istat)) then
-         call App_Log(APP_WARNING,'(drv_path_set) Undefined: TASK_WORK, TASK_INPUT, TASK_OUTPUT')
+         call Lib_Log(APP_LIBSPSDYN,APP_WARNING,'(drv_path_set) Undefined: TASK_WORK, TASK_INPUT, TASK_OUTPUT')
          return
       endif
 
@@ -143,7 +143,7 @@ contains
 !!$      Path_nml_S    = trim(pwd_S)//'/model_settings'
 !!$      Path_outcfg_S = trim(pwd_S)//'/output_settings'
 !!$      Path_phyincfg_S = trim(pwd_S)//'/physics_input_table'
-      call App_Log(APP_DEBUG,'[END] drv_path_set')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[END] drv_path_set')
       !---------------------------------------------------------------------
       return
    end function drv_path_set
@@ -167,7 +167,7 @@ contains
       istat = clib_mkdir(trim(F_path_S))
       istat = clib_isdir(trim(F_path_S))
       if (.not.RMN_IS_OK(istat)) then
-         call App_Log(APP_WARNING,'(drv_path_set) Dir Not Found: '//trim(F_path_S))
+         call Lib_Log(APP_LIBSPSDYN,APP_WARNING,'(drv_path_set) Dir Not Found: '//trim(F_path_S))
       endif
       istat = wb_put('path/'//trim(F_name_S),F_path_S,WB_REWRITE_MANY)
       !---------------------------------------------------------------------
