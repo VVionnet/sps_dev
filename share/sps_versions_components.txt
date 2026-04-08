@@ -85,5 +85,4 @@ sps=6.3.0-a17;spsdyn=6.3.0-a17;rpnphy=6.3.0-a17;modelutils=1.8.0-a17
 sps=6.3.0-a18;spsdyn=6.3.0-a17;rpnphy=6.3.0-a18;modelutils=1.8.0-a18
 sps=6.3.0-a20;spsdyn=6.3.0-a20;rpnphy=6.3.0-a20;modelutils=1.8.0-a18
 sps=6.3.0-a21;spsdyn=6.3.0-a20;rpnphy=6.3.0-a20;modelutils=1.8.0-a18
-
-
+sps=6.3.0-a22;spsdyn=6.3.0-a20;rpnphy=6.3.0-a22;modelutils=1.8.0-a22
