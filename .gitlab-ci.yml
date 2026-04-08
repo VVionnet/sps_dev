@@ -553,6 +553,8 @@ SVS2_cfgs_gnu:
 
 #----- Running one test configuration for rhel-9-amd64_gnu-15.2.0
 SPS_cfgs_gnu_15:
+  variables:
+    ORD_SOUMET_MPI : mpi
   stage: run_gnu_15
   needs:
   - build:rhel-9-amd64_gnu-15.2.0
