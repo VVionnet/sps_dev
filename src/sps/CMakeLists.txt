@@ -87,6 +87,7 @@ target_link_libraries(mainspsdm
    vgrid::vgrid
    tdpack::tdpack
    rpncomm::rpncomm
+   App::App-ompi
    rmn::rmn-ompi
    OpenMP::OpenMP_Fortran
    MPI::MPI_Fortran
