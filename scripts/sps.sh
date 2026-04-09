@@ -427,8 +427,8 @@ runmodel() {
    #export APP_LOG_SPLIT=TRUE         # Split log per rank
    unset APP_VERBOSE_COLOR            # Enable/Disable color in log messages
    export APP_VERBOSE=$verbosity      # Global verbose level (default: INFO)
-   #export APP_VERBOSE_FST= APP_ERROR  # FST specific verbose level
-   #export APP_VERBOSE_WB= APP_WARNING # Whiteboard specific verbose level
+   #export APP_VERBOSE_FST=APP_ERROR  # FST specific verbose level
+   export APP_VERBOSE_WB=APP_WARNING # Whiteboard specific verbose level
    #export APP_VERBOSE_GMM= APP_ERROR  # GMM specific verbose level
    #export APP_VERBOSE_TIME=MSECOND   # Use milliseconds (usefull to reconstitute all ranks flow)
    #export APP_VERBOSE_RANK=-1        # Output form all ranks
