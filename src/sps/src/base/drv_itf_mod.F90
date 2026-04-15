@@ -55,9 +55,11 @@ contains
       !@arguments
       character(len=*),intent(out) :: F_cfg_basename_S
       !@return
-      integer :: F_istat
+      integer :: F_istat,istat,myproc,mycol,myrow
       !*@/
       !---------------------------------------------------------------------
+      istat = rpn_comm_mype(myproc,mycol,myrow)
+      call msg_set_p0only(max(0,myproc)) !msg from PE 0 only
       F_istat = clib_getenv('UM_EXEC_CONFIG_BASENAME',F_cfg_basename_S)
       if (.not.RMN_IS_OK(F_istat)) then
          call Lib_Log(APP_LIBSPSDYN,APP_WARNING,'(drv_config) UM_EXEC_CONFIG_BASENAME not defined, trying with default settings file, model_settings')
@@ -102,12 +104,14 @@ contains
       character(len=*),intent(in) :: F_prefix_S
       !@author  Stephane Chamberland, 2011-09
       !*@/
-      integer :: istat
+      integer :: istat,myproc,mycol,myrow
       character(len=256) :: tmp_S,prefix_S
       logical :: debug_L
       !---------------------------------------------------------------------
       prefix_S = F_prefix_S
       if (len_trim(prefix_S) > 0) prefix_S = trim(prefix_S)//'_'
+      istat = rpn_comm_mype(myproc,mycol,myrow)
+      call msg_set_p0only(max(0,myproc)) !msg from PE 0 only
 
       istat = clib_getenv(trim(prefix_S)//'VERBOSITY',tmp_S)
       if (RMN_IS_OK(istat)) then
