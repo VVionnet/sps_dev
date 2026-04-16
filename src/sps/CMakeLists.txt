@@ -46,7 +46,7 @@ set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -${MKL}")
     else()
       set(OPT-REPORT "5")
     endif()
-    set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} -qopt-report=${OPT-REPORT} -C -init=snan,arrays -warn nointerfaces -check noarg_temp_created")
+    set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} -qopt-report=${OPT-REPORT} -init=snan,arrays -warn nointerfaces -check noarg_temp_created,nouninit")
   endif()
 elseif("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "GNU")
   find_package(LAPACK)
@@ -82,8 +82,14 @@ target_compile_definitions(mainspsdm PUBLIC
   phy_VERSION="${phy_VERSION}"
 )
 
+if (("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "IntelLLVM") AND (CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER 2025))
+  # link with libgcc_s to get a traceback
+  set(GCC_S gcc_s)
+endif()
+
 target_link_libraries(mainspsdm
    spsdyn
+   ${GCC_S}
    vgrid::vgrid
    tdpack::tdpack
    rpncomm::rpncomm

@@ -16,6 +16,7 @@ module drv_ptopo_mod
    use wb_itf_mod
    use ptopo_utils
    use drv_path_mod
+   use stop_mpi_mod, only: stop_mpi
    implicit none
    private
    !@objective Initialization of execution grid and processor topology

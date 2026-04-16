@@ -15,6 +15,7 @@ module dyn_output_mod
    use output_mod
    use config_mod
    use cmcdate_mod
+   use mod_handle_error, only: collect_error
    implicit none
    private
    !@objective 

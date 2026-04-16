@@ -44,6 +44,10 @@ module cnv_options
    logical           :: bkf_evaps       = .false.
    namelist /convection_cfgs/ bkf_evaps
 
+   !# Scaling of shallow convection cloud fraction
+   real              :: bkf_fnfacs      = 1.
+   namelist /convection_cfgs/ bkf_fnfacs
+
    !# Number of species for convective transport (never tested)
    integer           :: bkf_kch         = 0
    namelist /convection_cfgs/ bkf_kch
@@ -166,6 +170,11 @@ module cnv_options
         'TIMECONV                '  &
         /) !#TODO: remove 'USER DEFINED'?
 
+   !# Use time-averaged vertical motion for deep convection trigger
+   logical           :: deep_wavg = .false.
+   namelist /convection_cfgs/ deep_wavg
+   namelist /convection_cfgs_p/ deep_wavg
+   
    !# Minimum depth of conv. updraft for KFC  trigger (m)
    real              :: kfcdepth        = 4000.
    namelist /convection_cfgs/ kfcdepth
@@ -227,6 +236,15 @@ module cnv_options
    real              :: kfctaucape(4)   = (/-1., -1., -1., -1./)
    namelist /convection_cfgs/ kfctaucape
 
+   !# Coefficient for trigger adjustment by subgrid-scale orography (sgo)
+   real              :: kfctrigsgo      = 0.
+   namelist /convection_cfgs/ kfctrigsgo
+
+   !# Exponent (power) applied to subgrid-scale orography (sgo) when computing
+   !# sgo-based trigger adjustment 
+   real              :: kfctrigsgop     = 1.
+   namelist /convection_cfgs/ kfctrigsgop
+   
    !# Trigger parameter of Kain-Fritsch convection scheme (WKLCL).
    !# Trigger parameter will increase from kfctrigw(3) to kfctrigw(4) [m/s]
    !# between wstar values kfctrigw(1) and kfctrigw(2)
@@ -345,6 +363,11 @@ module cnv_options
         'QLCL       ' &
         /)
 
+   !# Use time-averaged vertical motion for mid-level trigger
+   logical           :: mid_wavg = .false.
+   namelist /convection_cfgs/ mid_wavg
+   namelist /convection_cfgs_p/ mid_wavg
+
    !# Switch for shallow convection
    !# * 'NIL'
    !# * 'KTRSNT'
@@ -383,6 +406,11 @@ module cnv_options
    !# * and linear interpolation in between TRIGLAT(1) and TRIGLAT(2)
    real              :: triglat(2)      = 0.0
    namelist /convection_cfgs/ triglat
+
+   !# Vertical motion relaxation for trigger tests (s)
+   real              :: trigtauw = 3600.
+   namelist /convection_cfgs/ trigtauw
+   namelist /convection_cfgs_p/ trigtauw
 
 contains
 

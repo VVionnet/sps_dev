@@ -1,3 +1,8 @@
+module phybusinit_mod
+   implicit none
+   public
+
+contains
 
 !/@*
 subroutine phybusinit(ni,nk)
@@ -5,11 +10,12 @@ subroutine phybusinit(ni,nk)
    use wb_itf_mod
    use cnv_options
    use phy_options
-   use phy_status, only: phy_error_L, PHY_OK
+   use phy_status, only: phy_error_L, PHY_OK, physeterror
    use phybusidx
    use ens_perturb, only: ens_nc2d
    use microphy_utils, only: mp_phybusinit
    use phymem, only: phymem_init, phymem_add, phymem_find, phymem_alloc
+   use sfc_businit_mod, only: sfc_businit
    implicit none
 !!!#include <arch_specific.hf>
    !@Object Establishes requirements in terms of variables in the 4 main buses
@@ -43,6 +49,7 @@ subroutine phybusinit(ni,nk)
    character(len=4), parameter :: LVLT = 'T'
 
    character(len=6)  :: nag, nmar, dwwz, nuv, psss, nccl
+   character(len=2)  :: o3p01
    integer :: ier, iverb, nsurf, i
    logical :: lbourg3d, lbourg
    logical :: lkfbe, lshal, lshbkf, lmid
@@ -50,13 +57,13 @@ subroutine phybusinit(ni,nk)
    logical :: lmoyhr, lmoyhrkf, lmoykfsh, lmoymid
    logical :: lgwdsm, lgwd, ltofd
    logical :: lccc2
-   logical :: lghg, ltrigtau
+   logical :: lghg, ltrigtau, ltrigtauw
    logical :: liuv
    logical :: lmoyhroz, lmoyhrgh, llinozout, llinghout, llinozage
    logical :: lmoycons
    logical :: lhn_init, lsfcflx
    logical :: lsurfonly, lwindgust
-   logical :: lpcp_frac, ladvzn, ls2, lmp, lcsun
+   logical :: lpcp_frac, ladvzn, ls2, lmp, lcsun, lpblderooy
    !---------------------------------------------------------------------
 
    ier = phymem_init()
@@ -120,7 +127,8 @@ subroutine phybusinit(ni,nk)
    ls2     = (stcond == 'S2')
    lcsun   = (stcond == 'CONSUN')
    lmp     = (stcond(1:3) == 'MP_')
-
+   lpblderooy = (pbl_nonloc == 'DEROOY22')
+   
    ! Compute linoz diags only on demand
    do i=1,nphyoutlist
       out_linoz = any(phyoutlist_S(i) == (/ &
@@ -150,11 +158,13 @@ subroutine phybusinit(ni,nk)
    lmoyhroz =(lmoyhr .and. llinoz .and. out_linoz)
    lmoyhrgh =(lmoyhr .and. llingh .and. out_linoz)
    ltrigtau = (kfctrigtau > 0.)
+   ltrigtauw = (deep_wavg .or. mid_wavg)
    liuv    = (any(radia == (/&
         'CCCMARAD ', &
         'CCCMARAD2'  &
         /)) .and. kntraduv_S /= '')      
-
+   o3p01 = P0
+   if (llinoz) o3p01 = P1
    
    dwwz = 'd1'
    lsurfonly = (fluvert == 'SURFACE')
@@ -364,3 +374,4 @@ subroutine phybusinit(ni,nk)
    return
 end subroutine phybusinit
 
+end module phybusinit_mod

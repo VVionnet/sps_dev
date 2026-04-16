@@ -18,6 +18,7 @@ contains
       use linoz_tend_mod, only: linoz_tend, linoz_tend_ghg
       use linoz_xcol, only: linoz_xcol1, ghg_xcol1
       use tendency, only: apply_tendencies
+      use timing_omp
       implicit none
 #include <arch_specific.hf>
 #include <rmnlib_basics.hf>
@@ -108,13 +109,6 @@ contains
       delrlx = exp(-1.0*dt/8640.0)
 
       IF_KOUNT0: if (kount == 0) then
-
-         if (.not.ISPHYIN('o3ce')) zo3ce = -1.
-         if (.not.ISPHYIN('ttce')) zttce = 0.
-         if (.not.ISPHYIN('lin4')) zlin4 = 0.
-         if (.not.ISPHYIN('lin5')) zlin5 = 0.
-         if (.not.ISPHYIN('lin6')) zlin6 = 0.
-         if (.not.ISPHYIN('lin7')) zlin7 = 0.
 
          ! Initialize ozone with climatology, if not found in analysis
          ! micro g /kg air <-- kg /kg air

@@ -13,10 +13,14 @@
 !if not, you can write to: EC-RPN COMM Group, 2121 TransCanada, suite 500, Dorval (Quebec),
 !CANADA, H9P 1J3; or send e-mail to service.rpn@ec.gc.ca
 !-------------------------------------- LICENCE END --------------------------------------
+module soili_svs2_mod
+  implicit none
+  public
+contains
       SUBROUTINE SOILI_SVS2 (WD, &
            WF, SNM, SVM, RHOS, RHOSV, &
            VEGH, VEGL, &
-           CGSAT, WSAT, WWILT, BCOEF, &
+           CGSAT, WSAT, WWILT, WFL, WFL_ICE, BCOEF, &
            CVH, CVL, ALVH, ALVL,  &
            EMISVH, EMISVL, ETG, RGLVH , RGLVL, STOMRVH, STOMRVL,  &
            GAMVH,GAMVL, &
@@ -25,12 +29,12 @@
            WTA, WTG, CG,PSOILHCAPZ, PSOILCONDZ, PSNGRVL,  &
            Z0H, ALGR, EMGR, ALGRV, EMGRV, PSNVH, PSNVHA, PSURFVHA,   &
            ALVA, LAIVA, CVPA, EVA, Z0HA, Z0MVG, RGLA, STOMRA ,&
-           GAMVA,CONDSLD, CONDDRY, N )
+           GAMVA,CONDSLD, CONDDRY, PFLCOND, PFLHCAP, DZ_FL, RHO_FL, N )
          !
         use tdpack_const, only: PI
         use svs_configs
         use svs2_tile_configs
-        use sfc_options, only: read_emis, svs_urban_params
+        use sfc_options, only: read_emis, svs_urban_params, lforlit
         USE MODD_CSTS,    ONLY : XCL, XCI, XRHOLW, XRHOLI
         USE CANOPY_CSTS, only : CLUMPING
      implicit none
@@ -43,9 +47,9 @@
       REAL SNM(N), RHOS(N)
       REAL RHOSV(N), Z0MVH(N), VEGH(N), VEGL(N), SVM(N)
       REAL CGSAT(N), WSAT(N,NL_SVS), WWILT(N,NL_SVS), BCOEF(N,NL_SVS)
-      REAL Z0(N)
+      REAL Z0(N), WFL(N), WFL_ICE(N)
       REAL CG(N), WTA(N,svs2_tilesp1), WTG(N,svs2_tilesp1)
-      REAL PSNGRVL(N)
+      REAL PSNGRVL(N), DZ_FL(N), RHO_FL(N)
       REAL PSOILHCAPZ_DRY(N,NL_SVS), PSOILHCAPZ(N,NL_SVS),PSOILCONDZ(N,NL_SVS)
       REAL Z0H(N), ALGR(N), ALGRV(N), CLAY(N), SAND(N)
       REAL DECI(N), EVER(N), LAID(N)
@@ -54,7 +58,7 @@
       REAL LAIVL(N), CVH(N), CVL(N), ALVL(N), ALVH(N)
       REAL EMISVH(N), EMISVL(N), ETG(N), Z0MVL(N), RGLVH(N), RGLVL(N)
       REAL Z0HA(N), Z0MVG(N), RGLA(N), STOMRA(N), STOMRVH(N), STOMRVL(N)
-      REAL GAMVL(N), GAMVH(N), GAMVA(N)
+      REAL GAMVL(N), GAMVH(N), GAMVA(N), PFLCOND(N), PFLHCAP(N)
       REAL CONDSLD(N,NL_SVS),CONDDRY(N,NL_SVS), VGH_DENS(N)
 
 
@@ -112,6 +116,8 @@
 ! EVER     fraction of high vegetation that is evergreen
 ! LAID     LAI of deciduous trees
 ! PSOILHCAPZ_DRY soil heat capacity of dry soil
+! WFL      Water content in the forest litter layer (kg/m2)
+! WFL_ICE  Ice content in the forest litter layer (kg/m2)
 !
 !           - Output -
 ! WTA      Weights for SVS2 surface types as seen from ATM.
@@ -141,6 +147,10 @@
 ! GAMVA    average stomatal resistance param.
 ! PSOILCONDZ soil thermal conductivity
 ! PSOILHCAPZ soil heat capacity
+! PFLCOND    Thermal conductivity of forest litter layer (W/m/K)
+! PFLHCAP   Effective heat capacity of the forest litter layer (J/m2/K)
+! DZ_FL   Thickness of the forest litter layer (m)
+! RHO_FL   Density of forest litter (kg/m3)
 !
 include "isbapar.cdk"
 !
@@ -582,5 +592,47 @@ include "isbapar.cdk"
 
        END DO
 
+!
+!
+!       10.      THERMAL CONDUCTIVITY OF FOREST LITTER LAYER (Nappoly et al., 2017, A13   )
+!               ------------------------------------------
+!
+!
+
+      IF (LFORLIT) THEN
+         DO I=1,N
+
+            IF (VEGH(I).GE.EPSILON_SVS) THEN
+
+               IF (SVM(I) .GE. 5.0) THEN ! There is snow in the forest
+                  DZ_FL(I) = 0.01
+                  RHO_FL(I) = 150.
+               ELSE
+                  DZ_FL(I) = 0.03  ! Napoly et al (2017)
+                  RHO_FL(I) = 50. ! Napoly et al (2017)
+               ENDIF
+
+
+               !                      Thermal conductivity of forest litter layer (W/m/K)
+               PFLCOND(I) = 0.1 + 0.03 * (WFL(I)/(RHOW * DZ_FL(I)))
+
+               !                      Forest litter heat capacity [J/m2/K] 
+               PFLHCAP(I) = CFL_dry * RHO_FL(I) * DZ_FL(I) + WFL(I) * CWAT &
+                              + WFL_ICE(I) * CICE
+
+            ELSE
+               PFLCOND(:) = 0.
+               PFLHCAP(:) = 0.
+               DZ_FL(I) = 0.
+               RHO_FL(I) = 0.
+            ENDIF
+         END DO
+      ELSE
+         PFLCOND(:) = 0.
+         PFLHCAP(:) = 0.
+      ENDIF
+
+
       RETURN
-      END
+    END SUBROUTINE SOILI_SVS2
+  end module soili_svs2_mod

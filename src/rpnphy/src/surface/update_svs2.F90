@@ -1,8 +1,12 @@
 !copyright (C) 2001  MSC-RPN COMM  %%%RPNPHY%%%
 !!! S/P UPDATE_SVS
 !
-      SUBROUTINE UPDATE_SVS2( WDT, WFT, WR_VLT, WR_VHT, &
-           WD, WF, WR_VL, WR_VH, WDM, N )
+module update_svs2_mod
+  implicit none
+  public
+contains
+      SUBROUTINE UPDATE_SVS2( WDT, WFT, WR_VLT, WR_VHT, WFLT, &
+           WD, WF, WR_VL, WR_VH, WFL, WDM, N )
 
 
         use svs_configs
@@ -15,7 +19,7 @@
       INTEGER N
 
       real, dimension(n,nl_svs) :: wdt, wft, wd, wf
-      real, dimension(n) :: wr_vlt, wr_vht, wr_vl, wr_vh, wdm
+      real, dimension(n) :: wr_vlt, wr_vht, wr_vl, wr_vh, wdm, wflt, wfl
      
 !
 !Author
@@ -35,12 +39,14 @@
 ! WFT(NL)    frozen soil water  in soil layer (NL layers) at time +   
 ! WR_VLT     water content retained by the low vegetation canopy at time +
 ! WR_VHT     water content retained by the high vegetation canopy at time +
+! WFLT       water content retained by the forest litter at time +
 !
 !          - Output -
 ! WD(NL)     updated prognostic var.: soil volumetric water content per layer
 ! WF(NL)     updated prognostic var.: frozen soil volum. water content per layer
 ! WR_VL      updated prognostic var.: water content retained by the low veg. canopy
-! WR_VH      updated prognostic var.: water content retained by the low veg. canopy
+! WR_VH      updated prognostic var.: water content retained by the high veg. canopy
+! WFL        updated prognostic var.: water content retained by the forest litter
 ! WDM        Mean soil moisture for the soil layers (NL soil layers)
       INTEGER I,K
 !
@@ -53,6 +59,9 @@
          ENDDO   
          WR_VL(I) = WR_VLT(I)
          WR_VH(I) = WR_VHT(I)
+         IF (LFORLIT) THEN
+            WFL(I) = WFLT(I)
+          ENDIF
          !     
 !           Calculate mean soil moisture 
 !           Soil moisture weighted by depth of each layer...        
@@ -67,4 +76,5 @@
 !
 !
       RETURN
-      END
+    END SUBROUTINE UPDATE_SVS2
+  end module update_svs2_mod

@@ -34,6 +34,15 @@ module sfc_options
    real, dimension(NL_SVS_DEFAULT):: DP_SVS_DEFAULT =  (/ 0.05, 0.1, 0.2, 0.4, 1.0, 2.0, 3.0 /)
    !#----------------------------------
 
+   !# ----  FOR TEB BUILT-UP LAND SCHEME ------
+   integer, parameter :: NB_TEB_SNOWPAR = 13    !  number of parameters for snow in TEB
+   ! values of (1) WCRN,(2)tau_a (cold snow alb),(3)Almin, (4)almax, (5)rhomin, (6)rhomax, (7)tau_r (compaction),
+   !           (8)emissivity, (9)tau_f (warm snow alb), (10) tau_anthropo, (11) zom, (12) z0h  (13) snfrac_max
+   !                                                           (1)  (2)    (3)   (4)  (5)   (6)   (7)   (8)    (9)  (10)  (11)   (12)  (13)
+    real, dimension(NB_TEB_SNOWPAR):: TEB_SNROOF_DEFAULT =  (/ 1.0, 0.04, 0.50, 0.85, 100., 750., 0.01, 1.00, 0.01, 0.0, 0.001, 0.0001, 1.0 /)
+    real, dimension(NB_TEB_SNOWPAR):: TEB_SNROAD_DEFAULT =  (/ 1.0, 0.08, 0.20, 0.85, 100., 750., 0.10, 1.00, 0.01, 1.0, 0.001, 0.0001, 0.7 /)
+   !#----------------------------------
+
    real, parameter :: CRITEXTURE = 0.1
    real, parameter :: CRITLAC    = 0.01
    real, parameter :: CRITMASK   = 0.001
@@ -50,6 +59,7 @@ module sfc_options
    logical           :: atm_external = .false.
    logical           :: atm_tplus  = .false.
    logical           :: climat     = .false.
+   logical           :: cplocn     = .false.
    real              :: delt       = 0.
    integer(INT64)  :: jdateo     = 0
    logical           :: rad_off    = .false.
@@ -57,6 +67,9 @@ module sfc_options
    logical           :: update_alwater = .false.
    logical           :: z0veg_only = .false.
    logical           :: thermal_stress = .false.
+   logical           :: thermal_stress_utci = .false.
+   logical           :: thermal_stress_shade = .false.
+   logical           :: thermal_stress_roof = .false.
    integer           :: kntveg     = -1
    logical           :: timings_L  = .false.
    integer           :: nphyoutlist = -1
@@ -84,7 +97,11 @@ module sfc_options
         'O2F',  &
         'ABV'   &
         /)
-   
+
+   !# chi_min parameter: the minimal efficiency factor for phase change in the soil_freezing scheme (the same concept as in Surfex and described in Pitman et al., 1991, Slater et al., 1998.
+   real              :: chi_min    = 0.6
+   namelist /surface_cfgs/ chi_min
+        
    !# Diurnal SST scheme
    !# * 'NIL    ' : No Diurnal SST scheme
    !# * 'FAIRALL' : #TODO: define
@@ -221,15 +238,13 @@ module sfc_options
    !# (SVS2) Option for the metamorphism scheme for Crocus
    !#  * 'B21': Correction of C13 to correctly handle the conversion from 
    !            dendricity/sphericity/grain size to optical diameter/sphericity
-   !# * 'C13': Carmagnola et al 2014 
    !# * 'T07': Taillandier et al 2007
    !# * 'F06': Flanner et al 2006
    !# * 'S-F': Schlef et al 2014
    !# * 'S-B': Schlef et al 2014
    character(len=16) :: hsnowmetamo = 'B21'
    namelist /surface_cfgs/ hsnowmetamo
-   character(len=*), parameter :: HSNOWMETAMO_OPT(6) = (/ &
-        'C13',  &
+   character(len=*), parameter :: HSNOWMETAMO_OPT(5) = (/ &
         'T07',  &  
         'F06',  &  
         'B21',  &
@@ -294,6 +309,29 @@ module sfc_options
    logical           :: impflx      = .false.
    namelist /surface_cfgs/ impflx
 
+   !# Specify which method is used to compute hrsurf
+   !# * ALPHA_JN90  : (default) [pending description]
+   !# * BETA_ECMWF12: [pending description]
+   character(len=16) :: isba_hrsurf_method    = 'ALPHA_JN90'
+   namelist /surface_cfgs/ isba_hrsurf_method
+   character(len=*), parameter :: ISBA_HRSURF_METHOD_OPT(2) = (/ &
+        'ALPHA_JN90   ', &
+        'BETA_ECMWF12 ' &
+        /)  
+
+   !# Specify the exponent applied to the ratio WD/WFC when computing Beta (only used by BETA_ECMWF12 method) 
+   real              :: isba_hrsurf_power = 1.
+   namelist /surface_cfgs/ isba_hrsurf_power   
+
+   !# Specify the typical soil resistance for hrsurf computation (only used by BETA_ECMWF12 method) [s/m]
+   real              :: isba_hrsurf_rs = 50.
+   namelist /surface_cfgs/ isba_hrsurf_rs
+   
+   !# If .true., field capacity for bare ground evaporation is calculated with respect to 
+   !             liquid water using modified porosity in presence of frozen soil
+   logical           :: isba_lwfcliq = .false.
+   namelist /surface_cfgs/ isba_lwfcliq
+
    !# If .true. apply temporary fix to ISBA
    !# * timestep dependent KCOEF
    !# * No PSN factor for meting and freezing
@@ -307,6 +345,15 @@ module sfc_options
    !# Use the vegetation-only roughness length to compute vegetation snow fraction
    logical           :: isba_snow_z0veg = .false.
    namelist /surface_cfgs/ isba_snow_z0veg
+
+   !# Surface weights / Poids; LEGACY as of sps_6.3.0.
+   character(len=6)           :: sfc_poids = 'LEGACY'
+   namelist /surface_cfgs/ sfc_poids
+   character(len=*), parameter :: SFC_POIDS_OPT(3) = (/ &
+        'LEGACY', &
+        'CONSER', &
+        'MODMG ' &
+        /)
 
    !# Computation of bare ground snow fraction
    !# * 'NIL'   : Legacy approach implemented in ISBA (Belair et al. 003)
@@ -386,13 +433,31 @@ module sfc_options
    logical           :: limsnodp    = .false.
    namelist /surface_cfgs/ limsnodp
 
-   !# If .true., macropores are activated and enhance infiltration in a frozen soil
-   logical           :: lmacropores_svs1 = .false.
-   namelist /surface_cfgs/ lmacropores_svs1 
+   !# (SVS2) activate forest litter in SVS2 if .true.
+   logical           :: lforlit     = .false.
+   namelist /surface_cfgs/ lforlit
+
+   !# (SVS1) If .true., macropores are activated and enhance infiltration in a frozen soil
+   logical           :: lmacropores_svs = .false.
+   namelist /surface_cfgs/ lmacropores_svs
+
+   !#  (SVS1) If .true., we use an efficiency factor phase change (chi) in the soil freezing scheme
+   logical           :: lphase_change_eff_svs1 = .true.
+   namelist /surface_cfgs/ lphase_change_eff_svs1 
+
+   !#  (SVS1) If .true., field capacity for bare ground evaporation is calculated with respect to 
+   !          liquid water using modified porosity in presence of frozen soil
+   logical           :: lwfcliq_svs1 = .false.
+   namelist /surface_cfgs/ lwfcliq_svs1
    
    !# (SVS2) If .true., SVS2 simulates interception of snow by canopy, sublimation and inloading of intercepted snow
    logical           :: lsnow_interception_svs2 = .false.
    namelist /surface_cfgs/ lsnow_interception_svs2
+
+   !# (SVS2) If .true., SVS2 uses the aerodynamic resistance from sfc_layer
+   logical           :: lsfclayer_crocus_svs2 = .false.
+   namelist /surface_cfgs/ lsfclayer_crocus_svs2
+
 
    !# (SVS2) Activate spatially variable snow aging coefficient in Crocus snow albedo parameterization
    logical           :: lsnowaging_var = .false. 
@@ -410,14 +475,10 @@ module sfc_options
    logical           :: lwater_ponding_svs = .false.
    namelist /surface_cfgs/ lwater_ponding_svs
 
-   !Alpha_mp and beta_mp are parameters related to the macropore activation function. 
+   ! mp_alpha is a parameter related to the macropore activation function in SVS 
    !# mp_alpha parameter in the macropore activation option (based on a sensitivity analysis)
-   real              :: mp_alpha    = 0.85
+   real              :: mp_alpha    = 0.55
    namelist /surface_cfgs/ mp_alpha
-
-   !# mp_beta is the weighted sand-to-clay ratio for the average tile over the GLSL domain
-   real              :: mp_beta    = 3.64
-   namelist /surface_cfgs/ mp_beta
 
    !# (SVS2) Number of snow layers in multi-layer snowpack scheme:
    !# In Crocus it refers to the maximal number of snow layers
@@ -498,6 +559,11 @@ module sfc_options
         'RIVERS' &
         /)
 
+
+   !# Coefficient for calculation of displacement height from roughness (recommended value=8)
+   real              :: sl_afd = -1.
+   namelist /surface_cfgs/ sl_afd
+   
    !# Type of diagnostic-level calculations to use
    !# * 'FLUX      ' : Use turbulent surface fluxes to estimate diagnostic-level fields
    !# * 'INTERP    ' : Use interpolation to estimate diagnostic-level fields
@@ -563,7 +629,15 @@ module sfc_options
         'DELAGE92', &
         'DYER74  '  &
         /)
- 
+
+   !# Coefficient for scalar interpolation to the diagnostic level for Rib-based adjustment
+   real              :: sl_re2 = -1.
+   namelist /surface_cfgs/ sl_re2
+
+   !# Set maximum scale height for surface layer stability functions
+   real              :: sl_ximax = -1.
+   namelist /surface_cfgs/ sl_ximax
+   
    !# Use a reference roughness for surface layer calculations
    logical :: sl_z0ref = .false.
    namelist /surface_cfgs/ sl_z0ref
@@ -588,12 +662,14 @@ module sfc_options
    !# * 'GSDE   '   : 8 layers of sand & clay info from Global Soil Dataset for ESMs (GSDE)
    !# * 'SLC    '   : 5 layers of sand & clay info from Soil Landscape of Canada (SLC)
    !# * 'SOILGRIDS' : 7 layers of sand & clay info from ISRIC World Soil Information
+   !# * 'SOILGRIDSV2' : 6 layers of sand, clay, bulk density, & oc info from ISRIC World Soil Information
    character(len=16) :: soiltext    = 'GSDE'
    namelist /surface_cfgs/ soiltext
-   character(len=*), parameter :: SOILTEXT_OPT(3) = (/ &
-        'GSDE     ',  &
-        'SLC      ',  &
-        'SOILGRIDS' &
+   character(len=*), parameter :: SOILTEXT_OPT(4) = (/ &
+        'GSDE       ',  &
+        'SLC        ',  &
+        'SOILGRIDS  ',  &
+        'SOILGRIDSV2'   &
         /)
 
    !# If .true., SVS1 simulates soil freezing and thawing and its impact on hydrology
@@ -601,7 +677,7 @@ module sfc_options
    namelist /surface_cfgs/ lsoil_freezing_svs1 
 
    !#  Option to compute the heat flux between the soil and the snowpack in the module soil_freezing.F90
-   character(len=16) :: soilsnowhf_svs1     = 'DST_MAXD'
+   character(len=16) :: soilsnowhf_svs1     = 'ST_D_DD'
    namelist /surface_cfgs/ soilsnowhf_svs1
    character(len=*), parameter :: SOILSNOWHF_SVS1_OPT(4) = (/ &
         'DST_HD  ', &   ! DST_HD: use the Deep Snow Temperature and Half the snow Depth
@@ -610,8 +686,16 @@ module sfc_options
         'ST_D_DD '  &   ! ST-D-DD: if snow depth is lower than damping depth, use the full snow depth and the skin Snow Temperature if snow Depth is greater than Damping Depth, use half snow depth and deep snow temp.
         /)
 
+   !#  Option to compute HFLUX for bareground in the module soil_freezing.F90 (Use the soil thermal restiance (default) or the skin conductivity from Table 2.1 of the sup. mat. of Boussetta et al., 2021)
+   character(len=16) :: soilgrndhf_svs1     = 'LAM_BOU2021'
+   namelist /surface_cfgs/ soilgrndhf_svs1
+   character(len=*), parameter :: SOILGRNDHF_SVS1_OPT(2) = (/ &
+        'RTH_GRND   ', &   ! RTH_GRND: use a soil thermal resistance in the computation of surface heat flux of bare ground
+        'LAM_BOU2021' &   ! LAM_BOU2021: use the skin thermal conductivity from Table 2.1 of the sup. mat. of Boussetta et al., 2021 in the computation of surface heat flux of bare ground
+        /)
+
    !#  Option to set the depth of the lower boundrary condition below the soil column (module soil_freezing.F90)
-   character(len=16) :: soildbtm_svs1     = 'MID'
+   character(len=16) :: soildbtm_svs1     = 'DEEP'
    namelist /surface_cfgs/ soildbtm_svs1
    character(len=*), parameter :: SOILDBTM_SVS1_OPT(3) = (/ &
         'MID ', &   ! default condition. The temperature is set at a depth of half the thickness of the lower layer below the bottom of the soil column
@@ -636,29 +720,33 @@ module sfc_options
    logical           :: snoalb_anl  = .true.
    namelist /surface_cfgs/ snoalb_anl
 
+   !# determine depth over which soil thermal inertia is computed [m]
+   !# when set to zero, only 1st layer is used (default option for backward compatibility)
+   !# default should eventually be changed to 0.12 based on the fact that cg = sqrt(tau*k/pi)
+   !# where k is the thermal diffusivity of the soil [m2/s] and tau = 86400 [s]
+   !# if no information is known about the soil, IEC 60853-2 recommends k=5·10-7 m2/s
+   !# hence svs_cg_depth = 0.12 m
+   real              :: svs_cg_depth = 0.
+   namelist /surface_cfgs/ svs_cg_depth
+
+   !# specify which equation to use to take ice into account when computing the heat capacity of bare ground
+   !# * BELAIR2003: (default) Adjustment to heat capacity based on total water content (WD+WF)
+   !# * BOONE2000:  Adjustment to heat capacity that takes into account the reduced heat capacity of ice vs liquid water
+   character(len=16) :: svs_cg_ice    = 'BELAIR2003'
+   namelist /surface_cfgs/ svs_cg_ice
+   character(len=*), parameter :: SVS_CG_ICE_OPT(2) = (/ &
+        'BELAIR2003', &
+        'BOONE2000 '  &
+        /)   
+
    !# use dynamic calculation of z0h for bare ground + vegetation  for SVS if .true.
    logical           :: svs_dynamic_z0h     = .false.
-   namelist /surface_cfgs/ svs_dynamic_z0h 
-
-   !# Exponent in function defining vegetation stress when estimating transpiration
-   !# Transpiration decreases more slowly with soil moisture when svs_gexp is high
-   !# it does not start decreasing until about soil moisture is half way between wilting
-   !# point and field capacity when svs_gexp=10.
-   !# A positive value is expected, but a negative value is used by default to keep this option
-   !# inactive if a value is not provided.
-   !# Prior to introducing this key, a value of two was used in phtsyn_svs.F90 but a value
-   !# of one was assumed in vegi_svs.F90, leading to an inconsistency in the code when
-   !# the CTEM parameterization is used.
-   !# This behaviour is preserved if the value of the key is less or equal to zero for
-   !# backward compatibility purposes.
-   !# Since this is a bugfix, eventually the default value of the key should be changed
-   !# to a positive value.
-   real              :: svs_gexp = -1.
-   namelist /surface_cfgs/ svs_gexp
+   namelist /surface_cfgs/ svs_dynamic_z0h
 
    !# Specify which method is used to compute hrsurf
-   !# * ALPHA_JN90  : (default) [pending description]
-   !# * BETA_ECMWF12: [pending description]
+   !# * ALPHA_JN90    : (default) "alpha" method proposed by Jacquemin and Noilhan (1990), BLM
+   !# * BETA_ECMWF12  : resistance method of Albergel et al. (2012) modified by Fortin et al. (2026)
+   !#                   in order to behave like a "beta" method in dry conditions
    character(len=16) :: svs_hrsurf_method    = 'ALPHA_JN90'
    namelist /surface_cfgs/ svs_hrsurf_method
    character(len=*), parameter :: SVS_HRSURF_METHOD_OPT(2) = (/ &
@@ -667,13 +755,29 @@ module sfc_options
         /)
 
    !# Specify the exponent applied to the ratio WD/WFC when computing Beta (only used by BETA_ECMWF12 method)
+   !# With default value of 1, BETA_ECMWF12 method becomes equivalent to resistance method of Albergel et al. (2012)
    real              :: svs_hrsurf_power = 1.
    namelist /surface_cfgs/ svs_hrsurf_power
 
    !# Specify the typical soil resistance for hrsurf computation (only used by BETA_ECMWF12 method) [s/m]
+   !# Default value of 50 s/m proposed by Albergel et al. (2012)
    real              :: svs_hrsurf_rs = 50.
    namelist /surface_cfgs/ svs_hrsurf_rs
 
+   !------------------------------------------------------------------
+   ! NUMERICAL METHOD HYDRO_SVS
+   ! Numerical method used to solve Richards' equations in hydro_svs
+   ! 'EULER':   Euler, forward, 1st order
+   ! 'RK4_IC4': Runge-Kutta 4th order (RK4) (incorrect implementation, but used operationnally in NSRPS IC4)
+   ! 'RK4':     Runge-Kutta 4th order (RK4) (improved implementation as part of IC5)
+   character(len=16) :: svs_hydro_nummethod = 'RK4_IC4'
+   namelist /surface_cfgs/ svs_hydro_nummethod
+   character(len=*), parameter :: SVS_HYDRO_NUMMETHOD_OPT(3) = (/ &
+        'EULER  ', &
+        'RK4_IC4', &
+        'RK4    ' &
+        /)
+        
    !# Option to use average normalized water content rather than average stress to compute transpiration
    logical           :: svs_etr_avg_beta = .false.
    namelist /surface_cfgs/ svs_etr_avg_beta
@@ -706,6 +810,38 @@ module sfc_options
         'BELAIR03_DTGEM   ',  &
         'NONE             ',  &
         'LEONARDINI21     ' &
+        /)
+
+   !# Computation of snow cover fraction over ground in SVS1
+   !# * 'NIL'   : Legacy approach implemented in SVS (Belair et al. 003)
+   !# * 'LA23' : Adjusted method from Lalande et al. (2023) accoungint for hysterisis of snow cover fraction and subgrid topo
+   !# * 'AR25' : Method from Abolafia-Rosenzweig et al. (2025) applied to resolution of 2.5 km
+   character(len=16)           :: svs_snowfrac_ground = 'NIL'
+   namelist /surface_cfgs/ svs_snowfrac_ground
+   character(len=*), parameter :: SVS_SNOWFRAC_GROUND_OPT(3) = (/ &
+        'NIL   ', &
+        'LA23  ', &
+        'AR25  '  &
+        /)
+
+   !# Computation of snow albedo in SVS1
+   !# * 'NIL'   : Legacy approach implemented in SVS (Leonardini et al., 2021)
+   !# * 'CLASS' : Method from the land surface scheme CLASS
+   character(len=16)           :: svs_snowalb = 'NIL'
+   namelist /surface_cfgs/ svs_snowalb
+   character(len=*), parameter :: SVS_SNOWALB_OPT(2) = (/ &
+        'NIL     ' , &
+        'CLASS   ' &
+        /)
+
+   !# specify functions to use to compute wsat, wfc and wwilt
+   !# SURFEX: equations used in SURFEX v8.1, obtained from Giordani (1993) and Noilhan & Lacarrère (1995)
+   !# USDA2006: equations proposed by USDA, see Saxton and Rawls (2006)
+   character(len=16) :: svs_soiltext2prop = 'SURFEXV8'
+   namelist /surface_cfgs/ svs_soiltext2prop
+   character(len=*), parameter :: SVS_SOILTEXT2PROP_OPT(2) = (/ &
+        'SURFEXV8     ', &
+        'USDA2006     ' &
         /)
 
    !# Option to activate the effect of ploughing and Tile Drains in SVS
@@ -778,21 +914,57 @@ module sfc_options
    real    :: svs_vegcrops(13) = -999.
    namelist /surface_cfgs/ svs_vegcrops
 
-   !# Option to read a lookup table of monthly values for D50 for class 15 (crops)
-   logical :: svs_read_d50crops = .false.
-   namelist /surface_cfgs/ svs_read_d50crops
+   !# Option to read a lookup table of monthly values for D50 for class 15
+   logical :: svs_read_d50veg15 = .false.
+   namelist /surface_cfgs/ svs_read_d50veg15
 
-   !# Values (1:13) used for the lookup table D50CROPS if svs_read_d50crops=.T.
-   real    :: svs_d50crops(13) = -999.
-   namelist /surface_cfgs/ svs_d50crops
+   !# Option to read a lookup table of monthly values for D50 for class 16
+   logical :: svs_read_d50veg16 = .false.
+   namelist /surface_cfgs/ svs_read_d50veg16
 
-   !# Option to read a lookup table of monthly values for D95 for class 15 (crops)
-   logical :: svs_read_d95crops = .false.
-   namelist /surface_cfgs/ svs_read_d95crops
+   !# Values (1:13) used for the lookup table D50VEG15 if svs_read_d50veg15=.T.
+   real    :: svs_d50veg15(13) = -999.
+   namelist /surface_cfgs/ svs_d50veg15
 
-   !# Values (1:13) used for the lookup table D50CROPS if svs_read_d95crops=.T.
-   real    :: svs_d95crops(13) = -999.
-   namelist /surface_cfgs/ svs_d95crops
+   !# Values (1:13) used for the lookup table D50VEG16 if svs_read_d50veg16=.T.
+   real    :: svs_d50veg16(13) = -999.
+   namelist /surface_cfgs/ svs_d50veg16
+
+   !# Option to read a lookup table of monthly values for D95 for class 15 
+   logical :: svs_read_d95veg15 = .false.
+   namelist /surface_cfgs/ svs_read_d95veg15
+
+   !# Option to read a lookup table of monthly values for D95 for class 16 
+   logical :: svs_read_d95veg16 = .false.
+   namelist /surface_cfgs/ svs_read_d95veg16
+
+   !# Values (1:13) used for the lookup table D95VEG15 if svs_read_d95veg15=.T.
+   real    :: svs_d95veg15(13) = -999.
+   namelist /surface_cfgs/ svs_d95veg15
+
+   !# Values (1:13) used for the lookup table D95VEG16 if svs_read_d95veg16=.T.
+   real    :: svs_d95veg16(13) = -999.
+   namelist /surface_cfgs/ svs_d95veg16
+
+
+   !# Option to read a lookup table of monthly values for D50 for class 16
+   logical :: svs_read_gexpveg = .false.
+   namelist /surface_cfgs/ svs_read_gexpveg
+
+   !# Exponent in function defining vegetation stress when estimating transpiration
+   !# Transpiration decreases more slowly with soil moisture when svs_gexp is high
+   !# it does not start decreasing until about soil moisture is half way between wilting
+   !# point and field capacity when svs_gexp=10.
+   !# Prior to introducing this key, a value of two was used in phtsyn_svs.F90 but a value
+   !# of one was assumed in vegi_svs.F90, leading to an inconsistency in the code when
+   !# the CTEM parameterization is used.
+   !# This behaviour is preserved if svs_read_gexpveg = .false. for
+   !# backward compatibility purposes.
+   !# Since this is a bugfix, eventually the default value of the key should be changed
+   !# to a positive value.
+   !# Values (26) used for the lookup table D95VEG16 if svs_read_gexpveg=.T.
+   real    :: svs_gexpveg(26) = -999.
+   namelist /surface_cfgs/ svs_gexpveg
 
    !# Option to read a lookup table of monthly values for LAI for class 11
    logical :: svs_read_lai11 = .false.
@@ -998,6 +1170,25 @@ module sfc_options
    !# Adjust temperature diagnostic in TEB in the street  if .true.
    logical           :: urb_diagtemp = .false.
    namelist /surface_cfgs/ urb_diagtemp
+
+   !# (TEB) Options for parameters governing the snow evolution on roofs nd roads
+   !# * 'MA00'   :  Default Masson 2000
+   !# * 'JA14'   :    opt Järvi et al 2014
+   !# * 'LE10'   :    opt Lemonsu et al 2010
+   character(len=6) :: teb_snow    = 'MA00  '
+   namelist /surface_cfgs/ teb_snow
+   character(len=*), parameter :: TEB_SNOW_OPT(4) = (/ &
+        'MA00  ',  &
+        'JA14  ',  &
+        'LE10  ',  &
+        'CUSTOM' &
+        /)
+
+  !# read the TEB snow parameters (if schmsol=TEB and teb_snow=custom)
+   real :: teb_snroof(NB_TEB_SNOWPAR) = -1.0
+   real :: teb_snroad(NB_TEB_SNOWPAR) = -1.0
+   namelist /surface_cfgs/ teb_snroof
+   namelist /surface_cfgs/ teb_snroad
 
 contains
 

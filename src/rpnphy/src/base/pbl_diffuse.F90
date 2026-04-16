@@ -1,4 +1,5 @@
 module pbl_diffuse
+  use difuvd12_mod, only: difuvd1, difuvd2
   implicit none
   private
 
@@ -82,7 +83,7 @@ contains
     real, pointer, dimension(:), contiguous   :: ps
     real, pointer, dimension(:), contiguous   :: zalfat, zalfat0, zalfaq, &
          zalfaq0, zbm, zbm0, zfdsi, zfdss, zfq, zmg, ztsrad, &
-         zustress, zvstress, zue, zh, zdxdy
+         zustress, zvstress, zue, zh, zdxdy, zsigs
     real, pointer, dimension(:), contiguous :: zflw, zfsh, zfca
     real, pointer, dimension(:,:), contiguous :: tu, tv, tw, tt, tq, tl, uu, vv, w, &
          t, q, sg, zsigw, zsigt, zsigm, tm, &
@@ -91,7 +92,7 @@ contains
     real, pointer, dimension(:,:), contiguous :: zgq, zgql, zgte, zkm, zkt, zqtbl, ztve, &
          zwtng, zwqng, zuwng, zvwng, zfbl, zfblgauss, zfblnonloc, zfnn, &
          zzd, zzn, zfc, zfv, zc1pbl, zturbqf, zturbtf, zturbuf, zturbvf, &
-         zturbuvf, zmrk2, zsige
+         zturbuvf, zmrk2, zsige, zlscorer2
     real, pointer, dimension(:,:,:), contiguous :: zvcoef
     !---------------------------------------------------------------------
 
@@ -130,6 +131,7 @@ contains
     MKPTR1D(zfca, fca, pvars)
     MKPTR1D(zh, h, pvars)
     MKPTR1D(zmg, mg, pvars)
+    MKPTR1D(zsigs, sigs, pvars)
     MKPTR1D(ztsrad, tsrad, pvars)
     MKPTR1D(zue, ue, pvars)
     MKPTR1D(zustress, ustress, pvars)
@@ -189,6 +191,7 @@ contains
 
     MKPTR2Dm1(tw, wdifv, pvars)
     MKPTR2Dm1(tl, qcdifv, pvars)
+    MKPTR2Dm1(zlscorer2, lscorer2, pvars)
     MKPTR2Dm1(zsigmas, sigmas, pvars)
     MKPTR2Dm1(zpblq1, pblq1, pvars)
 
@@ -239,7 +242,7 @@ contains
           gam0(j,k) = rsg*zsige(j,k)/ztve(j,k)
           kmsg(j,k) = zkm(j,k)*gam0(j,k)**2
           ktsg(j,k) = zkt(j,k)*gam0(j,k)**2
-          NONLOCAL: if (pbl_nonloc == 'LOCK06') then
+          NONLOCAL: if (pbl_nonloc /= 'NIL') then
              ! Normalize the non-gradient flux terms (added to implicit solver)
              wthl_ng(j,k) = zwtng(j,k)*gam0(j,k)
              wqw_ng(j,k)  = zwqng(j,k)*gam0(j,k)
@@ -402,7 +405,8 @@ contains
     if (fluvert == 'MOISTKE') then
        call baktotq(tt,tq,tl,thl,qw,tthl,tqw,qclocal,sg,zsigw, &
             ps,zgztherm,tm,ficelocal,ztve,zh,zfc_ag,zqtbl,zfnn,zfbl,zfblgauss, &
-            zfblnonloc,zc1pbl,zzn,zzd,zmg,zmrk2,zvcoef,zsigmas,zpblq1,zdxdy,tau,ni,nkm1)
+            zfblnonloc,zc1pbl,zzn,zzd,zmg,zmrk2,zvcoef,zsigmas,zpblq1,zdxdy, &
+            zsigs,zlscorer2,tau,ni,nkm1)
     endif
 
     ! Compute tendency for condensate diffusion
@@ -462,6 +466,7 @@ contains
   subroutine DIFUVDFj(TU, U, KU, GU, JNG, R, ALFA, BETA, S, SK, &
        TAU, itype, F, NU, NR, N, NK)
     use, intrinsic :: iso_fortran_env, only: REAL64
+    use phy_status, only: physeterror
     implicit none
 !!!#include <arch_specific.hf>
 
@@ -529,7 +534,6 @@ contains
     real(KIND=8), dimension(N,NK) :: RHD,RHMD,RHPD
     logical :: SFCFLUX
     character(len=16) :: msg_S
-    external DIFUVD1, DIFUVD2
 
     st(i)=s(i,1)-0.5*(s(i,2)-s(i,1))
     sb(i)=1.

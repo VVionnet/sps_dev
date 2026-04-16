@@ -20,6 +20,7 @@ subroutine drv_ptopo_ndoms(F_ndomains,F_dom_deb,F_istat)
    use clib_itf_mod, only: clib_getenv
    use wb_itf_mod, only: wb_put
    use str_mod
+   use str_split_mod, only: str_split
    implicit none
    !@arguments
    integer,intent(out) :: F_ndomains,F_dom_deb,F_istat

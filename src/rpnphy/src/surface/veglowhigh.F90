@@ -13,10 +13,14 @@
 !if not, you can write to: EC-RPN COMM Group, 2121 TransCanada, suite 500, Dorval (Quebec),
 !CANADA, H9P 1J3; or send e-mail to service.rpn@ec.gc.ca
 !-------------------------------------- LICENCE END --------------------------------------
-
+module veglowhigh_mod
+  implicit none
+  public
+contains
 subroutine veglowhigh(fcover, tablen, tables, low, high, deci, ever, impervu, &
      lat, agfrac, ni, nclass)
   use svs_configs, only : ntypel, vl_type, ntypeh, vh_type, furb_vl, imp_urb, epsilon_svs
+  use sfc_options, only : vf_type
    implicit none
 !!!#include <arch_specific.hf>
 
@@ -61,9 +65,22 @@ subroutine veglowhigh(fcover, tablen, tables, low, high, deci, ever, impervu, &
         high(i)= 0.0
         deci(i)= 0.0
         ever(i)= 0.0
-        agfrac(i) = fcover(i,15)
       END DO
 !
+      ! compute sum of agricultural areas for the optional representation of tile drains and ploughing 
+      IF (VF_TYPE.eq.'CCILC_WE') THEN
+        ! with the option CCILC_WE, class 13 (short grass and forbs) is transferred into class 17 in eastern NA 
+        ! and should not be taken into account when computing the agricultural fraction 'agfrac'       
+        DO i=1,ni
+          agfrac(i) = fcover(i,15) + fcover(i,16) + fcover(i,18) + fcover(i,19) + fcover(i,20)
+        END DO
+      ELSE
+        ! by default, based on official fcover definitions (see inside inicover_svs), classes 15 to 20 included 
+        ! consist of agricultural areas
+        DO i=1,ni
+          agfrac(i) = fcover(i,15) + fcover(i,16) + fcover(i,17) + fcover(i,18) + fcover(i,19) + fcover(i,20)
+        END DO
+      ENDIF
 !
 !
       DO i=1,ni
@@ -178,3 +195,4 @@ subroutine veglowhigh(fcover, tablen, tables, low, high, deci, ever, impervu, &
 !
    return
  end subroutine veglowhigh
+end module veglowhigh_mod

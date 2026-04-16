@@ -7,12 +7,10 @@
 # - Load RPN-SI libraries and utilities, and RPNPY
 # - Load a script for common setup to all compilers
 
-DOMAIN=`hostname -d`
-
 # Check name of the script called, to export corresponding Intel compiler version
-INTEL_SCRIPT_NAME=$(echo $(basename ${BASH_SOURCE[0]}))
+SETUP_SCRIPT_NAME=$(echo $(basename ${BASH_SOURCE[0]}))
 
-case ${INTEL_SCRIPT_NAME} in
+case ${SETUP_SCRIPT_NAME} in
     .eccc_setup_intel)
         export COMPILER_VERSION=2025.1.0
         ;;
@@ -31,13 +29,26 @@ case ${INTEL_SCRIPT_NAME} in
 esac
 
 # Load code-tools 
-. r.load.dot rpn/code-tools/20250826/env/inteloneapi-${COMPILER_VERSION}
+. r.load.dot rpn/code-tools/20260219/env/inteloneapi-${COMPILER_VERSION}
 
 # Load latest version of RPN-SI libraries and utilities
+<<<<<<< HEAD
 . r.load.dot mrd/rpn/libs/20260316-beta
 . r.load.dot mrd/rpn/utils/20260316-beta
+=======
+. r.load.dot mrd/rpn/libs/20260401-beta
+. r.load.dot mrd/rpn/utils/20260401-beta
+>>>>>>> dev_6.3
 # Load latest version of RPNPY
 . r.load.dot rpn/MIG/ENV/rpnpy/2.2.0
+
+# Check and tell if maestro is loaded
+if [ -z "${MAESTRO_VERSION}" ]; then
+    echo ""
+    echo "Maestro is not loaded: GEM task setup scripts will be used instead of maestro scripts."
+else
+    echo "Maestro ${MAESTRO_VERSION} scripts will be used"
+fi
 
 # Call common setup file
 export COMPILER_SUITE=intel
@@ -45,3 +56,4 @@ export COMPILER_SUITE=intel
 
 # Set WITH_SYSTEM_RPN variable with default value TRUE for ECCC users
 export WITH_SYSTEM_RPN=TRUE
+export SPS_SETUP_SCRIPT_NAME=${SETUP_SCRIPT_NAME}

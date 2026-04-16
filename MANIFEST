@@ -1,5 +1,5 @@
 NAME       : sps
-VERSION    : 6.3.0-a15
+VERSION    : 6.3.0-a22
 BUILD      : RelWithDebInfo
 DESCRIPTION: ECCC-MRD Surface Prediction System - SPS
 SUMMARY    : The Surface Prediction System (SPS) can be seen as a driver to directly call and integrate a given RPNPHY PHYSICS package. Developed by the Atmospheric Numerical Prediction Research Section, Meteorological Research Division, of Environment and Climate Change Canada.
@@ -8,14 +8,14 @@ URL        : https://gitlab.science.gc.ca/MIG/sps
 DOC	   : https://wiki.cmc.ec.gc.ca/wiki/SPS
 
 # Components
-modelutils = 1.8.0-a16
-rpnphy = rpnphy_6.3.0-a16
-spsdyn = 6.3.0-a11
+modelutils = 1.8.0-a22
+rpnphy = 6.3.0-a22
+spsdyn = 6.3.0-a20
 
 # Dependencies 
 #    =,<,<=,>,>= : Version rules
 #    ~           : Optional
-rmn  = 20.1.0-b2
-tdpack = 1.6.3.12
-vgrid = 6.9.9.1
-rpncomm = 4.6.7
+rmn  >= 20.1.0-b7
+tdpack >= 1.6.4.1
+vgrid >= 6.9.11.1
+rpncomm >= 4.6.14

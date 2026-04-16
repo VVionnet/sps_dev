@@ -24,6 +24,7 @@ module dyn_input_mod
    use config_mod
    use cmcdate_mod
    use statfld_dm_mod
+   use mod_handle_error, only: collect_error
    implicit none
    private
    !@objective 

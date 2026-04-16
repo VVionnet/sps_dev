@@ -13,6 +13,11 @@
 !if not, you can write to: EC-RPN COMM Group, 2121 TransCanada, suite 500, Dorval (Quebec),
 !CANADA, H9P 1J3; or send e-mail to service.rpn@ec.gc.ca
 !-------------------------------------- LICENCE END ---------------------------
+module canopy_met_svs2_mod
+  implicit none
+  public
+contains   
+
 
       SUBROUTINE CANOPY_MET_SVS2 (T, HU,VMOD, ISW, ILW, TVEG, ZU,ZT,          &
                                  SUNCOS,VGH_HEIGHT,VGH_DENS,    &
@@ -263,9 +268,13 @@
 
           ENDIF
 
+        ELSE
+          ILW_CAN(I) = ILW(I)
+          ISW_CAN(I) = ISW(I)
         ENDIF
 
       ENDDO
 
 
       END SUBROUTINE CANOPY_MET_SVS2
+end module canopy_met_svs2_mod

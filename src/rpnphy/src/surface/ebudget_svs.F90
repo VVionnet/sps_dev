@@ -13,6 +13,10 @@
 !if not, you can write to: EC-RPN COMM Group, 2121 TransCanada, suite 500, Dorval (Quebec),
 !CANADA, H9P 1J3; or send e-mail to service.rpn@ec.gc.ca
 !-------------------------------------- LICENCE END ---------------------------
+module ebudget_svs_mod
+  implicit none
+  public
+contains
 
       SUBROUTINE EBUDGET_SVS(TSA, WD1, WF , &
                    TGRS,TGRD,TVGS,TVGD, & 
@@ -43,6 +47,7 @@
       use sfclayer, only: sl_sfclayer,SL_OK
       use sfc_options
       use svs_configs
+      use phy_status, only: physeterror
       implicit none
 !!!#include <arch_specific.hf>
 
@@ -845,4 +850,5 @@
 !
 !
       RETURN
-      END
+    END SUBROUTINE EBUDGET_SVS
+  end module ebudget_svs_mod

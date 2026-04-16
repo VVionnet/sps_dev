@@ -49,7 +49,9 @@ subroutine town2(bus, bussiz, ptsurf, ptsurfsiz, dt, kount, n, m, nk)
         xutcic_rfshade,                        &
         xtrfzt,xtrdzt,xurdzu,                  &
         xq1,xq2,xq3,xq4,xq5,xq6,xq7,           &
-        xq8,xq9,xq10,xq11,xq12,xq13
+        xq8,xq9,xq10,xq11,xq12,xq13,           &
+        xdsnow_roof,xdsnow_road,xfsnow_roof,   &
+        xfsnow_road,xtemp
 
    use modd_teb,       only : xzs, xbld, xbld_height, xz0_town,      &
         xz0_roof,xz0_road,                     &
@@ -74,9 +76,12 @@ subroutine town2(bus, bussiz, ptsurf, ptsurfsiz, dt, kount, n, m, nk)
    use modd_csts
    use modi_coupling_teb2, only: coupling_teb2
    use modi_sunpos
+   use mode_surf_snow_frac, only: snow_frac_road, snow_frac_roof
    use sfc_options, only: atm_tplus, atm_external, jdateo, zu, zt, impflx &
         ,urb_diagwind, urb_diagtemp, sl_Lmin_town, vamin
    use sfcbus_mod
+   use phy_status, only: physeterror
+   use fillagg_mod, only: fillagg
    implicit none
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
@@ -118,7 +123,8 @@ subroutine town2(bus, bussiz, ptsurf, ptsurfsiz, dt, kount, n, m, nk)
    real,    parameter :: xundef   = 999.
 
    integer :: n, m, nk, i, hh, mn, ss
-
+   integer(INT64) :: dti64
+   
    real    :: julien
 
    integer,dimension (63) :: alloc_status
@@ -184,6 +190,7 @@ subroutine town2(bus, bussiz, ptsurf, ptsurfsiz, dt, kount, n, m, nk)
    allocate( xch          (n)             , stat=alloc_status(18) )
    allocate( xri          (n)             , stat=alloc_status(19) )
    allocate( xustar       (n)             , stat=alloc_status(20) )
+   allocate( xtemp        (n)             , stat=alloc_status(21) )
 
 ! Initialization of local pointers
    xq_town         = xundef
@@ -206,11 +213,13 @@ subroutine town2(bus, bussiz, ptsurf, ptsurfsiz, dt, kount, n, m, nk)
    xch             = xundef
    xri             = xundef
    xustar          = xundef
+   xtemp           = xundef
 
    call ini_csts
 
 !  Time
-   julien       = real(jdate_day_of_year(jdateo + kount*int(dt) + MU_JDATE_HALFDAY))
+   dti64 = int(dt)
+   julien       = real(jdate_day_of_year(jdateo + kount*dti64 + MU_JDATE_HALFDAY))
    call mu_js2ymdhms(jdateo, kyear, kmonth, kday, hh, mn, ss)
    ptime        = hh*3600. + mn*60 + ss + dt*(kount)
    kday         = kday + int(ptime/86400.)
@@ -231,7 +240,7 @@ subroutine town2(bus, bussiz, ptsurf, ptsurfsiz, dt, kount, n, m, nk)
 
       call sunpos(kyear,kmonth,kday,ptime,lon,lat,ztsun,zzenith,zazim)
 
-! convert snow and rain rates
+! convert snow and rain rates (in kg m-2 s-1)
       do i=1,n
         psnow         (i) = zsnowrate(i) *1000.
         prain         (i) = zrainrate(i) *1000.
@@ -284,13 +293,17 @@ subroutine town2(bus, bussiz, ptsurf, ptsurfsiz, dt, kount, n, m, nk)
       xtsnow_roof (1:n) => bus(x(sroof_t    ,1,1) : )
       xrsnow_roof (1:n) => bus(x(sroof_rho  ,1,1) : )
       xasnow_roof (1:n) => bus(x(sroof_alb  ,1,1) : )
+      xdsnow_roof (1:n) => bus(x(sroof_depth,1,1) : )
       xesnow_roof (1:n) => bus(x(sroof_emis ,1,1) : )
       xtssnow_roof(1:n) => bus(x(sroof_ts   ,1,1) : )
+      xfsnow_roof (1:n) => bus(x(sroof_psn  ,1,1) : )
       xwsnow_road (1:n) => bus(x(sroad_wsnow,1,1) : )
       xtsnow_road (1:n) => bus(x(sroad_t    ,1,1) : )
       xrsnow_road (1:n) => bus(x(sroad_rho  ,1,1) : )
       xasnow_road (1:n) => bus(x(sroad_alb  ,1,1) : )
+      xdsnow_road (1:n) => bus(x(sroad_depth,1,1) : )
       xesnow_road (1:n) => bus(x(sroad_emis ,1,1) : )
+      xfsnow_road (1:n) => bus(x(sroad_psn  ,1,1) : )
       xtssnow_road(1:n) => bus(x(sroad_ts   ,1,1) : )
 !     6. Diagnostic variables :
       xu_canyon   (1:n) => bus(x( u_canyon,1,1)  : )
@@ -396,13 +409,24 @@ subroutine town2(bus, bussiz, ptsurf, ptsurfsiz, dt, kount, n, m, nk)
 
 !-----------------------------------------------------------------------------
 
+! Snow-covered roof and road surfaces relative Fractions (at current time-step)
+!       ----------------------------------------
+call snow_frac_road(xwsnow_road(:),psnow(:)>0.,xfsnow_road,xtemp)
+call snow_frac_roof(xwsnow_roof(:),psnow(:)>0.,xfsnow_roof,xtemp)
+
       do i=1,n
+!       Post-process for bus output of local town variables
+!       -------------------
+        zemtw (i)     = pemis   (i)
+        ztsradtw (i ) = ptrad   (i)
+        ! Snow depth / Height over roof and road surfaces
+        xdsnow_roof(i) = xwsnow_roof(i)/xrsnow_roof(i)
+        xdsnow_road(i) = xwsnow_road(i)/xrsnow_road(i)
+!
 !       Variables a agreger
 !       -------------------
         zz0(i) = xz0_town   (i)
 !   evaluation of the thermal roughness lenght for the diagnostic (first guess)
-!   will come from the bus later when z0 is read in geophy (not this version)
-
         zz0t(i) =  MAX( xz0_town(i)                      *          &
                 7.4 * exp( - 1.29 *(  xz0_town(i)        *          &
                 0.4 * (pu(i)**2 + pv(i) **2 )**0.5                  &
@@ -412,15 +436,15 @@ subroutine town2(bus, bussiz, ptsurf, ptsurfsiz, dt, kount, n, m, nk)
         ztsrad (i) = ptrad      (i)
         zqsurf (i) = xq_town    (i)
         zalvis (i) = pdir_alb   (i,1)
-        zsnodp (i) = xbld(i)      * (xwsnow_roof(i)/xrsnow_roof(i))  +   &
-                    (1.-xbld(i))  * (xwsnow_road(i)/xrsnow_road(i))
+        zsnodp (i) = xbld(i)      * xdsnow_roof(i)  +   &
+                    (1.-xbld(i))  * xdsnow_road(i)
+        zsnowe(i) =  xbld(i)      * xwsnow_roof(i)  +   &
+                    (1.-xbld(i))  * xwsnow_road(i)
         zfv    (i) = psftq      (i) * xlvtt
 !  runoff -- aggregated with all other surface tiles. Convert to mm
         zrunofftot(i) = xrunoff(i) * dt
         zalscatw (i)  = psca_alb   (i,1)
         zemisr (i)     = pemis   (i)
-        zemtw (i)     = pemis   (i)
-        ztsradtw (i ) = ptrad   (i)
       end do
 
 !-----------------------------------------------------------------------------
@@ -430,7 +454,8 @@ subroutine town2(bus, bussiz, ptsurf, ptsurfsiz, dt, kount, n, m, nk)
    i = sl_sfclayer(pthetaa,pqa,zvmod,zvdir,puref,pzref,ztsurf,zqsurf,  &
         zz0,zz0t,zdlat,zfcor,optz0=0,L_min=sl_Lmin_town,hghtm_diag=zu, &
         hghtt_diag=zt,ilmo=zilmo,h=zhst,ue=zfrv,flux_t=zftemp,flux_q=zfvap,  &
-        coefm=zbm,coeft=zbt,u_diag=zudiag,v_diag=zvdiag)
+        coefm=zbm,coeft=zbt,u_diag=zudiag,v_diag=zvdiag,z0m_optz0=zz0, &
+        z0t_optz0=zz0t)
 
    if (i /= SL_OK) then
       call physeterror('town', 'error returned by sl_sfclayer(number 1)')
@@ -439,7 +464,7 @@ subroutine town2(bus, bussiz, ptsurf, ptsurfsiz, dt, kount, n, m, nk)
 
       do i=1,n
          zalfat(i) = -zfc(i)/(xcpd*prhoa(i))
-         zalfaq(i) = -psftq(i)
+         zalfaq(i) = -psftq(i)/prhoa(i)
         if (.not.impflx) zbt(i) = 0.
         if (impflx) then
          zalfat(i) = zalfat(i) - zbt(i) * pthetaa(i)
@@ -534,6 +559,7 @@ subroutine town2(bus, bussiz, ptsurf, ptsurfsiz, dt, kount, n, m, nk)
       deallocate( xch               , stat=alloc_status(18) )
       deallocate( xri               , stat=alloc_status(19) )
       deallocate( xustar            , stat=alloc_status(20) )
+      deallocate( xtemp             , stat=alloc_status(21) )
 
       !--------------------------------------------------------------------
    return

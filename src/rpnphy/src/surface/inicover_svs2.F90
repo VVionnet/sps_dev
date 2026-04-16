@@ -28,6 +28,11 @@ subroutine inicover_svs2(pvars, kount, ni)
    use sfcbus_mod
    use svs_configs, only :  ntypeh, vh_type
    use phymem, only: phyvar
+   use aggcovernat_mod, only: aggcovernat
+   use aggveghigh_mod, only: aggveghigh
+   use aggveglow_mod, only: aggveglow
+   use interpveg_mod, only: interpveg
+   use veglowhigh_svs2_mod, only: veglowhigh_svs2
    implicit none
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
@@ -287,9 +292,9 @@ subroutine inicover_svs2(pvars, kount, ni)
 
    !********************************************************************
    integer(INT64), parameter :: MU_JDATE_HALFDAY = 43200 !#TODO: use value from my_jdate_mod
-   real, external :: interpveg
 
    integer :: i,k
+   integer(INT64) :: delti64
    real :: julien, juliens
 
    real, dimension(nclass) :: laidatdn, laidatds, logz0mloc
@@ -321,8 +326,9 @@ subroutine inicover_svs2(pvars, kount, ni)
          emisdat(21) = 0.950
       endif
       
-     ! Determine the current julian day
-      julien = real(jdate_day_of_year(jdateo + kount*int(delt) + MU_JDATE_HALFDAY))
+      ! Determine the current julian day
+      delti64 = int(delt)
+      julien = real(jdate_day_of_year(jdateo + kount*delti64 + MU_JDATE_HALFDAY))
 
       do i=1,nclass
          ! initialize arrays that differ for N and S hemispheres
@@ -501,11 +507,11 @@ subroutine inicover_svs2(pvars, kount, ni)
 !    Compute LOW and HIGH vegetation fractions as well as 
 !    DECIDUOUS and EVERGREEN (trees) vegetation fraction
 !
-      call veglowhigh(PTR1D(vegf), vegdatdn , vegdatds, PTR1D(vegl), &
+      call veglowhigh_svs2(PTR1D(vegf), vegdatdn , vegdatds, PTR1D(vegl), &
            PTR1D(vegh), PTR1D(deciduous), PTR1D(evergreen), PTR1D(impervu), &
            PTR1D(dlat), PTR1D(agrifrac), ni, nclass )
 
-!      call veglowhigh(PTR1D(vegf), vegdatdn , vegdatds, bogus1, &
+!      call veglowhigh_svs2(PTR1D(vegf), vegdatdn , vegdatds, bogus1, &
 !           bogus2, PTR1D(deciduous), PTR1D(evergreen), PTR1D(impervu), &
 !           PTR1D(dlat), ni, nclass )
 

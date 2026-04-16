@@ -34,6 +34,8 @@ function spsdm() result(istat)
    use drv_itf_mod, only: drv_ptopo_init,drv_ptopo_terminate,drv_config, drv_init,drv_time_info,drv_time_increment
    use phys_itf_mod, only: phys_config,phys_init,phys_input,phys_step,phys_output,phys_blocstats
    use dyn_itf_mod, only: dyn_config,dyn_init,dyn_input,dyn_step,dyn_output,dyn_blocstats,DYN_NTIMELEVELS
+   use model_usage_mod, only: model_usage_stats
+   use model_mem_usage_mod, only: model_mem_usage_stats
 !!$   use input_step_mod, only: input_step
 !!$   use output_step_mod, only: output_step
    implicit none

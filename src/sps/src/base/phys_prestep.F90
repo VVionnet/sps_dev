@@ -15,6 +15,7 @@ module phys_prestep_mod
    use wb_itf_mod
    use phy_itf
    use phymem, only: phymem_busreset, PHY_VBUSIDX
+   use mod_handle_error, only: collect_error
    implicit none
    private
    !@objective 

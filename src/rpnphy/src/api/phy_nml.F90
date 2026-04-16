@@ -2,14 +2,13 @@
 module phy_nml_mod
    use clib_itf_mod, only: clib_isreadok, clib_toupper
    use debug_mod, only: init2nan_L
+   use sfc_nml_mod, only: sfc_nml2
    use str_mod, only: str_concat, str_toreal
    use series_mod, only: series_nml
    use phy_status, only: PHY_ERROR, PHY_NONE, PHY_OK, PHY_CTRL_NML_OK, phy_init_ctrl
    use phy_options
    use cnv_options
-#ifdef HAVE_NEMO
-      use cpl_itf, only: cpl_nml
-#endif
+   use cnv_nml_mod, only: cnv_nml2
    use mixing_length, only: ML_CLOSURES
    private
    public :: phy_nml
@@ -41,7 +40,7 @@ contains
       integer, external :: chm_nml
 #endif
 
-      integer, external :: sfc_nml2, cnv_nml2, check_options2, msg_getUnit
+      integer, external :: msg_getUnit
 
       integer :: err, unout
       character(len=1024) :: msg_S
@@ -77,15 +76,6 @@ contains
       !# Read surface namelist
       err = sfc_nml2(F_namelist)
       if (.not.RMN_IS_OK(err)) return
-
-#ifdef HAVE_NEMO
-      !# Read coupling namelist and initialize coupling configuration
-      err   = cpl_nml(F_namelist, unout)
-      if (.not.RMN_IS_OK(err)) then
-         call msg(MSG_ERROR, '(phy_nml) Problem reading COUPLING namelist')
-         return
-      endif
-#endif
 
       !# Read convection namelist
       err = cnv_nml2(F_namelist)
@@ -207,6 +197,7 @@ contains
       if (priv_stropt(pbl_diss,        'pbl_diss',        PBL_DISS_OPT) == RMN_ERR) return
       if (priv_stropt(pbl_dissheat,    'pbl_dissheat',    PBL_DISSHEAT_OPT) == RMN_ERR) return
       if (priv_stropt(pbl_conserve,    'pbl_conserve',    PBL_CONSERVE_OPT) == RMN_ERR) return
+      if (priv_stropt(pbl_fnn,         'pbl_fnn',         PBL_FNN_OPT) == RMN_ERR) return
       if (priv_stropt(pbl_func_stab,   'pbl_func_stab',   PBL_FUNC_STAB_OPT) == RMN_ERR) return
       if (priv_stropt(pbl_func_unstab, 'pbl_func_unstab', PBL_FUNC_UNSTAB_OPT) == RMN_ERR) return
       if (priv_stropt(pbl_mlblac_max,  'pbl_mlblac_max',  PBL_MLBLAC_MAX_OPT) == RMN_ERR) return
@@ -221,13 +212,17 @@ contains
       if (priv_stropt(rad_part_nomp,   'rad_part_nomp',   RAD_PART_NOMP_OPT) == RMN_ERR) return
       if (priv_stropt(rad_cond_rei,    'rad_cond_rei',    RAD_COND_REI_OPT, rei_const) == RMN_ERR) return
       if (priv_stropt(rad_cond_rew,    'rad_cond_rew',    RAD_COND_REW_OPT, rew_const) == RMN_ERR) return
+      if (priv_stropt(rad_exp_rei,     'rad_exp_rei',     RAD_EXP_REI_OPT, reix_const) == RMN_ERR) return
+      if (priv_stropt(rad_exp_rew,     'rad_exp_rew',     RAD_EXP_REW_OPT, rewx_const) == RMN_ERR) return
       if (priv_stropt(rad_conserve,    'rad_conserve',    RAD_CONSERVE_OPT) == RMN_ERR) return
+      if (priv_stropt(rad_mpagg,       'rad_mpagg',       RAD_MPAGG_OPT) == RMN_ERR) return
       if (priv_stropt(linoz_chm,       'linoz_chm',       LINOZ_CHM_OPT) == RMN_ERR) return
       if (priv_stropt(iuv_method,      'iuv_method',      IUV_METHOD_OPT) == RMN_ERR) return
       if (priv_stropt(radia,           'radia',           RADIA_OPT) == RMN_ERR) return
       if (priv_stropt(stcond,          'stcond',          STCOND_OPT) == RMN_ERR) return
       if (priv_stropt(tofd,            'tofd',            TOFD_OPT) == RMN_ERR) return
       if (priv_stropt(lhn,             'lhn',             LHN_OPT) == RMN_ERR) return
+      if (priv_stropt(p3_autoAccr,     'p3_autoAccr',     P3_AUTOACCR_OPT) == RMN_ERR) return
       istat = clib_toupper(lhn_start_S)
       istat = clib_toupper(lhn_stop_S)
       istat = clib_toupper(lhn_ramp_S)

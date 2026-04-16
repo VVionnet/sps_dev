@@ -15,12 +15,20 @@
 !-------------------------------------- LICENCE END ---------------------------
 
 !/@*
+module sfc_nml_mod
+  implicit none
+  public
+contains
+  
 function sfc_nml2(F_namelist) result(F_istat)
    use clib_itf_mod, only: clib_toupper, clib_isreadok
    use wb_itf_mod
    use str_mod, only: str_concat, str_toreal
    use sfc_options
    use sfcbus_mod
+#ifdef HAVE_NEMO
+   use cpl_itf, only: cpl_nml
+#endif
    use sfclayer, only: sl_put, SL_OK
    implicit none
 !!!#include <arch_specific.hf>
@@ -39,6 +47,7 @@ function sfc_nml2(F_namelist) result(F_istat)
 
    integer, parameter :: SFC_NML_ERR = RMN_ERR
    integer, parameter :: SFC_NML_OK  = RMN_OK + 1
+   integer, parameter :: CPL_NML_OK  = 1
 
    integer :: err, unout
    !-------------------------------------------------------------------
@@ -55,6 +64,19 @@ function sfc_nml2(F_namelist) result(F_istat)
    if (.not.RMN_IS_OK(err)) return
 
    unout = msg_getUnit(MSG_INFO)
+#ifdef HAVE_NEMO
+   err   = cpl_nml(F_namelist, unout)
+#else
+   err   = 0
+#endif
+   if (.not.RMN_IS_OK(err)) then
+      call msg(MSG_ERROR,'(sfc_nml) Probleme in cpl_nml')
+      return
+   endif
+   cplocn = (err ==  CPL_NML_OK)
+#ifdef HAVE_NEMO
+   if (cplocn) err = cpl_nml('print', unout)
+#endif
 
    F_istat = SFC_NML_OK
    !-------------------------------------------------------------------
@@ -123,7 +145,8 @@ contains
 
 
    function sfc_nml_check() result(m_istat)
-      use sfc_options, only : nl_svs_default, dp_svs_default
+      use sfc_options, only : nl_svs_default, dp_svs_default, &
+                       nb_teb_snowpar, teb_snroof_default, teb_snroad_default
       use svs_configs, only : nl_svs,dl_svs,ntypel,ntypeh,vl_type,vh_type
       use mode_crodebug
       implicit none
@@ -149,6 +172,7 @@ contains
       istat = clib_toupper(soil_cond)
       istat = clib_toupper(soil_ksat_ice)
       istat = clib_toupper(svs_hrsurf_method)
+      istat = clib_toupper(isba_hrsurf_method)
       istat = clib_toupper(svs_snow_rain)
       istat = clib_toupper(vf_type)
       istat = clib_toupper(water_emiss)
@@ -179,6 +203,12 @@ contains
       if (.not.any(schmriver == SCHMRIVER_OPT)) then
          call str_concat(msg_S, SCHMRIVER_OPT,', ')
          call msg(MSG_ERROR,'(sfc_nml_check) schmriver = '//trim(schmriver)//' : Should be one of: '//trim(msg_S))
+         return
+      endif
+
+      if (.not.any(sfc_poids == SFC_POIDS_OPT)) then
+         call str_concat(msg_S, SFC_POIDS_OPT,', ')
+         call msg(MSG_ERROR,'(sfc_nml_check) sfc_poids = '//trim(sfc_poids)//' : Should be one of: '//trim(msg_S))
          return
       endif
 
@@ -251,7 +281,28 @@ contains
          call msg(MSG_ERROR,'(sfc_nml_check) sl_z0ref must be .TRUE. for any class of stability functions (sl_func_unstab) other than DELAGE92')
          return
       endif
- 
+
+      if (sl_re2 > 0.) then
+         if (tdiaglim) then
+            call msg(MSG_ERROR,'(sfc_nml_check) tdiaglim must be .FALSE. if sl_re2 is used (>0).')
+            return
+         endif
+         if (sl_diag_type /= 'INTERP') then
+            call msg(MSG_ERROR,'(sfc_nml_check) sl_diag_type must be INTERP if sl_re2 is used (>0).')
+            return
+         endif
+         if (sl_ximax <= 0.) then
+            call msg(MSG_ERROR,'(sfc_nml_check) sl_ximax must be >0 if sl_re2 is used (>0).')
+            return
+         endif
+      endif
+
+      if (sl_ximax > 0. .and. (sl_Lmin_glacier > 0. .or. sl_Lmin_seaice > 0. .or. sl_Lmin_soil > 0. &
+           .or. sl_Lmin_water > 0. .or. sl_Lmin_town > 0.)) then
+         call msg(MSG_ERROR,'(sfc_nml_check) no sl_Lmin* limits should be set if sl_ximax is used (>0).')
+         return
+      endif
+         
       if (.not.RMN_IS_OK(str_toreal(ice_emiss_const,ice_emiss))) then
          call msg(MSG_ERROR,'(sfc_nml_check) ice_emiss = '//trim(ice_emiss)//' : Should be a floating point number between 0 and 1')
          return
@@ -361,16 +412,17 @@ contains
          !Check if macropores are activated only if soil freezing is activated
          !If soil freezing is activated, make sure that the soil thermal conductivity is either the model from PL1998 or TIAN2016
          !If soil freezing is activated, make sure that the soil-snow heat flux is set to either DST_HD, DST_FD, DST_MAXD (default) or ST_D_DD
+         !If soil freezing is activated, make sure that the option for setting the skin conductivity/resistance for bare-ground is set to either RTH_GRND or LAM_BOU2021
          !If soil freezing is activated, make sure that the dbtm option is set to either MID (default), DEEP ort NOFL
-         if (.not.lsoil_freezing_svs1) then
-            if (lmacropores_svs1) then
-                call msg(MSG_ERROR, '(sfc_nml_check) lmacropores_svs1 should be set to TRUE only when lsoil_freezing_svs1 is set to TRUE')
-                return
-            endif
-        else
+         if (lsoil_freezing_svs1) then
             if (.not.any(soil_cond == SOIL_COND_OPT)) then
                 call str_concat(msg_S, SOIL_COND_OPT,', ')
                 call msg(MSG_ERROR,'(sfc_nml_check) soil_cond = '//trim(soil_cond)//' : Should be one of: '//trim(msg_S))
+                return
+            endif
+            if (.not.any(soilgrndhf_svs1 == SOILGRNDHF_SVS1_OPT)) then
+                call str_concat(msg_S, SOILGRNDHF_SVS1_OPT,', ')
+                call msg(MSG_ERROR,'(sfc_nml_check) soilgrndhf_svs1 = '//trim(soilgrndhf_svs1)//' : Should be one of: '//trim(msg_S))
                 return
             endif
             if (.not.any(soilsnowhf_svs1 == SOILSNOWHF_SVS1_OPT)) then
@@ -383,9 +435,15 @@ contains
                 call msg(MSG_ERROR,'(sfc_nml_check) soildbtm_svs1 = '//trim(soildbtm_svs1)//' : Should be one of: '//trim(msg_S))
                 return
             endif
-            if (lmacropores_svs1) then
+            if (lmacropores_svs) then
                 if (mp_alpha < 0 .or. mp_alpha > 1) then
                     call msg(MSG_ERROR, '(sfc_nml_check) mp_alpha must be within the 0 and 1 interval')
+                    return
+                endif
+            endif
+            if (lphase_change_eff_svs1) then
+                if (chi_min < 0 .or. chi_min > 1) then
+                    call msg(MSG_ERROR, '(sfc_nml_check) chi_min must be within the 0 and 1 interval')
                     return
                 endif
             endif
@@ -435,6 +493,21 @@ contains
             return
          endif
          
+         if (.not.any(svs_snowalb == SVS_SNOWALB_OPT)) then
+            call str_concat(msg_S, SVS_SNOWALB_OPT, ', ')
+            call msg(MSG_ERROR, '(sfc_nml_check) svs_snowalb = '//trim(svs_snowalb)//&
+                 ' : Should be one of: '//trim(msg_S))
+            return
+         endif  
+
+         if (.not.any(svs_snowfrac_ground == SVS_SNOWFRAC_GROUND_OPT)) then
+            call str_concat(msg_S, SVS_SNOWFRAC_GROUND_OPT, ', ')
+            call msg(MSG_ERROR, '(sfc_nml_check) svs_snowfrac_ground = '//trim(svs_snowfrac_ground)//&
+                 ' : Should be one of: '//trim(msg_S))
+            return
+         endif  
+
+         
          if (.not.any(soiltext == SOILTEXT_OPT)) then
             call str_concat(msg_S, SOILTEXT_OPT, ', ')
             call msg(MSG_ERROR, '(sfc_nml_check) soiltext = '//trim(soiltext)//&
@@ -455,6 +528,13 @@ contains
                  ' : Should be one of: '//trim(msg_S))
             return
          endif
+
+          if (.not.any(isba_hrsurf_method == ISBA_HRSURF_METHOD_OPT)) then
+            call str_concat(msg_S, ISBA_HRSURF_METHOD_OPT, ', ')
+            call msg(MSG_ERROR, '(sfc_nml_check) isba_hrsurf_method = '//trim(svs_hrsurf_method)//&
+                 ' : Should be one of: '//trim(msg_S))
+            return
+         endif        
          
          if (.not.any(vf_type == VFTYPE_OPT)) then
             call str_concat(msg_S, VFTYPE_OPT,', ')
@@ -566,6 +646,12 @@ contains
                return
             endif
             
+            if (read_oc .and. .not. (soiltext=='SOILGRIDSV2' .or. soiltext=='GSDE') ) then
+               call str_concat(msg_S, SOILTEXT_OPT, ', ')
+               call msg(MSG_ERROR, '(sfc_nml_check) read_ocshould be used with SOILGRIDSV2')
+               return
+            endif
+
          endif
 
 
@@ -703,6 +789,39 @@ contains
 
       endif IF_SVS
 
+
+      ! ------ CHECK TEB OPTIONS --------------
+      IF_TEB: if (schmurb == 'TEB' ) then
+
+         if (.not.any(teb_snow == TEB_SNOW_OPT)) then
+               call str_concat(msg_S, TEB_SNOW_OPT, ', ')
+               call msg(MSG_ERROR, '(sfc_nml_check) teb_snow = '//trim(teb_snow)//&
+                    ' : Should be one of: '//trim(msg_S))
+               return
+            endif
+
+         if (teb_snow == 'CUSTOM') then
+            do k=1, nb_teb_snowpar
+             if (teb_snroof(k) == -1) then
+                 call msg(MSG_INFO,'(sfc_nml_check) TEB snow parameters over ROOF teb_snroof'//&
+                 ' NOT SPECIFIED by user, will use DEFAULT VALUE')
+                  teb_snroof = TEB_SNROOF_DEFAULT
+                  EXIT
+             endif
+            enddo
+            do k=1, nb_teb_snowpar
+              if (teb_snroad(k) == -1) then
+                 call msg(MSG_INFO,'(sfc_nml_check) TEB snow parameters over ROAD teb_snroad'//&
+                 ' NOT SPECIFIED by user, will use DEFAULT VALUE')
+                  teb_snroad = TEB_SNROAD_DEFAULT
+                  EXIT
+               endif
+            enddo
+         endif
+
+      endif IF_TEB
+
+
       ! check that use crodebug only with SV2
       ! read in environement variables here if ok to avoid looping on TRNCH
       if( svs2_crodebug ) then
@@ -765,7 +884,10 @@ contains
 
       !# Surface Layer module init
       istat = SL_OK
+      if (istat == SL_OK) istat = sl_put('afd', sl_afd)
       if (istat == SL_OK) istat = sl_put('beta', beta)
+      if (istat == SL_OK) istat = sl_put('ximax',sl_ximax)
+      if (istat == SL_OK) istat = sl_put('re2', sl_re2)
       if (istat == SL_OK) istat = sl_put('rineutral',sl_rineutral)
       if (istat == SL_OK) istat = sl_put('tdiaglim',tdiaglim)
       if (istat == SL_OK) istat = sl_put('tdlrate',tdlrate)
@@ -794,4 +916,5 @@ contains
       return
    end function sfc_nml_post_init
 
-end function sfc_nml2
+ end function sfc_nml2
+end module sfc_nml_mod

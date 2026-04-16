@@ -2,6 +2,7 @@
 module phy_step_mod
    use wb_itf_mod, only: WB_OK, WB_IS_OK, wb_get
    use clib_itf_mod, only: clib_toupper
+   use sfc_get_input_param_mod, only: sfc_get_input_param
    use str_mod, only: str_concat
    use series_mod, only: series_stepinit, series_stepend
    use phy_status, only: phy_error_L, phy_init_ctrl, PHY_CTRL_INI_OK, PHY_NONE
@@ -9,7 +10,10 @@ module phy_step_mod
    use phygridmap, only: phydim_ni, phydim_nj, phydim_nk
    use physlb, only: physlb1
    use phymem, only: phymem_find_idxv, phymem_getmeta, phymeta
-
+   use phystats, only: phystats1
+   use phyput_input_param_mod, only: phyput_input_param
+   use timing_omp
+   
 #ifdef HAVE_NEMO
    use cpl_itf   , only: cpl_step
 #endif
@@ -40,8 +44,6 @@ contains
     !*@/
 
     include "physteps.cdk"
-
-    integer, external :: phyput_input_param, sfc_get_input_param
 
     integer, save :: pslic
     logical, save :: do_phyoutlist_L = .true.
@@ -135,9 +137,9 @@ contains
 
     if (phy_error_L) return
 
-    call timing_start2(460, 'phystats', 46)
-    call phystats(F_stepcount, delt)
-    call timing_stop(460)
+    call timing_start1(460, 'phystats', 46)
+    call phystats1(F_stepcount, delt)
+    call timing_stop1(460)
     if (phy_error_L) return
 
     F_istat = RMN_OK

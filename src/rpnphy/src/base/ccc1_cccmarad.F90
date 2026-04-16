@@ -13,7 +13,7 @@ contains
         trnch, ni, nkm1, nk, &
         liqwcin, icewcin, liqwpin, icewpin, cldfrac)
       use iso_c_binding
-      use, intrinsic :: iso_fortran_env, only: REAL64
+      use, intrinsic :: iso_fortran_env, only: INT64, REAL64
       use debug_mod, only: init2nan
       use mu_jdate_mod, only: jdate_day_of_year, mu_js2ymdhms
       use tdpack_const, only: CAPPA, CONSOL, GRAV, PI, STEFAN
@@ -24,11 +24,14 @@ contains
       use sfclayer, only: sl_prelim, sl_sfclayer, SL_OK
       use series_mod, only: series_xst, series_isstep
       use phy_options
-      use phy_status, only: phy_error_L
+      use phy_status, only: phy_error_L, physeterror
       use phybusidx, except=>znt
       use phymem, only: phyvar
       use ens_perturb, only: ens_spp_get
       use suncos, only: suncos3
+      use radfac_mod, only: radfac4
+      use ccc1_raddriv_mod, only: ccc1_raddriv3
+      use ccc_aerooppro_mod, only: ccc_aerooppro2
       implicit none
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
@@ -118,7 +121,7 @@ contains
       real,dimension(ni,nkm1,nbs) :: exta,exoma,exomga,fa,taucs,omcs,gcs
       real,dimension(ni,nkm1,nbl) :: absa,taucl,omcl,gcl
 
-      integer(INT64) :: ncsec_deb, ncsec_now, timestep, csec_in_day, day_reminder
+      integer(INT64) :: ncsec_deb, ncsec_now, timestep, csec_in_day, day_reminder, taui64
       real(REAL64) :: hz_8
       real :: hz, hzp, ptopoz, alwcap, fwcap, albrmu, ws
       integer :: i, k, l, iuv, yy, mo, dd, hh, mn, ss
@@ -203,7 +206,8 @@ contains
 
       ! calculate the variation of solar constant
 
-      julien = real(jdate_day_of_year(jdateo + kount*int(tau) + MU_JDATE_HALFDAY))
+      taui64 = int(tau)
+      julien = real(jdate_day_of_year(jdateo + kount*taui64 + MU_JDATE_HALFDAY))
       alf = julien / 365. * 2 * PI
       r0r = solcons(alf)
 

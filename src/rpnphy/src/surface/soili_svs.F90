@@ -13,6 +13,10 @@
 !if not, you can write to: EC-RPN COMM Group, 2121 TransCanada, suite 500, Dorval (Quebec),
 !CANADA, H9P 1J3; or send e-mail to service.rpn@ec.gc.ca
 !-------------------------------------- LICENCE END --------------------------------------
+module soili_svs_mod
+  implicit none
+  public
+contains
       SUBROUTINE SOILI_SVS (WD, &
            WF, SNM, SVM, RHOS, RHOSV, & 
            VEGH, VEGL, &  
@@ -26,11 +30,11 @@
            WTA, CG, PSNGRVL,  & 
            Z0H, ALGR, EMGR, PSNVH, PSNVHA,   &
            ALVA, LAIVA, CVPA, EVA, Z0HA, Z0MVG, RGLA, STOMRA ,&  
-           GAMVA, SOILHCAPZ, SOILCONDZ, N )
+           GAMVA, SOILHCAPZ, SOILCONDZ, SIG_TOPO, N )
          !
         use tdpack_const, only: PI
         use svs_configs
-        use sfc_options, only: read_emis, svs_urban_params, soil_cond
+        use sfc_options, only: read_emis, svs_urban_params, soil_cond, svs_snowfrac_ground, svs_cg_depth, svs_cg_ice
      implicit none
 !!!#include <arch_specific.hf>
 
@@ -40,11 +44,11 @@
 
       REAL SNM(N), RHOS(N)
       REAL RHOSV(N), Z0MVH(N), VEGH(N), VEGL(N), SVM(N)
-      REAL CGSAT(N), WSAT(N,NL_SVS), WWILT(N,NL_SVS), BCOEF(N,NL_SVS)
+      REAL CGSAT(N,NL_SVS), WSAT(N,NL_SVS), WWILT(N,NL_SVS), BCOEF(N,NL_SVS)
       REAL Z0(N)
       REAL CG(N), WTA(N,svs_tilesp1)
       REAL PSNGRVL(N)
-      REAL Z0H(N), ALGR(N), CLAY(N), SAND(N)
+      REAL Z0H(N), ALGR(N), CLAY(N), SAND(N), SIG_TOPO(N)
       REAL DECI(N), EVER(N), LAID(N)
       REAL EMGR(N), PSNVH(N), PSNVHA(N),  LAIVH(N)
       REAL ALVA(N), LAIVA(N), CVPA(N), EVA(N)
@@ -88,6 +92,7 @@
 !          orography)
 ! Z0MVL    Local roughness associated with LOW vegetation only (no
 !          orography)
+! SIG_TOPO Standard deviation of subgrid topo [m]
 ! CV       heat capacity of the vegetation
 ! CVH      heat capacity of HIGH vegetation
 ! CVL      heat capacity of LOW  vegetation
@@ -144,9 +149,12 @@ include "isbapar.cdk"
       REAL LOG_CONDI, LOG_CONDW, XF, XU, WORK1, WORK2, WORK3, CONDSAT
       REAL LAM_ZERO, k_min, k_air, k_ice 
       REAL SATDEG, KERSTEN
+      REAL C_ICE
 !
       real, dimension(n) :: a, b, cnoleaf, cva, laivp, lams, lamsv, &
-           zcs, zcsv, z0_snow_low
+           zcs, zcsv, z0_snow_low, sd_opn, sd_for
+
+      real, dimension(n,nl_svs) :: cgk
 
       REAL :: CVAMIN = 1.0E-5
 
@@ -171,11 +179,43 @@ include "isbapar.cdk"
 !                          result in great temperature variations
 !                          (for drier soils).
 !
-      DO I=1,N
-        CG(I) = CGSAT(I) * ( WSAT(I,1)/ MAX(WD(I,1)+WF(I,1),0.001))** &
-                      ( 0.5*BCOEF(I,1)/LOG(10.) )
-        CG(I) = MIN( CG(I), 2.0E-5 )      
 !
+      IF (svs_cg_ice .EQ. 'BELAIR2003') THEN
+        DO I=1,N
+          DO K=1,NL_SVS
+            CGK(I,K) = CGSAT(I,K) * ( WSAT(I,K)/ MAX(WD(I,K)+WF(I,K),0.001))** &
+                    ( 0.5*BCOEF(I,K)/LOG(10.) )
+            CGK(I,K) = MIN( CGK(I,K), 2.0E-5 )
+          END DO
+        END DO
+      ELSE IF (svs_cg_ice .EQ. 'BOONE2000') THEN
+        ! Boone et al. (2000), eq. B3
+        C_ICE = 2 * (PI / (LAMI*CICE*RHOI*DAY))**0.5
+        DO I=1,N
+          DO K=1,NL_SVS
+            ! Boone et al. (2000), eq. B2
+            CGK(I,K) = CGSAT(I,K) * ((WSAT(I,K)-WF(I,K)) / MAX(WD(I,K),0.001))** &
+                    ( 0.5*BCOEF(I,K)/LOG(10.) )
+            CGK(I,K) = MIN( CGK(I,K), 2.0E-5 )
+            CGK(I,K) = (1-WF(I,K)) * CGK(I,K) + WF(I,K) * C_ICE
+          END DO
+        END DO
+      ELSE
+         ! Unknown option for svs_cg_ice
+         STOP
+      END IF
+!
+!     Average value of Cg computed using weights for each layer
+!     that decrease exponentially with a constant characteristic length
+!     defined by option svs_cg_depth. Weights are constant
+!     and computed in svs_configs.
+      DO I=1,n
+        CG(I) = CGK(I,1)
+        IF (svs_cg_depth.GT.0.) THEN
+          DO K=2,NL_SVS
+            CG(I) = CG(I)*(1.-WEIGHT_CG(K)) + CGK(I,K)*WEIGHT_CG(K)
+          END DO
+        END IF
       END DO
 !
 !
@@ -211,32 +251,86 @@ include "isbapar.cdk"
 !                        average snow cover fraction of bare ground and low veg
          IF(SNM(I).GE.CRITSNOWMASS ) THEN
 
-            ! use z0=0.03m for bare ground, 0.1m for low veg
-             z0_snow_low(i) = exp (  (  (1-VEGH(I) -VEGL(I)) * log( 0.03) &
+
+             IF(SVS_SNOWFRAC_GROUND=='NIL') THEN   
+               ! use z0=0.03m for bare ground, 0.1m for low veg
+               z0_snow_low(i) = exp (  (  (1-VEGH(I) -VEGL(I)) * log( 0.03) &
                                   +  VEGL(I) * log(0.1) ) / ( 1 - VEGH(I) ) )
              
 
-             PSNGRVL(I) = MIN( SNM(I) / (SNM(I) + RHOS(I)* 5000.* z0_snow_low(i) ) , 1.0)
+               PSNGRVL(I) = MIN( SNM(I) / (SNM(I) + RHOS(I)* 5000.* z0_snow_low(i) ) , 1.0)
+
+             ELSE IF(SVS_SNOWFRAC_GROUND=='LA23') THEN 
+
+               ! Snow depth in open terrain [m]      
+               SD_OPN(I) = SNM(I) / (RHOS(I)*1000.)
+
+               ! Roughness parameter accounting for the fraction of low veg. 
+               Z0_SNOW_LOW(I) = EXP (  (  (1-VEGH(I) -VEGL(I)) * LOG(Z0BG_LA23) &
+                                  +  VEGL(I) * LOG(Z0LV_LA23)) / ( 1 - VEGH(I) ) )
+
+               ! Snow cover fraction accounting for sugbrid topography as in Lalande et al. (2023)
+               PSNGRVL(I) = MIN(1.0, TANH(SD_OPN(I)/                                          &
+                          (2.5 * Z0_SNOW_LOW(I)  * (RHOS(I)*1000./RHON_LA23)**MFAC_LA23)      & 
+                            +  BETA_LA23 * SIG_TOPO(I) * (RHOS(I)*1000./RHON_LA23)**NFAC_LA23)) 
+
+             ELSE IF(SVS_SNOWFRAC_GROUND=='AR25') THEN
+
+               ! Snow depth in open terrain [m]  
+               SD_OPN(I) = SNM(I) / (RHOS(I)*1000.)
+
+               ! Snow cover fraction optimized for a resolution of 2.5 km taken from Abolafia-Rosenzweig et al. (2025)
+               PSNGRVL(I) = MIN(1.0, TANH(SD_OPN(I)/( SCF_AR25  * (RHOS(I)*1000./RHON_AR25)**MFAC_AR25)))
+
+             ENDIF               
 
          ELSE
 
-            PSNGRVL(I) = 0.0
+             PSNGRVL(I) = 0.0
            
          ENDIF
             
        
 
-
          IF(SVM(I).GE.CRITSNOWMASS ) THEN
 !
 !                       SNOW FRACTION AS SEEN FROM THE GROUND
 !
+            IF(SVS_SNOWFRAC_GROUND=='NIL') THEN   
 
-            PSNVH(I)  =  MIN( SVM(I) / (SVM(I)+ RHOSV(I)*5000.*0.1 ), 1.0)
+               ! Snow cover fraction seen from the ground for snow below high vegetation [-]
+               PSNVH(I)  =  MIN( SVM(I) / (SVM(I)+ RHOSV(I)*5000.*0.1 ), 1.0)
+
+            ELSE IF(SVS_SNOWFRAC_GROUND=='LA23') THEN 
+
+               ! Snow depth below high vegetation [m]                   
+               SD_FOR(I) = SVM(I) / (RHOSV(I)*1000.) 
+
+               ! Snow cover fraction seen from the ground for snow below high vegetation [-]
+               ! Effect of subgrid topo are not taken into account in the forest
+               PSNVH(I) = MIN(1.0, TANH(SD_FOR(I)/(2.5 * Z0HV_LA23  * (RHOSV(I)*1000./RHON_LA23)**MFAC_LA23)))
+
+             ELSE IF(SVS_SNOWFRAC_GROUND=='AR25') THEN 
+
+               ! Snow depth below high vegetation [m]   
+               SD_FOR(I) = SVM(I) / (RHOSV(I)*1000.) 
+
+               ! Snow cover fraction seen from the ground for snow below high vegetation [-]
+               PSNVH(I) = MIN(1.0, TANH(SD_FOR(I)/( SCF_AR25  * (RHOSV(I)*1000./RHON_AR25)**MFAC_AR25)))
+               
+            ENDIF
+
 !                       SNOW FRACTION AS SEEN FROM THE SPACE
 !                       NEED TO ACCOUNT FOR SHIELDING OF LEAVES/TREES
 !
-            PSNVHA(I) = (EVER(I) * 0.2 + DECI(I) * MAX(LAI0 - LAID(I), 0.2)) * PSNVH(I)
+            IF(SVS_SNOWFRAC_GROUND=='NIL') THEN
+               ! Original formulation used in SVS     
+               PSNVHA(I) = (EVER(I) * 0.2 + DECI(I) * MAX(LAI0 - LAID(I), 0.2)) * PSNVH(I)
+
+            ELSE IF(SVS_SNOWFRAC_GROUND=='LA23' .OR. SVS_SNOWFRAC_GROUND=='AR25') THEN 
+               ! Revised formulation to be compatible with LA23 and AR25     
+               PSNVHA(I) = (EVER(I) * 0.15 + DECI(I) * MAX(0.8 - LAID(I), 0.15)) * PSNVH(I)
+            ENDIF
 
          ELSE
             PSNVH(I)  = 0.0
@@ -572,4 +666,5 @@ include "isbapar.cdk"
        END DO
 
       RETURN
-      END
+    END SUBROUTINE SOILI_SVS
+  end module soili_svs_mod

@@ -25,7 +25,12 @@ contains
       use phybusidx, except=>znt
       use phymem, only: phyvar
       use phybudget, only: pb_compute, pb_residual
-      use phy_status, only: PHY_OK
+      use phy_status, only: PHY_OK, physeterror
+      use timing_omp
+      use vinterp_mod, only: vte_intvertx3, VINTERP_DIAG_CUBIC
+      use lightning_mod, only: lightning2
+      use refractivity_mod, only: refractivity2
+      use bourge_mod, only: bourge2, bourge1_3d
       implicit none
 !!!#include <arch_specific.hf>
       !@Arguments
@@ -49,6 +54,7 @@ contains
 
       include "surface.cdk"
       include "physteps.cdk"
+      include "phyinput.inc"
 
       real, parameter :: EC_Z0M_GRASS=0.03             !Threshold "flat grass" roughness for ECMWF diagnostics
       real, parameter :: EC_Z0T_GRASS=0.003            !Grass thermodynamic roughness for ECMWF diagnostics
@@ -56,7 +62,7 @@ contains
       real, parameter :: EC_Z_ROUGH=40.                !Fixed height for ECMWF diagnostics in rough terrain
       real, parameter :: EC_MIN_LAND=0.1               !Minimum land fraction for soil-only ECMWF diagnostics
       real, parameter :: WGTMIN=1.e-3                  !Minimum weight for a surface type
-      character(len=*), parameter :: EC_INTERP='cubic' !Type of vertical interpolation for ECMWF diagnostics
+      character(len=*), parameter :: EC_INTERP = VINTERP_DIAG_CUBIC  !Type of vertical interpolation for ECMWF diagnostics
       character(len=4), parameter :: REFRACVAR(12) = (/ &
               'DCBH', 'DCNB', 'DCLL', 'DC1M', 'DC1I', 'DCMR', &
               'DC2M', 'DC2I', 'DCST', 'DCTH', 'DC3M', 'DC3I' &
@@ -64,7 +70,7 @@ contains
       
       logical :: lmoyhr, laccum, lreset, lavg, lkount0, lacchr, is_mp, is_consun, &
            is_pcptype_nil, is_pcptype_sps, is_pcptype_b3d, is_fluvert_nil, is_fluvert_sfc, is_hrl, is_hrli
-      integer :: i, k, moyhr_steps, istat, istat1, nkm1, ik
+      integer :: i, k, istat, istat1, nkm1, ik
       real :: moyhri, tempo, tempo2, sol_stra, sol_conv, liq_stra, liq_conv, sol_mid, liq_mid
       real :: w1, w2, w_p3v5, w_my2, w_reset
       real, dimension(ni) :: uvs, vmod, vdir, th_air, hblendm, ublend, &
@@ -94,7 +100,7 @@ contains
 
       zero2d = 0.
       w_p3v5 = 0.
-      if (stcond == 'MP_P3') w_p3v5 = 1.
+      if (stcond == 'MP_P3' .or. stcond == 'MP_P3X') w_p3v5 = 1.
       w_my2 = 0.
       if (stcond(1:6) == 'MP_MY2') w_my2 = 1.
       is_mp = (stcond(1:3) == 'MP_')
@@ -106,11 +112,11 @@ contains
       is_fluvert_sfc = (fluvert == 'SURFACE')
       
       lkount0 = (kount == 0)
-      lmoyhr = (moyhr > 0)
+      lmoyhr = (moyhrsteps > 0)
       lacchr = .false.
-      if (acchr > 0) then
-         lacchr = (mod(step_driver-1, acchr) == 0)
-      elseif (acchr == 0) then
+      if (acchrsteps > 0) then
+         lacchr = (mod(step_driver-1, acchrsteps) == 0)
+      elseif (acchrsteps == 0) then
          lacchr = (step_driver-1 == 0)
       endif
       laccum = (lmoyhr .or. dynout)
@@ -118,13 +124,15 @@ contains
       lavg   = .false.
       moyhri = 1.
       if (lmoyhr) then
-         lreset = (mod((step_driver-1),moyhr) == 0)
-         lavg   = (mod(step_driver,moyhr) == 0)
+         lreset = (mod((step_driver-1),moyhrsteps) == 0)
+         lavg   = (mod(step_driver,moyhrsteps) == 0)
          !# Compute the averaging interval (inverse), with all available data
          !  averaged when moving through driver step = 0
-         moyhr_steps = moyhr
-         if (step_driver == 0 .and. .not.lkount0) moyhr_steps = min(moyhr,kount)
-         if (lavg) moyhri = 1./float(moyhr_steps)
+         if (lavg) then
+            moyhri = 1./float(moyhrsteps)
+            if (step_driver == 0 .and. .not.lkount0) &
+                  moyhri = 1./float(min(moyhrsteps,kount))
+          endif
       endif
 
       !# Final PBL height
@@ -175,34 +183,36 @@ contains
       !     ---------------------------
 
       ! Derived screen-level fields
-      if (.not.(lkount0 .and. .not.is_fluvert_nil) .or. is_fluvert_sfc) then
+!!$      if (.not.(lkount0 .and. .not.is_fluvert_nil) .or. is_fluvert_sfc) then
 
          ! Clip the screen level relative humidity to a range from 0-1
          if (ISREQSTEP("RH") .or. ISREQOUTL((/"HRMX","HRMN"/))) then
-            call mfohr4(zrhdiag, zqdiag, ztdiag, zpplus, ni, 1, ni ,satuco)
+            if (.not.ISPHYIN("rhdiag")) &
+                 call mfohr4(zrhdiag, zqdiag, ztdiag, zpplus, ni, 1, ni ,satuco)
             zrhdiag(1:ni) = max(min(zrhdiag(1:ni), 1.0), 0.)
          endif
 
          ! Screen level dewpoint depression
-         if (ISREQSTEP("TDK")) then
+         if (ISREQSTEP("TDK") .and. .not.ISPHYIN("tdew")) then
             call mhuaes3(esdiagec, zqdiag, ztdiag, zpplus, .false., ni, 1, ni)
             ztdew(1:ni) = ztdiag(1:ni) - max(esdiagec(1:ni),0.)
          endif
 
-         if (ISREQSTEP("TDS")) then
+         if (ISREQSTEP("TDS") .and. .not.ISPHYIN("tddiagstn")) then
             call mhuaes3(esdiagec, zqdiagstn, ztdiagstn, zpplus, .false., ni, 1, ni)
             ztddiagstn(1:ni) = ztdiagstn(1:ni) - max(esdiagec(1:ni),0.)
          endif
 
          if (ISREQSTEPL((/"ED  ","TDSV"/))) then
-            call mhuaes3(zesdiag, zqdiagstnv, ztdiagstnv, zpplus, .false., ni, 1, ni)
+            if (.not.ISPHYIN("esdiag")) &
+                 call mhuaes3(zesdiag, zqdiagstnv, ztdiagstnv, zpplus, .false., ni, 1, ni)
             zesdiag(1:ni) = max(zesdiag(1:ni),0.)
 
-            if (ISREQSTEP("TDSV")) &
+            if (ISREQSTEP("TDSV") .and. .not.ISPHYIN("tddiagstnv")) &
                  ztddiagstnv(1:ni) = ztdiagstnv(1:ni) - zesdiag(1:ni)         
          endif
 
-      endif
+!!$      endif
 
       ! ECMWF screen-level calculations performed on request
       ECMWF_SCREEN: if (ecdiag) then
@@ -266,6 +276,8 @@ contains
          ztddiagtyp2 = 0.
          zudiagtyp2  = 0.
          zvdiagtyp2  = 0.
+         zribf       = 0.
+         zribr       = 0.
 
          DO_ISFC: do ik = 1,nagrege
             if (ik == indx_agrege) cycle
@@ -277,6 +289,7 @@ contains
             if (sl_sfclayer(th_air, zhuplus(:,nkm1), vmod, vdir, zgzmom(:,nkm1), zgztherm(:,nkm1),  &
                  ztsurf2(:,ik), zqsurf2(:,ik), zz02(:,ik), z0t2eps, &
                  zdlat, zfcor, hghtt_diag=zt, hghtm_diag=zu, &
+                 rib=zribf(:,ik), ribr=zribr(:,ik), &
                  t_diag=ztdiagtyp2(:,ik), q_diag=zqdiagtyp2(:,ik), &
                  u_diag=zudiagtyp2(:,ik), v_diag=zvdiagtyp2(:,ik), &
                  L_min=sl_Lmin_type(ik), sl_mask=sldmask ) /= SL_OK)  then
@@ -292,6 +305,9 @@ contains
                zqdiagtyp2(i,indx_agrege) = zqdiagtyp2(i,indx_agrege) + sldmask(i)*zqdiagtyp2(i,ik)
                zudiagtyp2(i,indx_agrege) = zudiagtyp2(i,indx_agrege) + sldmask(i)*zudiagtyp2(i,ik)
                zvdiagtyp2(i,indx_agrege) = zvdiagtyp2(i,indx_agrege) + sldmask(i)*zvdiagtyp2(i,ik)
+
+               zribf(i,indx_agrege) = zribf(i,indx_agrege) + sldmask(i)*zribf(i,ik)
+               zribr(i,indx_agrege) = zribr(i,indx_agrege) + sldmask(i)*zribr(i,ik)
             enddo
 
          enddo DO_ISFC
@@ -867,7 +883,7 @@ contains
          DO_ACC(zals_fr2, ztls_fr2, dt, w_reset)
          DO_ACC(zass_sn1, ztss_sn1, dt, w_reset)
          DO_ACC(zass_sn2, ztss_sn2, dt, w_reset)
-         if (stcond == 'MP_P3') then
+         if (stcond == 'MP_P3' .or. stcond == 'MP_P3X') then
             DO_ACC(zass_ws, ztss_ws, dt, w_reset)
          endif
          DO_ACC(zass_sn3, ztss_sn3, dt, w_reset)

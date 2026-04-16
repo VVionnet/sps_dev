@@ -751,3 +751,77 @@ rm:  surface_cfgs/lcano_svs2
 #New:  surface_cfgs/sl_diag_type
 #New:  surface_cfgs/sl_lmin_type
 #New:  surface_cfgs/svs2_crodebug
+#------
+fileVersion: 6.3.0-a16 > 6.3.0-a17
+#New:  physics_cfgs/p3_iparam
+#New:  physics_cfgs/p3_supid
+rm:  physics_cfgs/pbl_cucloud
+#New:  physics_cfgs/pbl_fnn
+#New:  physics_cfgs/pbl_supid
+#New:  physics_cfgs/sgs_gwfac
+#New:  surface_cfgs/chi_min
+#New:  surface_cfgs/lphase_change_eff_svs1
+#New:  surface_cfgs/lsfclayer_crocus_svs2
+rm:  surface_cfgs/mp_beta
+#New:  surface_cfgs/sl_afd
+#New:  surface_cfgs/sl_re2
+#New:  surface_cfgs/sl_ximax
+#New:  surface_cfgs/soilgrndhf_svs1
+#New:  surface_cfgs/svs_snowalb
+#New:  surface_cfgs/svs_snowfrac_ground
+#New:  surface_cfgs/svs_soiltext2prop
+#------
+fileVersion: 6.3.0-a17 > 6.3.0-a18
+#------
+
+#------
+fileVersion: 6.3.0-a18 > 6.3.0-a20
+#New:  convection_cfgs/bkf_fnfacs
+#New:  convection_cfgs/deep_wavg
+#New:  convection_cfgs/mid_wavg
+#New:  convection_cfgs/trigtauw
+#New:  physics_cfgs/p3_autoaccr
+rm:  physics_cfgs/p3_iparam
+#New:  physics_cfgs/p3_freq3ddiag
+#New:  physics_cfgs/rad_exp_rei
+#New:  physics_cfgs/rad_exp_rew
+#New:  surface_cfgs/lforlit
+#New:  surface_cfgs/lwfcliq_svs1
+#New:  surface_cfgs/sfc_poids
+#New:  surface_cfgs/svs_cg_depth
+#New:  surface_cfgs/svs_cg_ice
+#New:  surface_cfgs/svs_hydro_nummethod
+#New:  surface_cfgs/teb_snow
+#New:  surface_cfgs/teb_snroad
+#New:  surface_cfgs/teb_snroof
+#------
+fileVersion: 6.3.0-a20 > 6.3.0-a22
+#New:  convection_cfgs/kfctrigsgo
+#New:  convection_cfgs/kfctrigsgop
+#New:  physics_cfgs/pbl_cldnk_l
+#New:  physics_cfgs/pbl_q1gauss_l
+#New:  physics_cfgs/pbl_q1max_l
+#New:  physics_cfgs/rad_anu
+rm:  physics_cfgs/rad_mpagg_l
+#New:  physics_cfgs/rad_mpagg
+#New:  surface_cfgs/isba_hrsurf_method
+#New:  surface_cfgs/isba_hrsurf_power
+#New:  surface_cfgs/isba_hrsurf_rs
+#New:  surface_cfgs/isba_lwfcliq
+rm:  surface_cfgs/lmacropores_svs1
+#New:  surface_cfgs/lmacropores_svs
+rm:  surface_cfgs/svs_d50crops
+rm:  surface_cfgs/svs_d95crops
+#New:  surface_cfgs/svs_d50veg15
+#New:  surface_cfgs/svs_d50veg16
+#New:  surface_cfgs/svs_d95veg15
+#New:  surface_cfgs/svs_d95veg16
+rm:  surface_cfgs/svs_gexp
+#New:  surface_cfgs/svs_gexpveg
+rm:  surface_cfgs/svs_read_d50crops
+rm:  surface_cfgs/svs_read_d95crops
+#New:  surface_cfgs/svs_read_d50veg15
+#New:  surface_cfgs/svs_read_d50veg16
+#New:  surface_cfgs/svs_read_d95veg15
+#New:  surface_cfgs/svs_read_d95veg16
+#New:  surface_cfgs/svs_read_gexpveg

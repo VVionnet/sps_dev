@@ -13,7 +13,12 @@
 !if not, you can write to: EC-RPN COMM Group, 2121 TransCanada, suite 500, Dorval (Quebec),
 !CANADA, H9P 1J3; or send e-mail to service.rpn@ec.gc.ca
 !-------------------------------------- LICENCE END ---------------------------
-      SUBROUTINE SNOW_VEG (TSNS,TSND,RHOSL,ALPHAS,WL, &  
+
+module snow_veg_mod
+  implicit none
+  public
+contains
+SUBROUTINE SNOW_VEG (TSNS,TSND,RHOSL,ALPHAS,WL, &  
                            SNODP,SM, &  
                            PS,VMOD,VDIR,RHOA,THETAA,RG,RAT, &  
                            HU,RR,SR,T,T2M, &  
@@ -27,6 +32,7 @@
       use sfclayer, only: sl_sfclayer,SL_OK
       use sfc_options
       use svs_configs
+      use phy_status, only: physeterror
       implicit none
 !!!#include <arch_specific.hf>
 
@@ -664,36 +670,78 @@
 !                                       the evolution of the snow albedo differs
 !                                       if there is melting or not
 !
-      DO I=1,N
+      IF(SVS_SNOWALB=='NIL') THEN ! Default snow albedo param.
+
+        DO I=1,N
 !
 !
-        IF (SMT(I).GT.0.0.AND.DSNOWDT(I).LT.0.0) THEN
+          IF (SMT(I).GT.0.0.AND.DSNOWDT(I).LT.0.0) THEN
 !
 !                                       when there is freezing
 !
-           ALPHAST(I) = (ALPHAS(I)-ANSMIN_SVS)*EXP(-0.01*DT/3600.) &  
+             ALPHAST(I) = (ALPHAS(I)-ANSMIN_SVS)*EXP(-0.01*DT/3600.) &  
                 +  ANSMIN_SVS & 
                 +  SR(I)*DT/WCRN_ALB_SVS*(ANSMAX_SVS-ANSMIN_SVS)
 !
 !
-        ELSE IF (SMT(I).GT.0.0.AND.DSNOWDT(I).GE.0.0) THEN
+          ELSE IF (SMT(I).GT.0.0.AND.DSNOWDT(I).GE.0.0) THEN
 !
 !                                       when there is melting
 !
-           ALPHAST(I) = ALPHAS(I) - TODRY_SVS*DT/DAY  &   
+             ALPHAST(I) = ALPHAS(I) - TODRY_SVS*DT/DAY  &   
                 + SR(I)*DT/WCRN_ALB_SVS*(ANSMAX_SVS-ANSMIN_SVS)
 !
 !
-        ELSE
-           ALPHAST(I) = ANSMAX_SVS
-        ENDIF
+          ELSE
+             ALPHAST(I) = ANSMAX_SVS
+          ENDIF
 !                                       limits of the albedo
 !
-        ALPHAST(I) = MAX( ANSMIN_SVS, ALPHAST(I) )       
-        ALPHAST(I) = MIN( ANSMAX_SVS, ALPHAST(I) )
+          ALPHAST(I) = MAX( ANSMIN_SVS, ALPHAST(I) )       
+          ALPHAST(I) = MIN( ANSMAX_SVS, ALPHAST(I) )
 !
+        END DO
 
-      END DO
+      ELSE IF (SVS_SNOWALB=='CLASS') THEN   ! Albedo param taken from CLASS.  
+
+        DO I=1,N
+
+          IF (SMT(I).GT.0.0) THEN
+               ! ALbedo decrease due to metamorphism and LAP deposition 
+               IF(ALPHAS(I)> ANSOLD_WET .AND. ( (DSNOWDT(I).LT.0.0) .OR. (TSNST(I)> TRPL-0.01))  ) THEN                       
+!
+!                                       when there is snow melt/wet snow
+!
+                  ALPHAST(I) = ANSOLD_WET + (ALPHAS(I)-ANSOLD_WET)*EXP(-0.01*DT/3600.) 
+
+!
+               ELSE IF(ALPHAS(I)> ANSOLD_DRY .AND.DSNOWDT(I).GE.0.0) THEN
+!
+!                                       when snow is dry
+!
+                  ALPHAST(I) = ANSOLD_DRY + (ALPHAS(I)-ANSOLD_DRY)*EXP(-0.01*DT/3600.) 
+!
+               ELSE
+                  ! No albedo decrease since limits for old snow have been reached      
+                  ALPHAST(I) = ALPHAS(I)                       
+!
+               ENDIF                  
+!
+               ! Albedo refreshing due to snowfall 
+               ALPHAST(I)  = ALPHAST(I) + SR(I)*DT/WCRN_ALB_CLASS*(ANSMAX_CLASS-ANSOLD_WET)
+!
+          ELSE
+             ALPHAST(I) = ANSMAX_CLASS              
+          ENDIF
+!
+!                                       limits of the albedo
+!
+          ALPHAST(I) = MAX( ANSOLD_WET, ALPHAST(I) )       
+          ALPHAST(I) = MIN( ANSMAX_CLASS, ALPHAST(I) )
+!
+        END DO          
+
+      ENDIF                
 !
 !
 !
@@ -839,4 +887,5 @@
       ENDDO
 !
       RETURN
-      END
+    END SUBROUTINE SNOW_VEG
+  end module snow_veg_mod

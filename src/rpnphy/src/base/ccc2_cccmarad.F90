@@ -22,7 +22,7 @@ contains
       use diagno_clouds, only: diagno_clouds2
       use prep_cw_rad, only: prep_cw_rad3
       use phy_options
-      use phy_status, only: phy_error_L
+      use phy_status, only: phy_error_L, physeterror
       use phybusidx, except=>znt
       use phymem, only: phyvar
       use linoz_param, only: mwt_air, mwt_o3, p_linoz_meso
@@ -31,7 +31,11 @@ contains
       use ens_perturb, only: ens_spp_get
       use ccc2_uv_raddriv, only: ccc2_uv_raddriv1
       use ccc2_raddriv, only: ccc2_raddriv3
+      use ccc2_uvindex_mod, only: ccc2_uvindex2
       use suncos, only: suncos3
+      use radfac_mod, only: radfac4
+      use ccc_aerooppro_mod, only: ccc_aerooppro2
+      use timing_omp
       implicit none
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
@@ -121,7 +125,7 @@ contains
       real, dimension(ni, nkm1, nbs) :: exta, exoma, exomga, fa, taucs, omcs, gcs
       real, dimension(ni, nkm1, nbl) :: absa, taucl, omcl, gcl
 
-      integer(INT64) :: ncsec_deb, ncsec_now, timestep, csec_in_day, day_reminder
+      integer(INT64) :: ncsec_deb, ncsec_now, timestep, csec_in_day, day_reminder, taui64
       real(REAL64) :: hz_8
       real :: hz, ptopoz, alwcap, fwcap, albrmu, ws
       integer :: i, k, l, iuv, yy, mo, dd, hh, mn, ss, step
@@ -295,7 +299,8 @@ contains
       day_reminder =  mod(ncsec_now, csec_in_day)
       hz_8 = day_reminder / 360000.0d0
       hz   = hz_8
-      julien = real(jdate_day_of_year(jdateo + kount*int(tau) + MU_JDATE_HALFDAY))
+      taui64 = int(tau)
+      julien = real(jdate_day_of_year(jdateo + kount*taui64 + MU_JDATE_HALFDAY))
 
       ! cosine of solar zenith angle at greenwich hour
       call suncos3(rmu0, ni, zdlat, zdlon, hz, julien)
@@ -332,14 +337,14 @@ contains
             zalwater  = 0.0
             alwcap = 0.3
             do i = 1, ni
-               salb(i, 1) = amax1(amin1(zalvis_ag(i), 0.80), 0.03)
+               salb(i, 1) = amax1(amin1(zalvis_ag(i), 0.90), 0.03)
                if (zmg(i) <= 0.01 .and. zglsea(i) <= 0.01  &
                     .and. avgcos(i) > seuil) then
                   ws = (my_udiag(i)*my_udiag(i) + my_vdiag(i)*my_vdiag(i))**1.705
                   fwcap      = amin1(3.84e-06 * ws, 1.0)
                   albrmu     = 0.037 / (1.1 * (avgcos(i)**1.4) + 0.15)
                   zalwater(i)  = (1.-fwcap) * albrmu + fwcap * alwcap
-                  zalwater(i)  = amax1(amin1(zalwater(i), 0.80), 0.03) ! this max comes from newrad!?!
+                  zalwater(i)  = amax1(amin1(zalwater(i), 0.90), 0.03) ! this max comes from newrad!?!
                   salb(i, 1) = zalwater(i)
                endif
                zsalb6z(i)=salb(i, 1)
@@ -367,7 +372,7 @@ contains
             endif
             do i = 1, ni
                ! albedo agregated at previous timestep,set the same for all 4 bands
-               salb(i, 1) = amax1(amin1(zalvis_ag(i), 0.80), 0.03)
+               salb(i, 1) = amax1(amin1(zalvis_ag(i), 0.90), 0.03)
                zsalb6z(i)=salb(i, 1)
                do l = 2, nbs
                   salb(i, l) = salb(i, 1)
@@ -793,7 +798,7 @@ contains
                fwcap      = amin1(3.84e-06 * ws, 1.0)
                albrmu     = 0.037 / (1.1 * (avgcos(i)**1.4) + 0.15)
                zalwater(i)  = (1.-fwcap) * albrmu + fwcap * alwcap
-               zalwater(i)  = amax1(amin1(zalwater(i), 0.80), 0.03) ! this max comes from newrad!?!
+               zalwater(i)  = amax1(amin1(zalwater(i), 0.90), 0.03) ! this max comes from newrad!?!
             endif
          enddo
          zcosn=avgcos
