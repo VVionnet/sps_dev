@@ -89,7 +89,7 @@ contains
       !@return
       integer :: F_istat
       !@/
-      character(len=512) :: tmp_S
+
       !---------------------------------------------------------------------
       call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[BEGIN] drv_path_set')
       F_istat = clib_getenv('TASK_WORK',drv_path_work_S)
@@ -100,16 +100,16 @@ contains
          return
       endif
 
-      tmp_S = ' '
-      call priv_add_path_element('input',drv_path_input_S,tmp_S)
-      call priv_add_path_element('output',drv_path_output_S,tmp_S)
-      call priv_add_path_element('work',drv_path_work_S,tmp_S)
+      app_msg = ' '
+      call priv_add_path_element('input',drv_path_input_S,app_msg)
+      call priv_add_path_element('output',drv_path_output_S,app_msg)
+      call priv_add_path_element('work',drv_path_work_S,app_msg)
 
 
-      write(tmp_S,'(a,i4.4)') 'cfg_',F_mydomain
-      call priv_add_path_element('input',drv_path_input_S,tmp_S)
-      call priv_add_path_element('output',drv_path_output_S,tmp_S)
-      call priv_add_path_element('work',drv_path_work_S,tmp_S)
+      write(app_msg,'(a,i4.4)') 'cfg_',F_mydomain
+      call priv_add_path_element('input',drv_path_input_S,app_msg)
+      call priv_add_path_element('output',drv_path_output_S,app_msg)
+      call priv_add_path_element('work',drv_path_work_S,app_msg)
       drv_path_work_domaine_S = drv_path_work_S
       call priv_add_path_element('work_domaine',drv_path_work_domaine_S,' ')
       drv_path_input_domaine_S = drv_path_input_S
@@ -119,19 +119,19 @@ contains
 
       if (present(F_ngrids) .and. present(F_igrid)) then
          if (F_ngrids > 1) then
-            write(tmp_S,'(i3.3)') F_igrid
-            call priv_add_path_element('input',drv_path_input_S,tmp_S)
-            call priv_add_path_element('output',drv_path_output_S,tmp_S)
-            call priv_add_path_element('work',drv_path_work_S,tmp_S)
+            write(app_msg,'(i3.3)') F_igrid
+            call priv_add_path_element('input',drv_path_input_S,app_msg)
+            call priv_add_path_element('output',drv_path_output_S,app_msg)
+            call priv_add_path_element('work',drv_path_work_S,app_msg)
          endif
       endif
       drv_path_work_grid_S = drv_path_work_S
       call priv_add_path_element('work_grid',drv_path_work_grid_S,' ')
 
       if (present(F_ipex) .and. present(F_ipey)) then
-         write(tmp_S,'(i3.3,a1,i3.3)') F_ipex,'-',F_ipey
-         call priv_add_path_element('output',drv_path_output_S,tmp_S)
-         call priv_add_path_element('work',drv_path_work_S,tmp_S)
+         write(app_msg,'(i3.3,a1,i3.3)') F_ipex,'-',F_ipey
+         call priv_add_path_element('output',drv_path_output_S,app_msg)
+         call priv_add_path_element('work',drv_path_work_S,app_msg)
       endif
       drv_path_config_dir_S = drv_path_work_S
       call priv_add_path_element('config_dir',drv_path_config_dir_S,' ')

@@ -83,7 +83,6 @@ contains
       logical,save :: ptopo_is_init_L = .false.
 
       integer :: istat,ngrids,npex,npey,igrid,myproc,numproc,nblocx,nblocy,mydomain,ndomains
-      character(len=RMN_PATH_LEN) :: tmp_S
 
       integer,external :: rpn_comm_init_multi_level
       external :: drv_ptopo_ndoms,drv_ptopo_p0 !- call back s/r to define: ndomains, mydomain, npex,npey
@@ -132,9 +131,9 @@ contains
       istat = drv_path_set(mydomain,ngrids,igrid,ptopo_grid_ipex,ptopo_grid_ipey)
       istat = clib_chdir(trim(drv_path_work_S))
 
-      write(tmp_S,'(a,4i6)') '(drv_ptopo_init) idomain,igrid,ipex,ipey:',&
+      write(app_msg,'(a,4i6)') '(drv_ptopo_init) idomain,igrid,ipex,ipey:',&
            ptopo_world_idom,ptopo_dom_igrid,ptopo_grid_ipex,ptopo_grid_ipey
-      call Lib_Log(APP_LIBSPSDYN,APP_INFO,tmp_S)
+      call Lib_Log(APP_LIBSPSDYN,APP_INFO,app_msg)
 
       ptopo_is_init_L = (RMN_IS_OK(F_istat))
       call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[END] drv_ptopo_init')

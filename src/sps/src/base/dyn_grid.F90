@@ -68,7 +68,7 @@ contains
       real,pointer :: xgi(:,:), ygi(:,:)
       real(RDOUBLE) :: x0_8,y0_8,xl_8,yl_8,yan_xlat1_8, yan_xlon1_8, yan_xlat2_8, yan_xlon2_8,yin_xlat1_8, yin_xlon1_8, yin_xlat2_8, yin_xlon2_8,delta_8
       integer :: istat,msgUnit,ierx,iery,ig1,ig2,ig3,ig4,hx,hy
-      character(len=256) :: tmp_S
+
       !---------------------------------------------------------------------
       call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[BEGIN] dyn_grid_init')
       F_istat = RMN_OK
@@ -231,8 +231,8 @@ contains
             if (Grd_xl < 0.) Grd_xl = Grd_xl + 360.
             if (Grd_x0 < 0. .or. Grd_y0 < -90. .or. &
                  Grd_xl > 360. .or. Grd_yl > 90.) then
-               write(tmp_S,'(4f10.3)') Grd_x0,Grd_y0,Grd_xl,Grd_yl
-               call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(dyn_grid) Wrong grid config, verify grid_cfgs; x0,y0,x1,y1 = '//trim(tmp_S))
+               write(app_msg,'(4f10.3)') Grd_x0,Grd_y0,Grd_xl,Grd_yl
+               call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(dyn_grid) Wrong grid config, verify grid_cfgs; x0,y0,x1,y1 = '//trim(app_msg))
                 F_istat = RMN_ERR
             endif
          case default

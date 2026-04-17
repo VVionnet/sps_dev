@@ -55,8 +55,8 @@ subroutine drv_ptopo_ndoms(F_ndomains,F_dom_deb,F_istat)
 
    F_ndomains = dom_fin - F_dom_deb + 1
    if (F_ndomains < 1) then
-      write(tmp1_S,'(i4)') F_ndomains
-      call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(drv_ptopo_ndoms)  ndomains_S= '//trim(tmp1_S)//' Check Env variable UM_EXEC_NDOMAINS: '//trim(ndomains_S))
+      write(app_msg,'(i4)') F_ndomains
+      call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(drv_ptopo_ndoms)  ndomains_S= '//trim(app_msg)//' Check Env variable UM_EXEC_NDOMAINS: '//trim(ndomains_S))
       F_istat = RMN_ERR
       return
    endif

@@ -194,7 +194,7 @@ contains
       integer :: istat,nlvl,datev,delta_step,nn,swap_mode
       character(len=2) :: timeFlags_S(TIME_FLAGS_MAX)
       character(len=16) :: datev_S
-      character(len=256) :: msg_S
+
       !---------------------------------------------------------------------
       if (.not.m_init_L) then
          call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(drv_time) Not Initialised')
@@ -231,9 +231,9 @@ contains
       if (present(F_datev)) F_datev = datev
 
       datev_S = cmcdate_toprint(datev)
-      write(msg_S,'("Step=",i4.4," (datev=",a,") (ckpt,last,stat)=(",l2,l2,l2,")")') &
+      write(app_msg,'("Step=",i4.4," (datev=",a,") (ckpt,last,stat)=(",l2,l2,l2,")")') &
            F_stepno,datev_S(1:15),F_is_chkpt_L,F_is_last_L,is_stat_L
-      call Lib_Log(APP_LIBSPSDYN,APP_INFO,'(drv_time) Increment: '//trim(msg_S))
+      call Lib_Log(APP_LIBSPSDYN,APP_INFO,'(drv_time) Increment: '//trim(app_msg))
 
       !- update useful time values in global WB for other components to access
       istat = wb_put('time_stepno',time_stepno,WB_REWRITE_MANY)
