@@ -77,7 +77,6 @@ contains
       integer,target :: ip1(1)
       integer :: istat,ip1mt(4),i0,in,i1,in1,nkm,nkt
       real :: r14(4)
-      character(len=256) :: tmp_S
       type(vgrid_descriptor) :: vcoor
       !---------------------------------------------------------------------
       call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[BEGIN] levels_init')
@@ -117,26 +116,26 @@ contains
             i1 = min(i0+1,in) ; in1 = max(in-1,i0)
             ip1mt(1) = p_ip1_m(i0) ; ip1mt(2) = p_ip1_m(i1)
             ip1mt(3) = p_ip1_m(in1) ; ip1mt(4) = p_ip1_m(in)
-            write(tmp_S,'(a,i3,a,i3,a,i9,a,i9,a,i9,a,i9)') &
+            write(app_msg,'(a,i3,a,i3,a,i9,a,i9,a,i9,a,i9)') &
                  '(drv_levels) ip1_m(',i0,':',in,')=', ip1mt(1),', ', &
                  ip1mt(2),', ...,', ip1mt(3),', ', ip1mt(4)
-            call Lib_Log(APP_LIBSPSDYN,APP_INFO,tmp_S)
+            call Lib_Log(APP_LIBSPSDYN,APP_INFO,app_msg)
             i0 = lbound(p_ip1_t,1); in = ubound(p_ip1_t,1)
             i1 = min(i0+1,in) ; in1 = max(in-1,i0)
             ip1mt(1) = p_ip1_t(i0) ; ip1mt(2) = p_ip1_t(i1)
             ip1mt(3) = p_ip1_t(in1) ; ip1mt(4) = p_ip1_t(in)
-            write(tmp_S,'(a,i3,a,i3,a,i9,a,i9,a,i9,a,i9)') &
+            write(app_msg,'(a,i3,a,i3,a,i9,a,i9,a,i9,a,i9)') &
                  '(drv_levels) ip1_t(',i0,':',in,')=', ip1mt(1),', ', &
                  ip1mt(2),', ...,', ip1mt(3),', ', ip1mt(4)
-            call Lib_Log(APP_LIBSPSDYN,APP_INFO,tmp_S)
+            call Lib_Log(APP_LIBSPSDYN,APP_INFO,app_msg)
             i0 = lbound(std_p_prof,1); in = ubound(std_p_prof,1)
             i1 = min(i0+1,in) ; in1 = max(in-1,i0)
             r14(1) = std_p_prof(i0) ; r14(2) = std_p_prof(i1)
             r14(3) = std_p_prof(in1) ; r14(4) = std_p_prof(in)
-            write(tmp_S,'(a,i3,a,i3,a,f10.2,a,f10.2,a,f10.2,a,f10.2)') &
+            write(app_msg,'(a,i3,a,i3,a,f10.2,a,f10.2,a,f10.2,a,f10.2)') &
                  '(drv_levels) std_p_prof_m(',i0,':',in,')=', r14(1),', ', &
                  r14(2),', ...,', r14(3),', ', r14(4)
-            call Lib_Log(APP_LIBSPSDYN,APP_INFO,tmp_S)
+            call Lib_Log(APP_LIBSPSDYN,APP_INFO,app_msg)
          endif
 
          if (stag_L) then
@@ -149,10 +148,10 @@ contains
             i1 = min(i0+1,in) ; in1 = max(in-1,i0)
             r14(1) = std_p_prof(i0) ; r14(2) = std_p_prof(i1)
             r14(3) = std_p_prof(in1) ; r14(4) = std_p_prof(in)
-            write(tmp_S,'(a,i3,a,i3,a,f10.2,a,f10.2,a,f10.2,a,f10.2)') &
+            write(app_msg,'(a,i3,a,i3,a,f10.2,a,f10.2,a,f10.2,a,f10.2)') &
                  '(drv_levels) std_p_prof_t(',i0,':',in,')=', r14(1),', ', &
                  r14(2),', ...,', r14(3),', ', r14(4)
-            call Lib_Log(APP_LIBSPSDYN,APP_INFO,tmp_S)
+            call Lib_Log(APP_LIBSPSDYN,APP_INFO,app_msg)
          endif
          if (associated(std_p_prof)) deallocate(std_p_prof,stat=istat)
          if (associated(ip1_m)) deallocate(ip1_m,stat=istat)
@@ -164,8 +163,8 @@ contains
       endif IF_LVL_OK
 
       if (RMN_IS_OK(F_istat)) then
-         write(tmp_S,'(a,i4,a)') '(drv_levels) Initialization OK: [nk=',l_nk,']'
-         call Lib_Log(APP_LIBSPSDYN,APP_INFO,tmp_S)
+         write(app_msg,'(a,i4,a)') '(drv_levels) Initialization OK: [nk=',l_nk,']'
+         call Lib_Log(APP_LIBSPSDYN,APP_INFO,app_msg)
       else
          call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(drv_levels) Problem in Initialisation')
       endif

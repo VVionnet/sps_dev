@@ -80,7 +80,7 @@ function spsdm() result(istat)
    integer :: istat,istat2,ngrids,stepno,steps_total,delta_step,timeout,seconds_since
    logical :: is_last, is_chkpt, is_stat, stat_by_level_L
    real(RDOUBLE) :: dt_8
-   character(len=RMN_PATH_LEN) :: tmp_S,config_name_S,dateo_S
+   character(len=RMN_PATH_LEN) :: config_name_S,dateo_S
    !---------------------------------------------------------------------
    istat = wb_put('ATM_MODEL_NAME',MODEL_NAME)
 
@@ -127,9 +127,9 @@ function spsdm() result(istat)
       seconds_since = model_timeout_alarm(timeout)
       call drv_time_increment(stepno,is_chkpt,is_last,is_stat,F_timeFlags_S=TIME_FLAGS,F_delta_step=delta_step)
       delta_step = 1
-      write(tmp_S,'(a,a,I0,a,I0,a,L1,a,L1,a,a)') new_line(' '), "==== Processing Stepno: ",stepno,'/',steps_total,' [chkpt=',is_chkpt,', last=',is_last,"] ============", new_line(' ')
-      call Lib_Log(APP_LIBSPSDYN,APP_INFO,tmp_S)
-      write(tmp_S, '(i0)') stepno
+      write(app_msg,'(a,a,I0,a,I0,a,L1,a,L1,a,a)') new_line(' '), "==== Processing Stepno: ",stepno,'/',steps_total,' [chkpt=',is_chkpt,', last=',is_last,"] ============", new_line(' ')
+      call Lib_Log(APP_LIBSPSDYN,APP_INFO,app_msg)
+      write(app_msg, '(i0)') stepno
 
       call timing_start2(TMG_IN,MODEL_NAME//'-in',0)
       istat = dyn_input(stepno)
@@ -163,7 +163,7 @@ function spsdm() result(istat)
       istat2 = phys_output(stepno)
       call timing_stop(TMG_OUT)
 
-      call model_usage_stats(trim(MODEL_NAME)//': END STEPNO = '//trim(tmp_S),.not.PRINT_ACCUM_L)
+      call model_usage_stats(trim(MODEL_NAME)//': END STEPNO = '//trim(app_msg),.not.PRINT_ACCUM_L)
 
       !- Save info for restart
       CHECKPOINT: if (RMN_IS_OK(istat) .and. is_chkpt) then
@@ -186,9 +186,9 @@ function spsdm() result(istat)
    call timing_terminate2(ptopo_grid_ipe,MODEL_NAME)
    call model_usage_stats(trim(MODEL_NAME)//': END OF_RUN',PRINT_ACCUM_L)
 
-   tmp_S = 'END'
-   if (stepno < steps_total) tmp_S = 'RESTART'
-   call drv_ptopo_terminate(tmp_S)
+   app_msg = 'END'
+   if (stepno < steps_total) app_msg = 'RESTART'
+   call drv_ptopo_terminate(app_msg)
    !---------------------------------------------------------------------
    return
 
