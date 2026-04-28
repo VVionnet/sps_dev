@@ -33,6 +33,7 @@ build:rhel-9-graniterapids-64-intel-2025.1.0:
   script:
     - set +e
     - . ./.eccc_setup_intel_2025.1.0
+    - ./scripts/link-dbase.sh
     - set -e
     - mkdir -pv ${PIPELINE_SUBDIR}/build-rhel-9-graniterapids-64-intel-2025.1.0
     - mkdir -pv ${PIPELINE_SUBDIR}/work-rhel-9-graniterapids-64-intel-2025.1.0
@@ -85,6 +86,7 @@ build:rhel-9-amd64_gnu-11.4.1:
   script:
     - set +e
     - . ./.eccc_setup_gnu
+    - ./scripts/link-dbase.sh
     - set -e
     - mkdir -pv ${PIPELINE_SUBDIR}/build-rhel-9-amd64-64-gnu-11.4.1
     - mkdir -pv ${PIPELINE_SUBDIR}/work-rhel-9-amd64-64-gnu-11.4.1
@@ -114,6 +116,7 @@ build:rhel-9-amd64_gnu-15.2.0:
   script:
     - set +e
     - . ./.eccc_setup_gnu_15.2.0
+    - ./scripts/link-dbase.sh
     - set -e
     - mkdir -pv ${PIPELINE_SUBDIR}/build-rhel-9-amd64-64-gnu-15.2.0
     - mkdir -pv ${PIPELINE_SUBDIR}/work-rhel-9-amd64-64-gnu-15.2.0
@@ -351,7 +354,6 @@ caldas_hrdps_isba_intel:
     - . ./.eccc_setup_intel_2025.1.0
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20250808
     - set -e
-    - ./scripts/link-dbase.sh
     - cd $SPS_WORK
     - sps.sh --dircfg ./configurations/caldas_hrdps_isba --ptopo=6x1 --btopo=1x1 --inorder
 
@@ -366,7 +368,6 @@ CSLM_cfgs_intel:
     - . ./.eccc_setup_intel_2025.1.0
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20250808
     - set -e
-    - ./scripts/link-dbase.sh
     - cd $SPS_WORK
     - sps.sh --dircfg ./configurations/CSLM_cfgs --ptopo=8x10 --btopo=1x1 --inorder
 
@@ -381,7 +382,6 @@ SPS_cfgs_intel:
     - . ./.eccc_setup_intel_2025.1.0
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20250808
     - set -e
-    - ./scripts/link-dbase.sh
     - cd $SPS_WORK
     - sps.sh --dircfg ./configurations/SPS_cfgs --ptopo 2x2x1 --btopo=1x1 --inorder
 
@@ -396,7 +396,6 @@ SPS_isba_intel:
     - . ./.eccc_setup_intel_2025.1.0
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20250808
     - set -e
-    - ./scripts/link-dbase.sh
     - cd $SPS_WORK
     - sps.sh --dircfg configurations/SPS_isba_cfgs --ptopo=2x2x1 --btopo=1x1 --inorder
 
@@ -411,7 +410,6 @@ tape1_grid_intel:
     - . ./.eccc_setup_intel_2025.1.0
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20250808
     - set -e
-    - ./scripts/link-dbase.sh
     - cd $SPS_WORK
     - sps.sh --dircfg ./configurations/tape1_grid --ptopo=1x1x1 --btopo=1x1 --inorder
 
@@ -426,7 +424,6 @@ TEB_national_intel:
     - . ./.eccc_setup_intel_2025.1.0
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20250808
     - set -e
-    - ./scripts/link-dbase.sh
     - cd $SPS_WORK
     - sps.sh --dircfg ./configurations/TEB_national --ptopo=8x10 --btopo=1x1 --inorder
 
@@ -441,7 +438,6 @@ SVS2_cfgs_intel:
     - . ./.eccc_setup_intel_2025.1.0
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20250808
     - set -e
-    - ./scripts/link-dbase.sh
     - cd $SPS_WORK
     - sps.sh --dircfg ./configurations/SVS2_cfgs --ptopo=6x6 --btopo=1x1 --inorder
 
@@ -456,7 +452,6 @@ caldas_hrdps_isba_gnu:
     - set +e
     - . ./.eccc_setup_gnu
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20250808
-    - ./scripts/link-dbase.sh
     - set -e
     - cd $SPS_WORK
     - sps.sh --dircfg ./configurations/caldas_hrdps_isba --ptopo=6x1 --btopo=1x1 --inorder
@@ -471,7 +466,6 @@ CSLM_cfgs_gnu:
     - set +e
     - . ./.eccc_setup_gnu
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20250808
-    - ./scripts/link-dbase.sh
     - set -e
     - cd $SPS_WORK
     - sps.sh --dircfg ./configurations/CSLM_cfgs --ptopo=8x10 --btopo=1x1 --inorder
@@ -486,7 +480,6 @@ SPS_cfgs_gnu:
     - set +e
     - . ./.eccc_setup_gnu
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20250808
-    - ./scripts/link-dbase.sh
     - set -e
     - cd $SPS_WORK
     - sps.sh --dircfg ./configurations/SPS_cfgs --ptopo 2x2x1 --btopo=1x1 --inorder
@@ -501,7 +494,6 @@ SPS_isba_gnu:
     - set +e
     - . ./.eccc_setup_gnu
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20250808
-    - ./scripts/link-dbase.sh
     - set -e
     - cd $SPS_WORK
     - sps.sh --dircfg configurations/SPS_isba_cfgs --ptopo=2x2x1 --btopo=1x1 --inorder
@@ -516,7 +508,6 @@ tape1_grid_gnu:
     - set +e
     - . ./.eccc_setup_gnu
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20250808
-    - ./scripts/link-dbase.sh
     - set -e
     - cd $SPS_WORK
     - sps.sh --dircfg ./configurations/tape1_grid --ptopo=1x1x1 --btopo=1x1 --inorder
@@ -531,7 +522,6 @@ TEB_national_gnu:
     - set +e
     - . ./.eccc_setup_gnu
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20250808
-    - ./scripts/link-dbase.sh
     - set -e
     - cd $SPS_WORK
     - sps.sh --dircfg ./configurations/TEB_national --ptopo=8x10 --btopo=1x1 --inorder
@@ -546,7 +536,6 @@ SVS2_cfgs_gnu:
     - set +e
     - . ./.eccc_setup_gnu
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20250808
-    - ./scripts/link-dbase.sh
     - set -e
     - cd $SPS_WORK
     - sps.sh --dircfg ./configurations/SVS2_cfgs --ptopo=6x6 --btopo=1x1 --inorder
@@ -564,7 +553,6 @@ SPS_cfgs_gnu_15:
     - set +e
     - . ./.eccc_setup_gnu_15.2.0
     - . ssmuse-sh -d /fs/ssm/eccc/cmo/isst/maestro/20250808
-    - ./scripts/link-dbase.sh
     - set -e
     - cd $SPS_WORK
     - sps.sh --dircfg ./configurations/SPS_cfgs --ptopo 2x2x1 --btopo=1x1 --inorder
