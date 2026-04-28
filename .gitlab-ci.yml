@@ -544,6 +544,7 @@ SVS2_cfgs_gnu:
 SPS_cfgs_gnu_15:
   variables:
     ORD_SOUMET_MPI : mpi
+    ORD_SOUMET_M: "2"
   stage: run_gnu_15
   needs:
   - build:rhel-9-amd64_gnu-15.2.0
