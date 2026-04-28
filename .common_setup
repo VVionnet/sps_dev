@@ -46,7 +46,7 @@ else
             else
                 export PATH=${PWD}/scripts:${PWD}/scripts/support:${PWD}/scripts/rpy:${PWD}/src/rpnphy/bin:${PWD}/${SPS_WORK}/bin:${PATH}
                 export PYTHONPATH=${PWD}/scripts/rpy:${PYTHONPATH}
-                echo "GOAS_SCRIPT_MODE set: GEM scripts in scripts/support and scripts/rpy will be used instead of SSM domains scripts"
+                echo "GOAS_SCRIPT_MODE set: SPS scripts in scripts/support and scripts/rpy will be used instead of SSM domains scripts"
             fi
         # for external use, always add all scripts to PATH, without message
         else
