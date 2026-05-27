@@ -9,7 +9,7 @@ DOC	   : https://wiki.cmc.ec.gc.ca/wiki/SPS
 
 # Components
 modelutils = 1.8.0-a22
-rpnphy = 6.3.0-a23
+rpnphy = 6.3.0-b01
 spsdyn = 6.3.0-a23
 
 # Dependencies 
