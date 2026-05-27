@@ -15,6 +15,7 @@
 
 !/@*
 function itf_prefold_opr(F_data,F_name_S,F_horiz_interp_S,F_minx,F_maxx,F_miny,F_maxy,F_k0,F_kn) result(F_istat)
+   use App
    implicit none
    !@objective 
    !@arguments
@@ -28,17 +29,16 @@ function itf_prefold_opr(F_data,F_name_S,F_horiz_interp_S,F_minx,F_maxx,F_miny,F
    !*@/
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
-#include <rmn/msg.h>
 !!$#include "grd.cdk"
    !---------------------------------------------------------------------
-   call msg(MSG_DEBUG,'[BEGIN] itf_prefold_opr')
+   call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[BEGIN] itf_prefold_opr')
    F_istat = RMN_OK
    !TODO: YY grid stitch xch
 !!$   if (Grd_yinyang_L .and. F_horiz_interp_S /= ' ') then
 !!$       call yyg_scalgeo2(F_data,F_minx,F_maxx,F_miny,F_maxy,&
 !!$                         F_kn-F_k0+1,F_horiz_interp_S,F_name_S)
 !!$   endif
-   call msg(MSG_DEBUG,'[END] itf_prefold_opr')
+   call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[END] itf_prefold_opr')
    !---------------------------------------------------------------------
    return
 end function itf_prefold_opr

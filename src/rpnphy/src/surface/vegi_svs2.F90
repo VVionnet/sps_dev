@@ -108,6 +108,9 @@ contains
 ! HVEGAPOL   Polar mean vegetation height (including bare soil)
 ! PHM_CAN    Heat mass for the high vegetation layer (J K-1 m-2)
 ! SCAP       Vegetation layer snow capacities (kg m-2)
+! SCAP_MIN   Baseline Vegetation layer snow capacities (kg m-2)
+! WFL_ICE  Frozen water in the forest litter layer [kg/m2]
+! WFL      Liquid water in the forest litter layer [kg/m2]
 !
       INTEGER I, K
       REAL CSHAPE, f2_k(nl_svs)
@@ -302,12 +305,18 @@ contains
             !SCAP(I) =  CVAI *LAI_VH(I)
             
            ! Compute Canopy interception, check Andreadis et al. (2009)
+            ! 
+            ! Baseline interception capacity without considering temperature effects
+            ! Used to compute FCANS
+            SCAP_MIN(I)   =  m_scap * LAI_VH(I) * VGH_DENS(I)
+
+            ! Include effect of temperature for interception 
            IF ((T(I)-273.15) .GT. -1) THEN
-              SCAP(I) = 4* m_scap * LAI_VH(I) * VGH_DENS(I)
+               SCAP(I) = 4. * SCAP_MIN(I)
            ELSE IF (((T(I)-273.15) .GT. -3) .AND.  ((T(I)-273.15) .LE. -1)) THEN
-              SCAP(I) = (1.5*(T(I)-273.15) + 5.5) * m_scap *LAI_VH(I) * VGH_DENS(I)
+               SCAP(I) = (1.5*(T(I)-273.15) + 5.5) * SCAP_MIN(I)
            ELSE
-              SCAP(I) = m_scap * LAI_VH(I) * VGH_DENS(I)
+               SCAP(I) = SCAP_MIN(I)
            ENDIF
 !
 !
@@ -369,6 +378,7 @@ contains
              VGH_DENS(I)   = 0.
              PHM_CAN(I)  = 0.
              SCAP(I) = 0.
+             SCAP_MIN(I) = 0.
           ENDIF
        ENDDO
 !

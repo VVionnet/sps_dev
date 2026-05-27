@@ -15,6 +15,7 @@
 
 !/@*
 subroutine itf_phy_rdfile2(F_fichier_S,F_read_cb,F_messg_s,F_mode)
+   use App
    use iso_c_binding
    use rpn_comm_itf_mod
    use clib_itf_mod
@@ -32,7 +33,6 @@ subroutine itf_phy_rdfile2(F_fichier_S,F_read_cb,F_messg_s,F_mode)
    !*@/
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
-#include <rmn/msg.h>
 
    integer,parameter :: MAX_NDIM = 1000
    integer,parameter :: MODE_ALL_PE = 1
@@ -43,7 +43,7 @@ subroutine itf_phy_rdfile2(F_fichier_S,F_read_cb,F_messg_s,F_mode)
 
    integer ::  istat,ierr
 
-   character(len=RMN_PATH_LEN) :: filename_S,tmp_S,Path_input_S
+   character(len=RMN_PATH_LEN) :: filename_S,Path_input_S
    integer :: fileid,ilir,inbr
    integer :: dim(MAX_NDIM)
    integer :: bufnml(1000000)
@@ -54,7 +54,6 @@ subroutine itf_phy_rdfile2(F_fichier_S,F_read_cb,F_messg_s,F_mode)
    if (.not.RMN_IS_OK(istat)) istat = clib_getcwd(Path_input_S)
 
    istat = 0
-   tmp_S = ''
    filename_S = trim(Path_input_S)//'/'//trim(F_fichier_S)
 
    IF_MASTER: if (Ptopo_myproc == RPN_COMM_MASTER) then
@@ -62,24 +61,23 @@ subroutine itf_phy_rdfile2(F_fichier_S,F_read_cb,F_messg_s,F_mode)
       if (RMN_IS_OK(ierr)) then
          ilir = wkoffit(filename_S)
          if (any(ilir == (/1,2,33,34/))) then
-            write(tmp_S,'(a,i1,a)') 'READING '//trim(F_messg_s)//' FILE in MODE ',F_mode,' from:'//trim(filename_S)
-            call msg(MSG_INFO,tmp_S)
+            write(app_msg,'(a,i1,a)') 'READING '//trim(F_messg_s)//' FILE in MODE ',F_mode,' from:'//trim(filename_S)
+            call Lib_Log(APP_LIBSPSDYN,APP_INFO,app_msg)
          else
-            tmp_S = "File RPNFST Format: "//trim(filename_S)
+            app_msg = "File RPNFST Format: "//trim(filename_S)
             istat = -1
          endif
       else
-         tmp_S = "File not Found: "//trim(filename_S)
+         app_msg = "File not Found: "//trim(filename_S)
          istat = -1
       endif
    endif IF_MASTER
-   call handle_error(istat,'itf_phy_rdfile',tmp_S)
+   call handle_error(istat,'itf_phy_rdfile',app_msg)
 
    select case(F_mode)
 
    case(MODE_ALL_PE)
 
-      if (Ptopo_myproc > 0) inbr = fstopc('MSGLVL','SYSTEM',RMN_OPT_SET)
       fileid    = 0
       ilir   = fnom(fileid,filename_S,'STD+RND+OLD+R/O',0)
       ilir   = fstouv(fileid,'RND')
@@ -98,8 +96,6 @@ subroutine itf_phy_rdfile2(F_fichier_S,F_read_cb,F_messg_s,F_mode)
 
       if (Ptopo_myproc == RPN_COMM_MASTER) then
          call array_from_file(bufnml,size(bufnml),filename_S)
-      else
-         inbr = fstopc('MSGLVL','SYSTEM',RMN_OPT_SET)
       endif
       call rpn_comm_bcast(bufnml,size(bufnml),RPN_COMM_INTEGER,RPN_COMM_MASTER,RPN_COMM_GRID,ierr )
       filename_S = trim(F_fichier_S)
@@ -147,12 +143,12 @@ subroutine itf_phy_rdfile2(F_fichier_S,F_read_cb,F_messg_s,F_mode)
 
    case DEFAULT
 
-      call msg(MSG_WARNING,'itf_phy_rdfile: invalid mode, nothing done')
+      call Lib_Log(APP_LIBSPSDYN,APP_WARNING,'itf_phy_rdfile: invalid mode, nothing done')
 
    end select
 
    call handle_error(istat,'itf_phy_rdfile','')
-   inbr = fstopc('MSGLVL','INFORM',RMN_OPT_SET)
+
    !---------------------------------------------------------------------
    return
 end subroutine itf_phy_rdfile2

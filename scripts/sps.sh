@@ -19,7 +19,7 @@ Options:
     -h, --help
        print this help
     -v, --verbosity
-        set verbosity level [debug, plusinfo, info, warning, error, critical]
+        set verbosity level [FATAL, SYSTEM, ERROR, WARNING, INFO, STAT, TRIVIAL, DEBUG, EXTRA]
         default=info
     --ptopo 
         Define processor topology, format {NPEX}x{NPEY}x{NOMP}
@@ -57,9 +57,8 @@ Options:
 EOF
 }
 
-
 #==== Parse inline options
-verbosity=info
+verbosity=INFO
 postclean=0
 restart=0
 previous=""
@@ -79,7 +78,7 @@ timeout=""
 while [[ $# -gt 0 ]] ; do
    case $1 in
       (-h|--help) usage_long ; exit 0;;
-      (-v|--verbosity) verbosity=plus ;;
+      (-v|--verbosity) verbosity=TRIVIAL ;;
       (--verbosity=*) verbosity=${1##*=} ;;
       (--postclean) postclean=1 ;;
       (--restart) restart=1 ;;
@@ -416,12 +415,23 @@ runmodel() {
    . ${TASK_SETUP} --file="$model_tsk_file" --base="$model_exp_storage""$myclean""$task_setup_verbose"
    
    #-- Export Mandatory EnvVar
-   export UM_EXEC_VERBOSITY=$verbosity
    export UM_EXEC_NGRIDS=$MPI_NGRIDS
    export UM_EXEC_CONFIG_BASENAME=${model_cfg_filename%.*}
    export UM_EXEC_NDOMAINS=$MPI_DOMS
    export UM_EXEC_TIMEOUT=${timeout:-${UM_EXEC_TIMEOUT}}
    export OMP_NUM_THREADS=$MPI_NOMP
+
+   #-- App control variable
+   export APP_LOG_STREAM=stdout
+   #export APP_LOG_STREAM=sps         # Logfile name
+   #export APP_LOG_SPLIT=TRUE         # Split log per rank
+   unset APP_VERBOSE_COLOR            # Enable/Disable color in log messages
+   export APP_VERBOSE=$verbosity      # Global verbose level (default: INFO)
+   #export APP_VERBOSE_FST=APP_ERROR  # FST specific verbose level
+   export APP_VERBOSE_WB=APP_WARNING # Whiteboard specific verbose level
+   #export APP_VERBOSE_GMM= APP_ERROR  # GMM specific verbose level
+   #export APP_VERBOSE_TIME=MSECOND   # Use milliseconds (usefull to reconstitute all ranks flow)
+   #export APP_VERBOSE_RANK=-1        # Output form all ranks
 
    #-- Run
    cd ${TASK_BASEDIR}

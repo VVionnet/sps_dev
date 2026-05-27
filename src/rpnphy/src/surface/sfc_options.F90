@@ -488,11 +488,15 @@ module sfc_options
    !# (coupling) fluxes over ocean are taken from ocean model if .true.
    logical           :: owflux      = .false.
    namelist /surface_cfgs/ owflux
-
+   
+   !# (CSLM) read-in light extinction coef. for CSLM  if .true.
+   logical           :: read_blak_cslm     = .false.
+   namelist /surface_cfgs/ read_blak_cslm
+   
    !# read-in land surface emissivity if .true.
    logical           :: read_emis     = .false.
    namelist /surface_cfgs/ read_emis
-
+   
    !# (SVS2) read-in height of polar low vegetation for SVS2 if .true.
    logical           :: read_hveglpol     = .false.
    namelist /surface_cfgs/ read_hveglpol
@@ -1158,6 +1162,7 @@ module sfc_options
    !# Height at which to compute anemomenter-level winds (m)
    real              :: zu = 10.
    namelist /surface_cfgs/ zu
+
 
    !# New urban surface parameters within SVS only (not used in TEB)
    logical           :: svs_urban_params = .false.

@@ -14,6 +14,7 @@
 !---------------------------------- LICENCE END ---------------------------------
 !/@*
 function dyn_output_callback(F_step,F_name_s,F_outname_s,F_data3d,F_lijk,F_uijk) result(F_istat)
+   use App
    use clib_itf_mod
    use tdpack, only: GRAV, KNAMS, TCDK
    use gmmx_mod
@@ -47,7 +48,6 @@ function dyn_output_callback(F_step,F_name_s,F_outname_s,F_data3d,F_lijk,F_uijk)
    !*@/
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
-#include <rmn/msg.h>
 
    character(len=4),parameter :: OUTLIST(5) = (/ &
         'p0','gz','tt','uu','vv'/)
@@ -71,7 +71,7 @@ function dyn_output_callback(F_step,F_name_s,F_outname_s,F_data3d,F_lijk,F_uijk)
    case('gz  ') !# convert from m2/s2 AGL to DAM ASL
       F_istat = gmmx_data('MF',mf)
       if (.not.RMN_IS_OK(F_istat)) then
-         call  msg(MSG_WARNING,'(dyn_output_callback) Cannot transform GZ, MF not avail: '//trim(F_name_S)//' (ON='//trim(outname_S)//')')
+         call  Lib_Log(APP_LIBSPSDYN,APP_WARNING,'(dyn_output_callback) Cannot transform GZ, MF not avail: '//trim(F_name_S)//' (ON='//trim(outname_S)//')')
          return
       endif
       do k=F_lijk(3),F_uijk(3)
@@ -89,7 +89,7 @@ function dyn_output_callback(F_step,F_name_s,F_outname_s,F_data3d,F_lijk,F_uijk)
    case default
       return
    end select
-   call msg(MSG_INFOPLUS,'(dyn_output_callback) '//trim(outname_S))
+   call Lib_Log(APP_LIBSPSDYN,APP_TRIVIAL,'(dyn_output_callback) '//trim(outname_S))
    !----------------------------------------------------------------------
    return
 end function dyn_output_callback

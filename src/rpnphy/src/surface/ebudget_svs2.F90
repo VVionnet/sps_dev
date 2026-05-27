@@ -307,7 +307,7 @@ contains
             zqsatsno, tgrst, tgrvst, tflt, esf, esvf, evlf, evhf, &
             tvglst,tvgldt,tvghst,   &
             egf,egvf, ev_vl,ev_vh, zqsatsnv,  &
-            cmu, cm, ctu, vmod_lmin
+            cmu, cm, ctu, vmod_lmin, QSATI_VH
 
        real, dimension(n) ::  ZQSATGRV, ZDQSATGRV, LOWVEG, HIGHVEG,  &
                                ZQSGRV,ZQSVGH, ZA,Z0TEMP,Z0HG,               &
@@ -1082,7 +1082,7 @@ contains
 !          Sublimation rate of intercepted snow in high veg. (for snow_interception_svs2) and applied to intercepted snow in watsurf_budget_svs2
            IF (CANO_REF_FORCING .EQ.'ABV') THEN
 
-              ESN_VH(I) =  VGH_DENS(I) * RHOA(I) * FCANS(I) * (ZQSATVGHT(I) - HU(I)) / (RESA_VH(I)+ RES_SNCA(I)) *(CHLC+CHLF)/LCAN(I)
+              ESN_VH(I) =  VGH_DENS(I) * RHOA(I) * FCANS(I) * (QSATI_VH(I) - HU(I)) / (RESA_VH(I)+ RES_SNCA(I)) *(CHLC+CHLF)/LCAN(I)
 
 !             ESN_VH is limited to SNCMA/DT to avoid negative SNCMA in watsurf_budget_svs2
               ESN_VH(I) = MIN(ESN_VH(I),SNCMA(I)/DT)

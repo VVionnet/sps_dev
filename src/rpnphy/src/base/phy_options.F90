@@ -351,6 +351,16 @@ module phy_options
    namelist /physics_cfgs/ p3_resfact
    namelist /physics_cfgs_p/ p3_resfact
 
+   !# assume P3 works with mixing ratios instead of specififc mass
+   logical         :: p3_mixratio = .true.
+   namelist /physics_cfgs/ p3_mixratio
+   namelist /physics_cfgs_p/ p3_mixratio
+
+   !# apply temperature-tendency adjustment in P3 to improve energy conservation
+   logical         :: p3_msecons = .false.
+   namelist /physics_cfgs/ p3_msecons
+   namelist /physics_cfgs_p/ p3_msecons
+
    !# Semi-Lagrangian Sedimentation for microphysics Thompson
    logical :: thompson_sedi_semilag_L = .true.
    namelist /physics_cfgs/ thompson_sedi_semilag_L

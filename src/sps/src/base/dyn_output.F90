@@ -9,6 +9,7 @@
 
 !/@*
 module dyn_output_mod
+   use App
    use clib_itf_mod
    use wb_itf_mod
    use output_mod
@@ -27,7 +28,6 @@ module dyn_output_mod
 !*@/
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
-#include <rmn/msg.h>
 
 contains
 
@@ -47,11 +47,11 @@ contains
       integer,save :: out_id = -1
       integer :: reduc_core(4),dateo,istat,l_nk
       real(RDOUBLE) :: dt_8
-      character(len=RMN_PATH_LEN) :: basedir_S,config_dir0_S,pwd_S,outcfg_S,dateo_S,msg_S
+      character(len=RMN_PATH_LEN) :: basedir_S,config_dir0_S,pwd_S,outcfg_S,dateo_S,app_msg
       !---------------------------------------------------------------------
       F_istat = RMN_OK
       if (out_id < 0) then
-         call msg(MSG_INFO,'(dyn) Output Init Begin')
+         call Lib_Log(APP_LIBSPSDYN,APP_INFO,'(dyn) Output Init Begin')
          F_istat = min(wb_get('path/config_dir0',config_dir0_S),F_istat)
          F_istat = min(config_cp2localdir(OUTCFG_NAME,config_dir0_S),F_istat)
          F_istat = min(clib_getcwd(pwd_S),F_istat)
@@ -69,10 +69,10 @@ contains
          call collect_error(F_istat)
          if (.not.RMN_IS_OK(F_istat)) then
             out_id  = -1
-            call msg(MSG_ERROR,'(dyn) Output Problem in Init')
+            call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(dyn) Output Problem in Init')
             return
          else
-            call msg(MSG_INFO,'(dyn) Output Init End')
+            call Lib_Log(APP_LIBSPSDYN,APP_INFO,'(dyn) Output Init End')
          endif
          istat = wb_get(WB_LVL_SEC//'nk',l_nk)
          istat = output_set_diag_level(out_id,l_nk)
@@ -80,14 +80,14 @@ contains
 
       F_istat = output_writestep(out_id,F_step,dyn_output_callback)
       call collect_error(F_istat)
-      write(msg_S,'(a,I5.5)') '(dyn) Output Step=',F_step
+      write(app_msg,'(a,I5.5)') '(dyn) Output Step=',F_step
      if (F_istat == 0) then
-         call msg(MSG_INFO,trim(msg_S)//' No Output')
+         call Lib_Log(APP_LIBSPSDYN,APP_INFO,trim(app_msg)//' No Output')
       else if (F_istat > 0) then
-         write(msg_S,'(a,I5)') trim(msg_S)//' Wrote nvar=',F_istat
-         call msg(MSG_INFO,trim(msg_S))
+         write(app_msg,'(a,I5)') trim(app_msg)//' Wrote nvar=',F_istat
+         call Lib_Log(APP_LIBSPSDYN,APP_INFO,trim(app_msg))
       else
-         call msg(MSG_INFO,trim(msg_S)//' End with problems')
+         call Lib_Log(APP_LIBSPSDYN,APP_INFO,trim(app_msg)//' End with problems')
       endif
       !---------------------------------------------------------------------
       return

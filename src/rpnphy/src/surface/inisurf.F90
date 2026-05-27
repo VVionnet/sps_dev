@@ -68,7 +68,7 @@ subroutine inisurf4(pvars, kount, ni, nk)
 
    include "isbapar.cdk"
    include "sfcinput.cdk"
-   !include "cslm.cdk"
+   include "cslm.cdk"
 
    real, parameter :: z0ice = 0.001
    real, parameter :: z0sea = 0.001
@@ -117,6 +117,8 @@ subroutine inisurf4(pvars, kount, ni, nk)
 
    MKPTR1D(zagingcoef,agingcoef)
    MKPTR1D(zagingcoefen,agingcoefen)
+   MKPTR1D(zblak,blak)
+   MKPTR1D(zblaken,blaken)
    MKPTR1D(zdrainaf,drainaf)
    MKPTR1D(zemisr,emisr)
    MKPTR1D(zemistg,emistg)
@@ -826,7 +828,27 @@ subroutine inisurf4(pvars, kount, ni, nk)
    if (kount == 0 .and. schmurb == 'TEB') &
         call initown3(pvars, ni)
 
+   
+   !========================================================================
+   !                             for CSLM only
+   !========================================================================
+   if (kount == 0 .and. schmlake == 'CSLM') then
+        
+      if ( read_blak_cslm ) then
+         if (any('blaken' == phyinread_list_s(1:phyinread_n))) then
+            do i=1,ni
+               zblak(i)         = zblaken(i)
+            end do
+         endif
+      else
+         do i=1,ni
+            zblak(i)         = BLAKCON
+         end do
+      endif
+   endif
+  
    return
+   
 end subroutine inisurf4
 
 end module inisurf

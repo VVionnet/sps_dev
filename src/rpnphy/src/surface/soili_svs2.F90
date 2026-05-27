@@ -42,9 +42,9 @@ contains
 
 !
       INTEGER N 
-      REAL WD(N,NL_SVS),WF(N,NL_SVS)
+      REAL WD(N,NL_SVS),WF(N,NL_SVS), theta, P
 
-      REAL SNM(N), RHOS(N)
+      REAL SNM(N), RHOS(N), TFL(N)
       REAL RHOSV(N), Z0MVH(N), VEGH(N), VEGL(N), SVM(N)
       REAL CGSAT(N), WSAT(N,NL_SVS), WWILT(N,NL_SVS), BCOEF(N,NL_SVS)
       REAL Z0(N), WFL(N), WFL_ICE(N)

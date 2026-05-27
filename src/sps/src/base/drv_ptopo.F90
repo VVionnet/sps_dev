@@ -53,7 +53,6 @@ module drv_ptopo_mod
 !*@/
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
-#include <rmn/msg.h>
 
    !- privates vars and parameters
    character(len=*),parameter :: status_file_name_S = 'status_drv.dot'
@@ -65,6 +64,7 @@ contains
 
    !/@*
     function drv_ptopo_init(F_ngrids) result(F_istat)
+      use App
       implicit none
       !@objective Initialize processor topology
       !@argument
@@ -83,19 +83,20 @@ contains
       logical,save :: ptopo_is_init_L = .false.
 
       integer :: istat,ngrids,npex,npey,igrid,myproc,numproc,nblocx,nblocy,mydomain,ndomains
-      character(len=RMN_PATH_LEN) :: tmp_S
 
       integer,external :: rpn_comm_init_multi_level
       external :: drv_ptopo_ndoms,drv_ptopo_p0 !- call back s/r to define: ndomains, mydomain, npex,npey
       !---------------------------------------------------------------------
-      call msg(MSG_DEBUG,'[BEGIN] drv_ptopo_init')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[BEGIN] drv_ptopo_init')
+
       F_istat = RMN_ERR
       if (ptopo_is_init_L) return
       F_istat = RMN_OK
-
+      
       !- RPN_COMM [MPI] and OpenMP Initialization
       call rpn_comm_mydomain(drv_ptopo_ndoms, mydomain) !- UM_EXEC_NDOMAINS
       ndomains = 1
+
       istat = wb_get('ptopo_cfgs/ndomains',ndomains)
 !!$      call rpn_comm_bcast(ndomains,1,RPN_COMM_INTEGER,RPN_COMM_MASTER, &
 !!$           RPN_COMM_GRID,istat) !TODO-later: is this needed? is drv_ptopo_ndoms called on all pe?
@@ -112,7 +113,7 @@ contains
 !!$      igrid = rpn_comm_init_multigrid(drv_ptopo_p0,myproc,numproc,npex,npey,ngrids)
       F_istat = min(F_istat,igrid)
       if (.not.RMN_IS_OK(F_istat)) then
-         call msg(MSG_ERROR,'(drv_ptopo_init) Problem in rpn_comm_init_multi_level')
+         call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(drv_ptopo_init) Problem in rpn_comm_init_multi_level')
          return
       endif
  
@@ -130,12 +131,12 @@ contains
       istat = drv_path_set(mydomain,ngrids,igrid,ptopo_grid_ipex,ptopo_grid_ipey)
       istat = clib_chdir(trim(drv_path_work_S))
 
-      write(tmp_S,'(a,4i6)') '(drv_ptopo_init) idomain,igrid,ipex,ipey:',&
+      write(app_msg,'(a,4i6)') '(drv_ptopo_init) idomain,igrid,ipex,ipey:',&
            ptopo_world_idom,ptopo_dom_igrid,ptopo_grid_ipex,ptopo_grid_ipey
-      call msg(MSG_INFO,tmp_S)
+      call Lib_Log(APP_LIBSPSDYN,APP_INFO,app_msg)
 
       ptopo_is_init_L = (RMN_IS_OK(F_istat))
-      call msg(MSG_DEBUG,'[END] drv_ptopo_init')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[END] drv_ptopo_init')
       !---------------------------------------------------------------------
       return
    end function drv_ptopo_init
@@ -177,8 +178,10 @@ contains
 !!$   end function ptopo_setdir
 
 
+
    !/@*
    subroutine drv_ptopo_terminate(F_status_S)
+      use App
       implicit none
       !@objective Finalize... the MPI way
       !@arguments
@@ -188,7 +191,6 @@ contains
       !  Ron McTaggart-Cowan, Feb 2008
       !  Stephane Chamberland, Feb 2008
    !*@/
-      logical,parameter :: IS_BEGIN_L = .true.
       character(len=64) :: status_S,model_name_S
       integer :: istat
       !---------------------------------------------------------------------
@@ -196,16 +198,7 @@ contains
       if (present(F_status_S)) status_S = F_status_S
       call write_status_file3('_status='//trim(status_S))
       call close_status_file3()
-  
-      call drv_print_banner(.not.IS_BEGIN_L)
 
-      istat = wb_get('ATM_MODEL_NAME',model_name_S)
-      if (.not.RMN_IS_OK(istat)) &
-           istat = clib_getenv('ATM_MODEL_NAME',model_name_S)
-      if (.not.RMN_IS_OK(istat)) model_name_S = '(unknown name)'
-      call stop_mpi(RMN_OK,trim(model_name_S),'Normal Ending')
-!!$      call rpn_comm_barrier(RPN_COMM_WORLD, istat)
-!!$      call rpn_comm_finalize(istat)
       !---------------------------------------------------------------------
       return
    end subroutine drv_ptopo_terminate

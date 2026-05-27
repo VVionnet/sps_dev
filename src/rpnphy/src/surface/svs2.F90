@@ -408,6 +408,7 @@ subroutine svs2(BUS, BUSSIZ, PTSURF, PTSURFSIZ, DT, KOUNT, TRNCH, N, M, NK)
              PHVEGAPOL_V(I) = 0. ! Effect of basal vegetation on snowpack properties are not taken into account in high vegetation. 
              PFCANS(I) = 0.
              PSCAP(I) = 0.
+             PSCAP_MIN(I) = 0.
              PRES_SNCA(I) = 0.
 
             ! TO BE CHECKED======================
@@ -918,7 +919,8 @@ subroutine svs2(BUS, BUSSIZ, PTSURF, PTSURFSIZ, DT, KOUNT, TRNCH, N, M, NK)
            bus(x(wfcdp   ,1,1)), bus(x(watflow ,1,1)),&
            bus(x(latflw  ,1,1)),bus(x(runofftot ,1,indx_soil)), &
            bus(x(watpond ,1,1)),bus(x(maxpond ,1,1)), &
-           N)
+           bus(x(frzdepth ,1,1)), bus(x(frzthick ,1,1)), &
+           bus(x(thwdepth ,1,1)), N)
 
       IF( USE_PHOTO ) THEN
 

@@ -34,7 +34,6 @@ module drv_grid_mod
 !*@/
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
-#include <rmn/msg.h>
 
    include "drv_dyn_itf.inc"
 
@@ -48,6 +47,7 @@ contains
 
    !/@*
    function drv_grid_config(F_cfg_basename_S) result(F_istat)
+      use App
       implicit none
       !@objective Read grid config from file to WB
       !@arguments
@@ -58,9 +58,9 @@ contains
       !  Stephane Chamberland, Feb 2008
    !*@/
       !---------------------------------------------------------------------
-      call msg(MSG_DEBUG,'[BEGIN] grid_config')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[BEGIN] grid_config')
       F_istat = config_read(F_cfg_basename_S,'grid_cfgs')
-      call msg(MSG_DEBUG,'[END] grid_config')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[END] grid_config')
       !---------------------------------------------------------------------
       return
    end function drv_grid_config
@@ -68,6 +68,7 @@ contains
 
    !/@*
    function drv_grid_init() result(F_istat)
+      use App
       implicit none
       !@objective Initialize grid configuration
       !@returns
@@ -80,14 +81,14 @@ contains
       !  2012-02, Stephane Chamberland: RPNPhy offline
    !*@/
       integer,external :: gdll
-      integer  :: G_ni,G_nj,G_grid_id,istat,gid,i0,j0,in,jn,hx,hy,grid_id2
+      integer  :: G_ni,G_nj,G_grid_id,istat,gid,i0,j0,in,jn,hx,hy,grid_id2,rnk
       integer  :: G_halox,G_haloy,iperiodx,iperiody
       logical  :: G_periodx,G_periody
       character(len=256) :: tmp_S
       real,pointer,dimension(:,:) :: dxdy !#,lat,lon
       type(gmm_metadata) :: mymeta
       !---------------------------------------------------------------------
-      call msg(MSG_DEBUG,'[BEGIN] grid_init')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[BEGIN] grid_init')
       F_istat =  dyn_grid_init(G_ni,G_nj,G_halox,G_haloy,G_periodx,G_periody,G_grid_id)
       F_istat =  min(priv_init(G_ni,G_nj,G_halox,G_haloy),F_istat)
 
@@ -97,10 +98,9 @@ contains
               "] [l_ni,l_nj=",l_ni,l_nj,"] [l_i0,l_j0=",l_i0,l_j0, &
               "] [hx,hy=",G_halox,G_haloy,"] [periodx,y=", &
               G_periodx,G_periody,"]"
-!!$      call msg(MSG_INFO,tmp_S)
-         call msg_toall(MSG_INFO,tmp_S)
+         call App_LogAllRanks(APP_INFO,tmp_S)
       else
-         call msg(MSG_ERROR,'(drv_grid) Problem in Initialisation')
+         call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(drv_grid) Problem in Initialisation')
       endif
 
       F_istat = min(dyn_grid_post_init(l_minx,l_maxx,l_miny,l_maxy,l_ni,l_nj),F_istat)
@@ -154,7 +154,7 @@ contains
 !!$      else
 !!$         F_istat = min(dyn_lat_lon(lat,lon),F_istat)
 !!$      endif
-      call msg(MSG_DEBUG,'[BEGIN] grid_init')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[BEGIN] grid_init')
       !---------------------------------------------------------------------
       return
    end function drv_grid_init
@@ -162,6 +162,7 @@ contains
 
    !/@*
    function priv_init(G_ni,G_nj,G_halox,G_haloy) result(F_istat)
+      use App
       implicit none
       !@objective Initialize Grid configuration
       !@arguments
@@ -176,7 +177,7 @@ contains
    !*@/
       integer :: G_lnimax,G_lnjmax
       !---------------------------------------------------------------------
-      call msg(MSG_DEBUG,'[BEGIN] grid_init')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[BEGIN] grid_init')
       F_istat = RMN_OK
       !TODO-later: check that ptopo_init [or at least rpn_comm_init] is already done, if not error
 
@@ -188,7 +189,7 @@ contains
 
       !TODO-later: check_partition
 
-      call msg(MSG_DEBUG,'[END] grid_init')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'[END] grid_init')
       !---------------------------------------------------------------------
       return
    end function priv_init

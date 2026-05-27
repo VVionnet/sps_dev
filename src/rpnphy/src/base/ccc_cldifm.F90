@@ -8,7 +8,7 @@ contains
 
       subroutine ccc_cldifm1 (cldmin, cldmax, anu, a1, ncd, &
                          ncu, nblk, nct, ncum, ncdm, &
-                         cldfrac, pfull, mrk2, lev1, cut, maxc, &
+                         cldfrac, strfr, pfull, mrk2, lev1, cut, maxc, &
                          il1, il2, ilg, lay, lev)
         use ens_perturb, only: ens_nc2d, ens_spp_get
         use phy_options
@@ -108,6 +108,10 @@ contains
           else
             anu(i,k) = rad_anu(5)
           endif
+          if (all(rad_anuexp >= 0.) .and. associated(strfr)) then
+             if (strfr(i,k) >= rad_anuexp(1)) anu(i,k)=rad_anuexp(2)
+          endif
+
           anu(i,k) = anu(i,k) * anumult(i)
 
 !----------------------------------------------------------------------

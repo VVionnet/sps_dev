@@ -161,6 +161,12 @@ include "isbapar.cdk"
       IF (SVS_URBAN_PARAMS) THEN
          CVAMIN = 0.3E-5   ! matches value of CVDAT(21) reset in inicover_svs.F90
       ENDIF
+
+      IF(SVS_SNOWFRAC_GROUND=='LA23' .AND.  VF_TYPE .eq. 'CCILC_WE') THEN
+         COEF1 = (Z0MAX_LA23-Z0MIN_LA23)/(0.15**Z0EXP_LA23 - 0.01**Z0EXP_LA23)
+         COEF2 = Z0MIN_LA23 - COEF1 * 0.01**Z0EXP_LA23
+      ENDIF
+
 !
 !***********************************************************************
 !
@@ -523,6 +529,21 @@ include "isbapar.cdk"
 !                       database unto model layer, use 1st layer texture from 
 !                       database as is here... 
 !
+
+      IF(LMODWSAT_ICE_SVS1) THEN              
+         DO I=1,N
+            !Adjust wsat for presence of ice as
+            WSATC(I)= MAX((WSAT(I,1)-WF(I,1)-0.00001), CRITWATER)
+            !Wilting point with respect to the liquid water using modified soil porosity
+            WWILT_EFF(I) = WWILT(I,1) * WSATC(I)/WSAT(I,1)
+         END DO
+      ELSE
+         DO I=1,N
+            WSATC(I) = WSAT(I,1)
+            WWILT_EFF(I) = WWILT(I,1) 
+         END DO
+      ENDIF
+      
       DO I=1,N
 !        A few constraints
 !	     Take the texture of the surface soil layer 
@@ -534,8 +555,8 @@ include "isbapar.cdk"
 !                      If  superficial soil layer dryer than wilting point
 !                      set it to wilting points ...and so get 0.0 for B(I)
 !
-         IF((WSAT(I,1)-WWILT(I,1)).gt.0.0.and.WD(I,1).ge.WWILT(I,1)) THEN         
-            B(I) = ( WD(I,1) - WWILT(I,1) ) / ( WSAT(I,1) - WWILT(I,1))
+         IF((WSATC(I)-WWILT_EFF(I)).gt.0.0.and.WD(I,1).ge.WWILT_EFF(I)) THEN         
+            B(I) = ( WD(I,1) - WWILT_EFF(I) ) / ( WSATC(I) - WWILT_EFF(I))
          ELSE
             B(I) = 0.0 
          ENDIF
