@@ -4,15 +4,15 @@
 # - Delete the build and work directories for the specific architecture and compiler versions
 #   according to the existence or not of the storage_model environment variable
 
-if [ -n "${GEM_STORAGE_DIR}" -a -n "${GEM_ARCH}" -a -n "${GEM_WORK}" ] ; then
+if [ -n "${SPS_STORAGE_DIR}" -a -n "${SPS_ARCH}" -a -n "${SPS_WORK}" ] ; then
     if [ -n "${storage_model}" ] ; then
-        /bin/rm -rf ${GEM_STORAGE_DIR} build-${GEM_ARCH} ${GEM_WORK}
-        echo "Deleting ${GEM_STORAGE_DIR} build-${GEM_ARCH} ${GEM_WORK}"
+        /bin/rm -rf ${SPS_STORAGE_DIR} build-${SPS_ARCH} ${SPS_WORK}
+        echo "Deleting ${SPS_STORAGE_DIR} build-${SPS_ARCH} ${SPS_WORK}"
     else
-        /bin/rm -rf build-${GEM_ARCH} ${GEM_WORK}
-        echo "Deleting build-${GEM_ARCH} ${GEM_WORK}"
+        /bin/rm -rf build-${SPS_ARCH} ${SPS_WORK}
+        echo "Deleting build-${SPS_ARCH} ${SPS_WORK}"
     fi
 else
-    echo "GEM environment variables not set! Don't know which build and work directories should be deleted."
+    echo "SPS environment variables not set! Don't know which build and work directories should be deleted."
     echo "Make sure you use .common_setup script first."
 fi

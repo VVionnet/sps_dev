@@ -9,6 +9,7 @@
 
 !>
 module dyn_input_mod
+   use App
    use, intrinsic :: iso_fortran_env, only: REAL64, INT64
    use rmn_gmm
    use clib_itf_mod
@@ -36,7 +37,6 @@ module dyn_input_mod
 !**/
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
-#include <rmn/msg.h>
 
    real,parameter :: MB2PA =  100.
    real,parameter :: DAM2M =  10.
@@ -73,7 +73,7 @@ contains
       integer,save :: gridid,dateo
       real(RDOUBLE),save :: dt_8
       character(len=RMN_PATH_LEN),save :: incfg_S,basedir_S
-      character(len=RMN_PATH_LEN) :: msg_S,pwd_S,config_dir0_S,dateo_S
+      character(len=RMN_PATH_LEN) :: app_msg,pwd_S,config_dir0_S,dateo_S
       !---------------------------------------------------------------------
       F_istat = RMN_OK
       if (.not.is_init_L) then
@@ -90,8 +90,8 @@ contains
       endif
       call collect_error(F_istat)
       if (.not.RMN_IS_OK(F_istat)) then
-         write(msg_S,'(a,I5.5)') '(dyn_input) Step=',F_step
-         call msg(MSG_ERROR,trim(msg_S)//' End with Problems in Init')
+         write(app_msg,'(a,I5.5)') '(dyn_input) Step=',F_step
+         call Lib_Log(APP_LIBSPSDYN,APP_ERROR,trim(app_msg)//' End with Problems in Init')
          return
       endif
       F_istat = dyn_input0(dateo,nint(dt_8),F_step,gridid,incfg_S,basedir_S)
@@ -127,7 +127,7 @@ contains
       integer :: ivar,istat,nread,nk_max
       character(len=4) :: inname_S,inname2_S,bus_S
       character(len=32) :: name_S,name2_S,horiz_interp_S,readlist_S(MAXNVAR),vgrid_S
-      character(len=512) :: dummylist_S(10),msg_S,geofilename_S
+      character(len=512) :: dummylist_S(10),app_msg,geofilename_S
       real,pointer :: data(:,:,:),data2(:,:,:)
 !!$      integer,pointer :: ip1_m1(:)
       integer, target :: ip1_m1(1),ip1_t1(1)
@@ -137,8 +137,8 @@ contains
       type(vgrid_descriptor) :: vgridm, vgridt
       !---------------------------------------------------------------------
       F_istat = RMN_OK
-      write(msg_S,'(a,I5.5)') '(dyn_input) Step=',F_step
-      call msg(MSG_INFO,trim(msg_S)//' Begin')
+      write(app_msg,'(a,I5.5)') '(dyn_input) Step=',F_step
+      call Lib_Log(APP_LIBSPSDYN,APP_INFO,trim(app_msg)//' Begin')
 
       !TODO: split into init/read
       nk_max = NK_MAX1 !# Note: limite operations to nk-1:nk (speed optimiz)
@@ -175,7 +175,7 @@ contains
 !!$         inputid = input_new(F_dateo,F_dt,F_incfg_S,ip1_m1)
          inputid = input_new(F_dateo,F_dt,F_incfg_S)
          if (.not.RMN_IS_OK(min(inputid,istat))) then
-            call msg(MSG_ERROR,'(dyn_input) problem with dyn_input init')
+            call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(dyn_input) problem with dyn_input init')
             istat = RMN_ERR
          else
             nbvar = input_nbvar(inputid)
@@ -207,7 +207,7 @@ contains
       endif IF_INIT
       call collect_error(F_istat)
       if (.not.RMN_IS_OK(F_istat)) then
-         call msg(MSG_ERROR,trim(msg_S)//' End with Problems in Init')
+         call Lib_Log(APP_LIBSPSDYN,APP_ERROR,trim(app_msg)//' End with Problems in Init')
          return
       endif
 
@@ -225,11 +225,11 @@ contains
          istat = input_meta(inputid,ivar,inname_S,inname2_S,dummylist_S,horiz_interp_S)
          if (.not.RMN_IS_OK(istat)) then
             F_istat = RMN_ERR
-            call msg(MSG_ERROR,'(dyn_input) problem getting input varname')
+            call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(dyn_input) problem getting input varname')
             cycle VARLOOP
          endif
          if (any(inname_S == skip_list_S(1:nskip))) then
-            call msg(MSG_INFO,'(dyn_input) ignoring var: '//trim(inname_S))
+            call Lib_Log(APP_LIBSPSDYN,APP_INFO,'(dyn_input) ignoring var: '//trim(inname_S))
             cycle VARLOOP !var not needed
          endif
          name_S = ' '
@@ -237,13 +237,13 @@ contains
          bus_S = 'g'
          istat = gmmx_meta(name_S,F_namein_S=inname_S,F_vb_S=bus_S, F_vgrid_S=vgrid_S)
          if (name_S == '') then
-            call msg(MSG_INFO,'(dyn_input) ignoring var: '//trim(inname_S)//' : '//trim(inname2_S))
+            call Lib_Log(APP_LIBSPSDYN,APP_INFO,'(dyn_input) ignoring var: '//trim(inname_S)//' : '//trim(inname2_S))
             cycle VARLOOP !var not needed
          endif
          if (inname2_S /= ' ') then
             istat = gmmx_meta(name2_S,F_namein_S=inname2_S,F_vb_S=bus_S)
             if (name2_S == '') then
-               call msg(MSG_INFO,'(dyn_input) ignoring var: '//trim(inname_S)//' : '//trim(inname2_S))
+               call Lib_Log(APP_LIBSPSDYN,APP_INFO,'(dyn_input) ignoring var: '//trim(inname_S)//' : '//trim(inname2_S))
                cycle VARLOOP !var not needed
             endif
          endif
@@ -261,13 +261,13 @@ contains
          call collect_error(istat)
          if (.not.(RMN_IS_OK(istat) .and. associated(data))) then
             if (any(name_S == optional_list_S)) then
-               call msg(MSG_WARNING,'(dyn_input) missing optional var: '//trim(inname_S)//' : '//trim(name_S))
+               call Lib_Log(APP_LIBSPSDYN,APP_WARNING,'(dyn_input) missing optional var: '//trim(inname_S)//' : '//trim(name_S))
                cycle VARLOOP
             endif
             F_istat = RMN_ERR
-            call msg(MSG_ERROR,'(dyn_input) missing var: '//trim(inname_S)//' : '//trim(name_S))
+            call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(dyn_input) missing var: '//trim(inname_S)//' : '//trim(name_S))
             if (inname2_S /= ' ' .and. .not.associated(data2)) &
-                 call msg(MSG_ERROR,'(dyn_input) missing var: '//trim(inname2_S)//' : '//trim(name2_S))
+                 call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(dyn_input) missing var: '//trim(inname2_S)//' : '//trim(name2_S))
             if (associated(data)) deallocate(data,stat=istat)
             if (associated(data2)) deallocate(data2,stat=istat)
            cycle VARLOOP
@@ -301,9 +301,9 @@ contains
       istat = wb_put('dyn/nreadlist',nread,WB_REWRITE_MANY)
 
       if (RMN_IS_OK(F_istat)) then
-         call msg(MSG_INFO,trim(msg_S)//' End OK')
+         call Lib_Log(APP_LIBSPSDYN,APP_INFO,trim(app_msg)//' End OK')
       else
-         call msg(MSG_ERROR,trim(msg_S)//' End with Problems')
+         call Lib_Log(APP_LIBSPSDYN,APP_ERROR,trim(app_msg)//' End with Problems')
       endif
       !---------------------------------------------------------------------
       return
@@ -327,7 +327,7 @@ contains
       if (.not.(RMN_IS_OK(my_istat) .and. associated(gmmdata2d))) then
          my_istat = gmmx_data(my_name_S,gmmdata3d,NOPRINT)
          if (.not.(RMN_IS_OK(my_istat) .and. associated(gmmdata3d))) then
-            call msg(MSG_ERROR,'(dyn_input) Problem getting GMM ptr for var: '//trim(my_inname_S)//' : '//trim(my_name_S))
+            call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(dyn_input) Problem getting GMM ptr for var: '//trim(my_inname_S)//' : '//trim(my_name_S))
             nullify(gmmdata2d,gmmdata3d)
             return
          endif
@@ -355,11 +355,11 @@ contains
 !!$           .or. k0 > minijkg(3) .or. kn < maxijkg(3) &
            ) then
          my_istat = RMN_ERR
-         call msg(MSG_ERROR,'(dyn_input) size mismatch: '//trim(my_inname_S)//' : '//trim(my_name_S))
+         call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(dyn_input) size mismatch: '//trim(my_inname_S)//' : '//trim(my_name_S))
          return
       endif
 
-      call msg(MSG_INFOPLUS,'(dyn_input) Copy: IN='//trim(my_inname_S)//' > GMM='//trim(my_name_S))
+      call Lib_Log(APP_LIBSPSDYN,APP_TRIVIAL,'(dyn_input) Copy: IN='//trim(my_inname_S)//' > GMM='//trim(my_name_S))
       if (associated(gmmdata2d)) then
          gmmdata2d(1:lni,1:lnj) = my_data(1:lni,1:lnj,1)
       else
@@ -407,7 +407,7 @@ contains
       case default
          return
       end select
-      call msg(MSG_INFOPLUS,'(dyn_input) simple_transform '//trim(inname2_S))
+      call Lib_Log(APP_LIBSPSDYN,APP_TRIVIAL,'(dyn_input) simple_transform '//trim(inname2_S))
       !---------------------------------------------------------------------
       return
    end function dyn_simple_transform
@@ -442,7 +442,7 @@ contains
       character(len=256) :: vardesc_S,desc_S
       type(phymeta), pointer :: mymetalist(:)
       !---------------------------------------------------------------------
-      call msg(MSG_DEBUG,'(dyn_input) dyn_create_vars [BEGIN]')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'(dyn_input) dyn_create_vars [BEGIN]')
       F_istat = RMN_OK
       if (is_init_L) return
       is_init_L = .true.
@@ -452,7 +452,7 @@ contains
 !!$      nvars = phy_getmeta(mymetalist,' ',F_npath='V',F_bpath='D',F_maxmeta=512,F_quiet=.true.,F_shortmatch=.true.)
       nvars = phy_getmeta(mymetalist,' ',F_npath='V',F_bpath='D',F_maxmeta=512,F_quiet=.true.)
       if (nvars <= 0) then
-         call msg(MSG_ERROR,'(dyn_input) Problem getting Phy D-bus var list in dyn_create_vars')
+         call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(dyn_input) Problem getting Phy D-bus var list in dyn_create_vars')
          F_istat = RMN_ERR
          return
       endif
@@ -483,7 +483,7 @@ contains
       do ivar = 1,NVARLIST
          F_istat = min(gmmx_new(VARLIST(ivar),GMM_FLAG_RSTR+GMM_FLAG_IZER),F_istat)
       enddo
-      call msg(MSG_DEBUG,'(dyn_input) dyn_create_vars [END]')
+      call Lib_Log(APP_LIBSPSDYN,APP_DEBUG,'(dyn_input) dyn_create_vars [END]')
       !---------------------------------------------------------------------
       return
    end function dyn_create_vars

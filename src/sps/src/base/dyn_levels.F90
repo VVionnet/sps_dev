@@ -9,6 +9,7 @@
 
 !/@*
 module dyn_levels_mod
+   use App
    use wb_itf_mod
    use vGrid_Descriptors
    use vgrid_wb
@@ -26,7 +27,6 @@ module dyn_levels_mod
 !*@/
 !!!#include <arch_specific.hf>
 #include <rmnlib_basics.hf>
-#include <rmn/msg.h>
 
    character(len=*),parameter :: WB_LVL_SEC = 'levels_cfgs/'
    integer,parameter :: MAX_LEVELS = 1024
@@ -48,7 +48,7 @@ contains
       !@description
    !*@/
       character(len=32) :: Lvl_typ_S,tmp_S
-      integer :: istat,istat2,Lvl_nk,nlvls,nrcoef,nn,n2(1),lvl_kind,lvl_version,msgUnit,iverb
+      integer :: istat,istat2,Lvl_nk,nlvls,nrcoef,nn,n2(1),lvl_kind,lvl_version,iverb
       real :: Lvl_list(MAX_LEVELS),Lvl_rcoef(2)
       real(RDOUBLE) :: Lvl_ptop_8,Lvl_pref_8,tmp_8
       !---------------------------------------------------------------------
@@ -75,7 +75,7 @@ contains
       F_nk = n2(1) - 1
 
       if (F_nk < 1) then
-          call msg(MSG_INFO,'(dyn_levels) Forcing at zua, zta <= 10m heights. Forcing level set to 0.999')
+          call Lib_Log(APP_LIBSPSDYN,APP_INFO,'(dyn_levels) Forcing at zua, zta <= 10m heights. Forcing level set to 0.999')
           Lvl_list(1) = 0.999
           F_nk = 1
       endif
@@ -111,7 +111,7 @@ contains
 
          F_stag_L = .false.
          if (Lvl_typ_S == 'HN') then
-            call msg(MSG_ERROR,'(dyn_levels) Not yet supported Lvl_typ_S='//trim(Lvl_typ_S))
+            call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(dyn_levels) Not yet supported Lvl_typ_S='//trim(Lvl_typ_S))
 !!$            lvl_kind = VGRID_HYBN_KIND
 !!$            lvl_version = VGRID_HYBN_VER
          endif
@@ -132,18 +132,16 @@ contains
       endif IF_TYP
 
       if (.not.RMN_IS_OK(lvl_kind)) then
-         call msg(MSG_ERROR,'(dyn_levels) Unknown Lvl_typ_S='//trim(Lvl_typ_S))
+         call Lib_Log(APP_LIBSPSDYN,APP_ERROR,'(dyn_levels) Unknown Lvl_typ_S='//trim(Lvl_typ_S))
          F_istat = RMN_ERR
          return
       endif
 
       write(tmp_S,'(i4)') F_nk
       tmp_S = adjustl(tmp_S)
-      msgUnit = msg_getUnit(MSG_INFO)
-      if (msgUnit >= 0) then
-         write(msgUnit,'(a," [type=",a,"] [stag=",l2,"] [surf_k=",i2,"] [nk=",i4,"] Lvl_list=",'//trim(tmp_S)//'(f10.7,","))') '(dyn_levels)',Lvl_typ_S(1:2),F_stag_L,F_surf_idx,F_nk,lvl_list(1:F_nk)
-         call flush(msgUnit)
-      endif
+      write(app_msg,'(a," [type=",a,"] [stag=",l2,"] [surf_k=",i2,"] [nk=",i4,"] Lvl_list=",'//trim(tmp_S)//'(f10.7,","))') '(dyn_levels)',Lvl_typ_S(1:2),F_stag_L,F_surf_idx,F_nk,lvl_list(1:F_nk)
+      call Lib_Log(APP_LIBSPSDYN,APP_INFO,app_msg)
+
       !---------------------------------------------------------------------
       return
    end function dyn_levels_init

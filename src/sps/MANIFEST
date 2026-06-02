@@ -1,6 +1,7 @@
 NAME       : spsdyn
-VERSION    : 6.3.0-a20
+VERSION    : 6.3.0-a23
 BUILD      : 
 DESCRIPTION: SPS dynamical core
 SUMMARY    : 
 MAINTAINER : Vivian Lee - Vivian.Lee@ec.gc.ca
+URL        : https://gitlab.science.gc.ca/MIG/sps
