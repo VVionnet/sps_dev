@@ -1,114 +1,107 @@
 # Note to CMC users
 
-Please use the official repository. This repo is configured for external users.
+Please use the official internal repository. This repository is intended for
+external users.
 
-# Instructions in a nutshell
+# Quick Start Guide
 
-**See below for extended instructions.**
+**See the extended instructions below for additional details.**
 
 ## Requirements
 
-To compile and run SPS, you will need:
 - Fortran and C compilers
-- An MPI implementation such as OpenMPI (with development package),
-- OpenMP support (optional)
-- (BLAS,LAPACK) or equivalent mathematical/scientific library (ie: MKL), with development package,
-- basic Unix utilities such as cmake (version 3.20 minimum), bash, sed, etc.
+- MPI implementation (e.g. OpenMPI + dev packages)
+- Optional: OpenMP
+- Numerical libraries (BLAS/LAPACK or MKL)
+- Unix tools: cmake (≥ 3.20), bash, sed
+
+
+### 1. Clone the repository
 
 ```
-# clone everything, including libraries and tools included as git submodules
 git clone --branch 6.3 --recursive https://github.com/ECCC-ASTD-MRD/sps.git
 cd sps
 
 # If you cloned without the --recursive option above, update submodules:
 git submodule update --init --recursive
+```
 
-# Download the data files required to run SPS (around 3 GB)
+### 2. Download required data  (~3 GB)
+
+```
 ./download-dbase.sh .
+```
 
-# Important: in order to set environment variables needed to run SPS, use the
-# following setup file, after setting up your compiler environment:
+### 3. Configure environment (depending on the compiler)
+
+```
 . ./.common_setup gnu
 # or
 . ./.common_setup intel
-	
-# Method 1 - Create a build directory
-# The build directory has very little value in itself and can be placed
-# outside the project directory
+```
+
+### 4. Build
+
+*Option A - Standard CMake*
+
+```
 mkdir -p build
 cd build
-# default compiler is gnu
 cmake ..
-# Create an execution environment for SPS
 make -j work
+```
 
-# Method 2 - Alternatively, you can use a script that will create a build
-# and work directory named after the computer operating system and the
-# compiler suite used, without having to create a build directory as
-# mentioned in Method 1 above.  In that case, you can then use the cado
-# script, using the commands cado cmake and cado work -j directly, without
-# having to move to the build directory:
-# in the main directory:
+*Option B - Helper scripts*
+
+```
 . ./.initial_setup
 cado cmake
 cado work -j
-
-# Either with Method 1 or 2, you should now have a work directory in the
-# main directory of sps, created with a name in the form of: 
-# work-[OS_NAME]-[COMPILER_NAME]
-cd work-[OS_NAME]-[COMPILER_NAME]
-or 
-cd $SPS_WORK
-
-# Run the model, for example:
-sps.sh --dircfg configurations/SPS_cfgs --ptopo 2x2x1 --inorder
-
-# To see or list the records in the output files, use either of our tools, 
-# voir, fststat, SPI or xrec, available in other repositories:
-
-voir -iment RUNMOD/output/cfg_0000/ ...
-fststat -fst RUNMOD/output/cfg_0000/ ...
 ```
 
-voir and fststat are available here:
-https://github.com/ECCC-ASTD-MRD/fst-tools
+### 5. Run
 
-[SPI](https://github.com/ECCC-ASTD-MRD/SPI) can be used to view the output
-files.
+```
+cd $SPS_WORK
+sps.sh --dircfg configurations/SPS_cfgs --ptopo 2x2x1 --inorder
+```
 
-2D fields can also be displayed with
-[xrec](https://github.com/ECCC-ASTD-MRD/xrec)
+### 6. Inspect output
+
+To see or list the records in the output files, use either of our tools, 
+voir, fststat, SPI or xrec, available in other repositories:
+
+```
+voir -iment RUNMOD/output/cfg_0000/ ...  
+fststat -fst RUNMOD/output/cfg_0000/ ...  
+xrec -imflds RUNMOD/output/cfg_0000/ ...  
+```
+
+fst-tools: https://github.com/ECCC-ASTD-MRD/fst-tools  
+SPI: https://github.com/ECCC-ASTD-MRD/SPI-Bundle  
+xrec: https://github.com/ECCC-ASTD-MRD/xrec  
+
 
 -----------------------------------------------------------------
 # Extended instructions:
 
-## Requirements
+## Compiler support
 
-To compile and run SPS, you will need:
-- Fortran and C compilers
-- An MPI implementation such as OpenMPI (with development package),
-- OpenMP support (optional)
-- (BLAS,LAPACK) or equivalent mathematical/scientific library (ie: MKL), with development package,
-- basic Unix utilities such as cmake (version 3.30 minimum), bash, sed, etc.
+- GNU (default): gcc, gfortran, OpenMPI
+- Intel: you may have to use: ```cmake .. -DCOMPILER_SUITE=intel```
+- Intel: you may need to modify ```-march``` to generate code that can run on your
+  system
 
-## Data for examples
+Compiler flags can be adjusted in:
+- CMakeLists.txt, under the section **# Adding specific flags for SPS**.
+- cmake_rpn/modules/ec_compiler_presets/default/Linux-x86_64/gnu.cmake or intel.cmake
 
-After having cloned or downloaded the git tar file of SPS from
-[github.com](https://github.com/ECCC-ASTD-MRD/sps), execute the script named
-**download-dbase.sh** or download and untar the data archive with the following
-link:
-[http://collaboration.cmc.ec.gc.ca/science/outgoing/goas/sps_dbase.tar.gz](http://collaboration.cmc.ec.gc.ca/science/outgoing/goas/sps_dbase.tar.gz)
+Make sure the compilers and libraries paths are set in the appropriate
+environment variables (PATH and LD_LIBRARY_PATH).  
 
-## Compiler specifics
+Here are some examples of commands for gnu compiler, which you will need to
+adapt for your setup: 
 
-### GNU compiler suite
-- By default SPS is configured to use gfortran and gcc compilers, and OpenMPI
-- Changes to the C and Fortran flags can be done in the  **CMakeLists.txt**
-  file, under the section **# Adding specific flags for SPS**.
-- You can also check  the C and Fortran flags in **cmake_rpn/modules/ec_compiler_presets/default/Linux-x86_64/gnu.cmake**
-- Make sure the compilers and libraries paths are set in the appropriate
-  environment variables (PATH and LD_LIBRARY_PATH).  Here are some examples
-  of commands, which you will need to adapt for your setup:
   - On Ubuntu:
   
 ```
@@ -125,29 +118,6 @@ link:
     export LD_LIBRARY_PATH=/usr/lib64/openmpi/lib:$LD_LIBRARY_PATH
 ```
 
-### Intel compiler suite
-
-- Changes to the C and Fortran flags can be done in the  **CMakeLists.txt**
-  file, under the section **# Adding specific flags for SPS**.
-- You can also check  the C and Fortran flags in **cmake_rpn/modules/ec_compiler_presets/default/Linux-x86_64/intel.cmake**
-- You may need to modify ```-march``` to generate code that can run on your
-  system
-- Make sure the compilers and libraries are in the appropriate
-  environment variables (```PATH``` and ```LD_LIBRARY_PATH```)
-- As gnu is the default compiler suite, you may have to use the following
-  command to compile with Intel: ```cmake .. -DCOMPILER_SUITE=intel```
-
-## Compiling and installing SPS
-
-You can add extra CMake arguments such as```-DCMAKE_VERBOSE_MAKEFILE=ON```.
-
-You can also add ```-j``` to **make** to launch multiple compile tasks in
-parallel.
-
-[OpenMP](https://www.openmp.org/) is enabled by default.  If you wish to build
-without OpenMP support, you can add the ```-DWITH_OPENMP=OFF``` argument when
-running **cmake**.
-
 The default compiler suite is GNU. If you want to compile with other compilers,
 add ```-DCOMPILER_SUITE=<compiler suite name (gnu|intel|...)>``` to the CMake
 command line.  
@@ -157,31 +127,30 @@ Other compilers have also been used in the past, but have not been tested
 with the current release.  You will likely have to modify the *.cmake files
 in the **cmake_rpn/modules/ec_compiler_presets/default/** folder.
 
+## Useful CMake options
+
+```
+-DCMAKE_VERBOSE_MAKEFILE=ON   # verbose build
+-DWITH_OPENMP=OFF             # disable OpenMP
+```
+ 
+## Building and installing SPS
+
 If you get error messages (for example, compiler, OpenMP or MPI/OpenMPI not
 found), make sure that the ```PATH``` and ```LD_LIBRARY_PATH``` environment
-variables contain the appropriate paths.  You can also add
-```-DCMAKE_VERBOSE_MAKEFILE=ON``` to your **cmake** command line to generate
-verbose makefiles which will print the exact compiler command lines issued.
+variables contain the appropriate paths, and use
+```-DCMAKE_VERBOSE_MAKEFILE=ON``` to your **cmake** command line.
 
 If the compiler or compile options are not right:
 - Remove the content of the build directory
 - Make appropriate changes to the cmake files corresponding to the
-  compilers you are using
+  compiler suite you are using
 - Re-launch the commands starting at cmake
 
 The installation process will create a directory named after the operating system
 on which the compilation was executed, and the compiler you used
 (work-[OS_NAME]-[COMPILER_NAME]). For example
-*work-FedoraLinux-37-x86_64-gnu-12.3.1* would be created in the main directory,
-and the following executables installed in the *bin* sub-folder: 
-- cclargs_lite
-- feseri
-- flipit
-- mainspsdm
-- prphynml
-- yy2global
-- yydecode
-- yyencode
+*work-FedoraLinux-37-x86_64-gnu-12.3.1* would be created in the main directory.
 
 A script named sps-config is also installed. It displays a summary of the
 architecture, compiler, and flags used.
@@ -205,7 +174,6 @@ example *work-FedoraLinux-37-x86_64-gnu-12.3.1*
 cd work-[OS_NAME]-[COMPILER_NAME]
 or
 cd $SPS_WORK
-# Execute the model for a specific case, for example:
 sps.sh --dircfg configurations/SPS_cfgs --ptopo 2x2x1
 ```
 
@@ -259,14 +227,13 @@ Research Division, Environment and Climate Change Canada.
 
 The execution of all three components of SPS is configurable through the use
 of three configuration files called:
-- sps.cfg: file containing some namelists to configure the model execution
-- outcfg.out: file used to configure the model output
-- configexp.cfg: file used to configure the execution shell environment
+- sps.cfg: namelists to configure the model execution
+- outcfg.out: to configure the model output
+- configexp.cfg: to configure the execution shell environment
+- physics_input_table
 
 Examples of these files can be found in the test cases in the configurations
 directory.
-
-A fourth configuration file is physics_input_table.
 
 ## Running your own configuration
 
