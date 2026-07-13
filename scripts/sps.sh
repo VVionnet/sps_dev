@@ -444,7 +444,7 @@ runmodel() {
       rmpirun="$(which r.run_in_parallel || true)"
       [[ x$rmpirun == x ]] && rmpirun="r.mpirun"
       if [[ ${debugger} == "ddt" ]] ; then
-         . ssmuse-sh -x /fs/ssm/main/opt/forge/21.1.3
+         . ssmuse-sh -x main/opt/forge/24.1.1
          mycmd="ddt mpirun -n $((MPI_NGRIDS*MPI_NPEX*MPI_NPEY)) ${TASK_BIN}/${model_name}.Abs "
       else
          mycmd="$rmpirun -pgm ${TASK_BIN}/${model_name}.Abs -npex $((MPI_NGRIDS*MPI_NPEX*MPI_NPEY)) -npey $MPI_NDOMS ${inorder} ${nompi} ${debug} ${preexec} -minstdout 3"
