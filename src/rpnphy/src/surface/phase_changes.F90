@@ -29,6 +29,7 @@ contains
       use svs_configs
       use tdpack
       use svs2_tile_configs
+      use, intrinsic :: iso_fortran_env, only: real64
 
       implicit none
 ! #include <arch_specific.hf>
@@ -36,7 +37,8 @@ contains
 !    declarations of arguments
       INTEGER N,TRNCH
       REAL DT, LAI(N), FCD(N,NL_SVS), BCOEF(N,NL_SVS), PSISAT(N,NL_SVS), WSAT(N,NL_SVS)
-      REAL TG(N,NL_SVS), WDT(N,NL_SVS), WDTT(N,NL_SVS), WF(N,NL_SVS), WFT(N,NL_SVS), CAP(N,NL_SVS)
+      REAL(REAL64) TG(N,NL_SVS)
+      REAL WDT(N,NL_SVS), WDTT(N,NL_SVS), WF(N,NL_SVS), WFT(N,NL_SVS), CAP(N,NL_SVS)
       REAL DELWATER(N,NL_SVS), DELICE(N,NL_SVS), TFL(N), WFL_ICE(N), WFLT(N), PFLHCAP(N), WRMAX_FL(N)
       REAL PHASEF(N,NL_SVS), PHASEM(N,NL_SVS),DELTAT(N,NL_SVS), APPHEATCAP(N,NL_SVS), TMAX(N,NL_SVS)
       REAL WTG(N,svs2_tilesp1), DZ_FL(N)
@@ -102,8 +104,8 @@ contains
       INTEGER I, K
 !
 
-      real WORK, WORKLOG, WLMAX, PSIMAX, PSI, ZK, WGM, WGIM, TGM
-!      real PHASEM, PHASEF, PHASE, DELTAT, APPHEATCAP, PSISATZ
+      real WORK, WORKLOG, WLMAX, PSIMAX, PSI, ZK, WGM, WGIM
+      real(REAL64) :: TGM
       real PSISATZ
       real, DIMENSION(N) :: PHI_FL, & ! The phase change rate for forest litter (kg m−2 s−1)
                             EXCESS_FL, & ! Variable to adjust mass balance due to refreezing/melting of forest litter
@@ -144,7 +146,7 @@ contains
 !                      as function of temperature (sub-freezing)
 !                      based on Gibbs free energy (Fuchs et al., 1978):
 !
-            PSIMAX  = MIN(PSISATZ, CHLF * (TG(I,K) - TRPL) / (GRAV * TG(I,K)))
+            PSIMAX  = MIN(REAL(PSISATZ, REAL64), CHLF * (TG(I,K) - TRPL) / (GRAV * TG(I,K)))
 
             WORK    = PSIMAX/PSISATZ
             WORKLOG = LOG(WORK)/BCOEF(I,K)

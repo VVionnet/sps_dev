@@ -132,4 +132,47 @@ subroutine DIFUVD2(P, A, B, C, D, DELTA, NP, N, NK)
 end subroutine DIFUVD2
 
 
+subroutine DIFUVD2_R8(P, A, B, C, D, DELTA, NP, N, NK)
+   use iso_fortran_env, only : real64
+   implicit none
+
+   integer NP, N, NK
+   real(real64) P(NP,NK), A(N,NK), B(N,NK), C(N,NK)
+   real(real64) D(N,NK), DELTA(N,NK)
+
+   ! Double-precision variant of DIFUVD2 for callers that assemble their
+   ! tridiagonal system in real64. Keep the distinct procedure name so the
+   ! existing default-real callers and interfaces remain unchanged.
+   real(real64) X
+   integer I, K
+
+   do I=1,N
+      C(I,NK)=0.0_real64
+      X=1.0_real64/B(I,1)
+      P(I,1)=-C(I,1)*X
+      DELTA(I,1)=D(I,1)*X
+   end do
+
+   do K=2,NK
+      do I=1,N
+         X=1.0_real64/(B(I,K)+A(I,K)*P(I,K-1))
+         P(I,K)=-C(I,K)*X
+         DELTA(I,K)=(D(I,K)-A(I,K)*DELTA(I,K-1))*X
+      enddo
+   enddo
+
+   do I=1,N
+      P(I,NK)=DELTA(I,NK)
+   enddo
+
+   do K=NK-1,1,-1
+      do I=1,N
+         P(I,K)=P(I,K)*P(I,K+1)+DELTA(I,K)
+      enddo
+   enddo
+
+   return
+end subroutine DIFUVD2_R8
+
+
 end module difuvd12_mod

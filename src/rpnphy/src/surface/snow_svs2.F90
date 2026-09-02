@@ -71,6 +71,7 @@ USE MU_JDATE_MOD,    ONLY: MU_JS2YMDHMS
 USE MODI_SNOW3L
 USE MODI_SNOWCRO
 USE MODI_SNOWCRO_DIAG
+USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY: REAL64
 !
 ! Namelist containing the options of the snowpack schemes. 
 use sfc_options
@@ -138,7 +139,7 @@ REAL, DIMENSION(N), INTENT(IN)      :: PZ0NAT, PZ0EFF, PZ0HNAT
 !                                      PZ0HNAT   = grid box average roughness length
 !
 !
-REAL, DIMENSION(N,NSOIL), INTENT(INOUT) :: PTG
+REAL(REAL64), DIMENSION(N,NSOIL), INTENT(INOUT) :: PTG
 !                                      PTG       = Soil temperature profile (K)
 !
 REAL, DIMENSION(N,NSOIL), INTENT(IN)    :: PSOILHCAPZ, PD_G, PDZG
@@ -824,7 +825,8 @@ REAL, DIMENSION(KSIZE1)        :: ZP_PSN3L
 REAL, DIMENSION(KSIZE1)        :: ZP_TAR
 REAL, DIMENSION(KSIZE1)        :: ZP_TAC
 REAL, DIMENSION(KSIZE1)        :: ZP_CT
-REAL, DIMENSION(KSIZE1,KSIZE3) :: ZP_TG
+REAL(REAL64), DIMENSION(KSIZE1,KSIZE3) :: ZP_TG
+REAL, DIMENSION(KSIZE1)        :: ZP_TG_R4
 REAL, DIMENSION(KSIZE1,KSIZE3) :: ZP_D_G
 REAL, DIMENSION(KSIZE1,KSIZE3) :: ZP_DZG
 REAL, DIMENSION(KSIZE1,KSIZE3) :: ZP_SOILHCAPZ
@@ -1215,6 +1217,10 @@ ENDIF
 !
 ! Call ISBA-SNOW3L model:  
 !  
+! SURFEX snow schemes consume the soil surface temperature but do not update
+! it. Project only that input to their legacy single-precision interface.
+ZP_TG_R4(:) = REAL(ZP_TG(:,1), KIND(ZP_TG_R4))
+
 IF (HSNOWSCHEME=='CRO') THEN 
       CALL SNOWCRO(HSNOWRES, TPTIME, LMEB, CIMPLICIT_WIND,    &
                 ZP_PEW_A_COEF, ZP_PEW_B_COEF, ZP_PET_A_COEF, ZP_PEQ_A_COEF,   &
@@ -1222,7 +1228,7 @@ IF (HSNOWSCHEME=='CRO') THEN
                 ZP_SNOWHEAT, ZP_SNOWALB, ZP_SNOWDIAMOPT, ZP_SNOWSPHERI,          &
                 ZP_SNOWHIST, ZP_SNOWAGE,ZP_SNOWIMPUR, PTSTEP, ZP_PS,          &
                 ZP_SRSNOW,ZP_UNLOAD,ZP_RRSNOW, ZP_PSN3L, ZP_PRESA_SN,         &
-                ZP_TAR, ZP_TG(:,1),ZP_SW_RAD,                                 &
+                ZP_TAR, ZP_TG_R4,ZP_SW_RAD,                                   &
                 ZP_QA,ZP_VMOD,ZP_VMOD_DRIFT, ZP_LW_RAD, ZP_RHOA, ZP_UREF,     &
                 ZP_EXNS, ZP_EXNA,                                             &
                 ZP_DIRCOSZW,ZP_SLOPEDIR, ZP_ZREF, ZP_Z0NAT, ZP_Z0EFF, ZP_Z0HNAT,          &
@@ -1276,7 +1282,7 @@ IF (HSNOWSCHEME=='CRO') THEN
              ZP_PET_A_COEF, ZP_PEQ_A_COEF,ZP_PET_B_COEF, ZP_PEQ_B_COEF,    &
              ZP_SNOWSWE, ZP_SNOWRHO, ZP_SNOWHEAT, ZP_SNOWALB,              &
              ZP_SNOWAGE, PTSTEP,ZP_PS, ZP_SRSNOW, ZP_UNLOAD,               &
-             ZP_RRSNOW, ZP_PSN3L, ZP_PRESA_SN, ZP_TAR, ZP_TAC, ZP_TG(:,1), &
+             ZP_RRSNOW, ZP_PSN3L, ZP_PRESA_SN, ZP_TAR, ZP_TAC, ZP_TG_R4, &
              ZP_SW_RAD, ZP_QA, ZP_VMOD, ZP_VMOD_DRIFT, ZP_LW_RAD, ZP_RHOA, ZP_UREF,       &
              ZP_EXNS, ZP_EXNA, ZP_DIRCOSZW, ZP_ZREF, ZP_Z0NAT, ZP_Z0EFF,   &
              ZP_Z0HNAT, ZP_ALB, ZP_SOILCOND, ZP_D_G(:,1),                  &

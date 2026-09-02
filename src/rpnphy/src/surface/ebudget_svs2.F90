@@ -14,6 +14,7 @@
 !CANADA, H9P 1J3; or send e-mail to service.rpn@ec.gc.ca
 !-------------------------------------- LICENCE END ---------------------------
 module ebudget_svs2_mod
+  use iso_fortran_env, only : real64
   implicit none
   public
 contains
@@ -55,7 +56,7 @@ contains
       use canopy_csts, only: EMSNV, ALSNV
       use svs2_tile_configs
       use phy_status, only: physeterror
-      use difuvd12_mod, only: difuvd2
+      use difuvd12_mod, only: difuvd2_r8
       use MODE_THERMOS
 
       implicit none
@@ -68,7 +69,8 @@ contains
       REAL VDIR(N), LAT(N), PGRNDFLUX(N), PGRNDFLUXV(N)
       REAL TGRS(N), TGRVS(N), TVGLS(N), TVGHS(N) 
       REAL TSNS(N,NSL), TSVS(N,NSL), TFL(N)
-      REAL TP(N,NL_SVS), TPERM(N)
+      REAL(REAL64) TP(N,NL_SVS)
+      REAL TPERM(N)
       REAL WD(N,NL_SVS), WF(N,NL_SVS), WFL(N)
       REAL RG(N), RGCAN(N), ALVG(N), ALVL(N), ALVH(N), RAT(N), RATCAN(N)
       REAL ZUSL(N), ZTSL(N),THETAA(N), FCOR(N)
@@ -293,7 +295,8 @@ contains
       REAL, DIMENSION(NL_SVS)   :: DZ       ! Local variable
       REAL, DIMENSION(NL_SVS)   :: DELZZ    ! (m) thickness of the soil between 2 temperature levels
       REAL, DIMENSION(N,NL_SVS) :: SOILCD   ! W/(m K) two layers averaged soil heat conductivity
-      REAL, DIMENSION(N,NL_SVS) :: A2, B2, C2, D2, A4, B4, C4, D4
+      REAL(REAL64), DIMENSION(N,NL_SVS) :: A2, B2, C2, D2
+      REAL, DIMENSION(N,NL_SVS) :: A4, B4, C4, D4
 
 !
 !     MULTIBUDGET VARIABLES
@@ -477,7 +480,7 @@ contains
 !
             BVL(I) = SKINCOND_VL(I)*TP(I,1) + (1.-ALVL(I))*RG(I) +EMISVL(I)*RAT(I) &
                + 3.*EMISVL(I)*STEFAN*(TVGLS(I)**4) +RORAVGL(I)*CPD*THETAA(I) &
-               + RORAVGL(I)*CHLC * HV_VL(I)*ZDQSATVGL(I)*TGRS(I) &
+               + RORAVGL(I)*CHLC * HV_VL(I)*ZDQSATVGL(I)*TVGLS(I) &
                - RORAVGL(I)*CHLC * HV_VL(I)*(ZQSATVGL(I)-HU(I))
 !
 !
@@ -842,7 +845,7 @@ contains
 !                             matrix inversion to solve evoluation of TP
 !
 !
-      CALL DIFUVD2(TP, A2, B2, C2, D2, D2, N, N, NL_SVS)
+      CALL DIFUVD2_R8(TP, A2, B2, C2, D2, D2, N, N, NL_SVS)
 !
 !
 !!       7.     FLUX CALCULATIONS

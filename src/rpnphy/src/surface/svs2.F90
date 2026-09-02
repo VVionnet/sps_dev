@@ -20,8 +20,8 @@ module svs2_mod
   implicit none
   public
 contains
-subroutine svs2(BUS, BUSSIZ, PTSURF, PTSURFSIZ, DT, KOUNT, TRNCH, N, M, NK)
-   use, intrinsic :: iso_fortran_env, only: INT64
+subroutine svs2(BUS, BUSSIZ, PTSURF, PTSURFSIZ, DT, KOUNT, TRNCH, N, M, NK, TPSOIL_STATE_R8)
+   use, intrinsic :: iso_fortran_env, only: INT64, REAL64
    use phy_status, only: phy_error_L, physeterror
    use sfclayer, only: sl_prelim,sl_sfclayer,SL_OK
    use mu_jdate_mod, only: jdate_day_of_year, mu_js2ymdhms
@@ -77,6 +77,7 @@ subroutine svs2(BUS, BUSSIZ, PTSURF, PTSURFSIZ, DT, KOUNT, TRNCH, N, M, NK)
 ! N             running length
 ! M             horizontal dimension
 ! NK            vertical dimension
+! TPSOIL_STATE_R8 optional persistent R8 soil-temperature state
 !
 !
 !
@@ -86,6 +87,7 @@ subroutine svs2(BUS, BUSSIZ, PTSURF, PTSURFSIZ, DT, KOUNT, TRNCH, N, M, NK)
    real,target :: bus(bussiz)
    integer PTSURFSIZ
    integer PTSURF(PTSURFSIZ)
+   real(REAL64), target, intent(inout), optional :: TPSOIL_STATE_R8(N, NL_SVS)
 
    integer SURFLEN
 
@@ -196,10 +198,16 @@ subroutine svs2(BUS, BUSSIZ, PTSURF, PTSURFSIZ, DT, KOUNT, TRNCH, N, M, NK)
 
      ! NL_SVS VARIABLES
    real, dimension(n,nl_svs) ::  pd_g, pdzg
-   real,dimension(n,nl_svs) :: psoil_temp_vgh  ! Soil temperature at the bottom of the snowpack under high vegetation
+   real(REAL64),dimension(n,nl_svs) :: psoil_temp_vgh  ! Soil temperature at the bottom of the snowpack under high vegetation
    real,dimension(n,nl_svs) :: PSOILHCAPZ_VGH  ! Soil heat capacity at the bottom of the snowpack under high vegetation
    real,dimension(n) :: PSOILCONDZ_VGH  ! Soil thermal conductivity at the bottom of the snowpack under high vegetation
    integer,dimension(n) :: NSNOWV  ! Number of snow layers used in the forest
+
+   ! TPSOIL_WORK is always R8 during an SVS2 call. A caller can optionally
+   ! supply persistent R8 storage; otherwise the existing R4 bus initializes
+   ! a temporary working profile and receives the projected result.
+   real(REAL64), target :: TPSOIL_LOCAL(N, NL_SVS)
+   real(REAL64), pointer :: TPSOIL_WORK(:, :)
 
 !
 
@@ -224,6 +232,17 @@ subroutine svs2(BUS, BUSSIZ, PTSURF, PTSURFSIZ, DT, KOUNT, TRNCH, N, M, NK)
       if (atm_external .and. kount == 0) return
 !
       SURFLEN = M
+
+      IF (PRESENT(TPSOIL_STATE_R8)) THEN
+         TPSOIL_WORK => TPSOIL_STATE_R8
+      ELSE
+         DO J = 1, NL_SVS
+            DO I = 1, N
+               TPSOIL_LOCAL(I,J) = REAL(BUS(x(TPSOIL,I,J)), REAL64)
+            END DO
+         END DO
+         TPSOIL_WORK => TPSOIL_LOCAL
+      END IF
 
 ! assign pointers
       z0h      (1:n) => bus( x(z0t,1,indx_sfc)   : )
@@ -697,7 +716,7 @@ subroutine svs2(BUS, BUSSIZ, PTSURF, PTSURFSIZ, DT, KOUNT, TRNCH, N, M, NK)
       CALL SNOW_SVS2(   bus(x(SNOMA_SVS,1,1)), bus(x(TSNOW_SVS,1,1)), bus(x(WSNOW_SVS,1,1)),    &
                          bus(x(SNODEN_SVS,1,1)),  bus(x(SNOAL,1,1)),bus(x(SNOAGE_SVS,1,1)),    &
                          bus(x(SNODIAMOPT_SVS,1,1)), bus(x(SNOSPHERI_SVS,1,1)),bus(x(SNOHIST_SVS,1,1)),   &
-                         DT, bus(x(TPSOIL    ,1,1)) ,  PCT, bus(x(SOILHCAPZ,1,1)), bus(x(SOILCONDZ,1,1)),                 &
+                         DT, TPSOIL_WORK, PCT, bus(x(SOILHCAPZ,1,1)), bus(x(SOILCONDZ,1,1)),                 &
                          ps,tt,zfsolis,     &
                          hu, VMOD, PWIND_DRIFT_OPEN, &
                          bus(x(FDSI,1,1)),         &
@@ -726,7 +745,7 @@ subroutine svs2(BUS, BUSSIZ, PTSURF, PTSURFSIZ, DT, KOUNT, TRNCH, N, M, NK)
          
          IF (.NOT. LFORLIT) THEN
             DO J=1,NL_SVS
-               PSOIL_TEMP_VGH(I,J) = bus(x(TPSOIL,I,J))
+               PSOIL_TEMP_VGH(I,J) = TPSOIL_WORK(I,J)
                PSOILHCAPZ_VGH(I,J) = bus(x(SOILHCAPZ,I,J))
             ENDDO
             PSOILCONDZ_VGH(I) = bus(x(SOILCONDZ,I,1))
@@ -735,7 +754,7 @@ subroutine svs2(BUS, BUSSIZ, PTSURF, PTSURFSIZ, DT, KOUNT, TRNCH, N, M, NK)
             PSOILHCAPZ_VGH(I,1)  = bus(x(FLHCAP   ,I,1))
 	    ! Fill the other values with soil values below the forest litter
             DO J=2,NL_SVS
-               PSOIL_TEMP_VGH(I,J) = bus(x(TPSOIL,I,J-1))
+               PSOIL_TEMP_VGH(I,J) = TPSOIL_WORK(I,J-1)
                PSOILHCAPZ_VGH(I,J) = bus(x(SOILHCAPZ,I,J-1))
             ENDDO
             PSOILCONDZ_VGH(I) = bus(x(FLCOND   ,I,1))
@@ -812,7 +831,7 @@ subroutine svs2(BUS, BUSSIZ, PTSURF, PTSURFSIZ, DT, KOUNT, TRNCH, N, M, NK)
                   bus(x(WFL     ,1,1)) , rainrate_mm_veg, &
                   bus(x(TGROUND   ,1,1)) , bus(x(TGROUNDV,1,1)),  &
                   bus(x(TVEGEL    ,1,1)) , bus(x(TVEGEH  ,1,1)) ,    &
-                  bus(x(TPSOIL    ,1,1)) , bus(x(TFL  ,1,1)) , &
+                  TPSOIL_WORK, bus(x(TFL  ,1,1)) , &
                   bus(x(TPERM     ,1,1)) , bus(x(GFLUXSA,1,1)), bus(x(GFLUXSV,1,1)), &
                   DT                     , VMOD, VDIR, bus(x(DLAT,1,1)),     &
                   zfsolis, bus(x(SWCA,1,1)),ALVA ,bus(x(laiva,1,1)),         &
@@ -964,12 +983,18 @@ subroutine svs2(BUS, BUSSIZ, PTSURF, PTSURFSIZ, DT, KOUNT, TRNCH, N, M, NK)
 !
       CALL PHASE_CHANGES (DT, BUS(x(SVS_WTG,1,1)), bus(x(LAIVA  ,1,1)), BUS(x(SOILHCAPZ,1,1)),  bus(x(DZ_FL,1,1)), &
                       bus(x(WSAT   ,1,1)), bus(x(PSISAT  ,1,1)), bus(x(BCOEF  ,1,1)), &
-                      bus(x(TPSOIL ,1,1)), bus(x(ISOIL  ,1,1)),  &
+                      TPSOIL_WORK, bus(x(ISOIL  ,1,1)),  &
                       bus(x(WFL_ICE  ,1,1)), WFLT, WRMAX_FL, bus(x(TFL ,1,1)),bus(x(FLHCAP ,1,1)),&
                       WSOILT,WFTG, WDTTG, DELWATGR, DELICEGR, &
                       bus(x(FROOTD ,1,1)),  N  , &
                       bus(x(PHASEF ,1,1)), bus(x(PHASEM ,1,1)) , &
                       bus(x(DELTAT ,1,1)), bus(x(APPHEATCAP ,1,1)), bus(x(TMAX ,1,1)) )
+
+       DO J = 1, NL_SVS
+          DO I = 1, N
+             BUS(x(TPSOIL,I,J)) = REAL(TPSOIL_WORK(I,J), KIND(BUS))
+          END DO
+       END DO
 
        ! Update the soil liquid water and ice content after phase changes
        DO I=1,N
