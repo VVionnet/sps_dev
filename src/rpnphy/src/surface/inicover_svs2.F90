@@ -336,6 +336,10 @@ subroutine inicover_svs2(pvars, kount, ni)
       MKPTR2D(zlaivf26,laivf26)
       MKPTR2D(zvegf,vegf)
 
+      ! Read some of the look up tables from namelist
+      if (svs_read_laidat)    laidat    = svs_laidat
+      if (svs_read_vegdat)    vegdat    = svs_vegdat
+
       if (svs_urban_params) then ! modify urban surface parameters set above
          cvdat(21)   = 0.3E-5
          z0mdat(21)  = 1.0
