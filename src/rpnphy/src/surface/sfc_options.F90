@@ -907,6 +907,14 @@ module sfc_options
    real    :: svs_d95dat(NCLASS) = -999.
    namelist /surface_cfgs/ svs_d95dat
 
+   !# Option to change the lookup table LAIDAT in inicover_svs2.F90
+   logical :: svs_read_laidat = .false.
+   namelist /surface_cfgs/ svs_read_laidat
+
+   !# Values (1:NCLASS) used for the lookup table LAIDAT if svs_read_laidat=.T.
+   real    :: svs_laidat(NCLASS) = -999.
+   namelist /surface_cfgs/ svs_laidat
+   
    !# Option to change the lookup table VEGDAT in inicover_svs.F90
    logical :: svs_read_vegdat = .false.
    namelist /surface_cfgs/ svs_read_vegdat
